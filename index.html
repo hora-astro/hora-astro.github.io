@@ -113,7 +113,6 @@
         const time = document.getElementById('time').value;
         const container = document.getElementById('chart-container');
         
-        // APNA USERNAME YAHAN DALEN
         const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}`;
 
         try {
@@ -123,21 +122,51 @@
             if(result.status === "success") {
                 container.style.display = 'block';
                 
-                // Sabhi houses ko khali karein
-                for(let i=1; i<=12; i++) document.getElementById('h'+i).innerHTML = "";
+                // 1. Sabhi houses ko khali karein
+                for(let i=1; i<=12; i++) {
+                    const houseDiv = document.getElementById('h'+i);
+                    houseDiv.innerHTML = "";
+                    // Purane rashi numbers ko hatayein agar koi hain toh
+                    const oldRashi = houseDiv.querySelector('.rashi-number');
+                    if(oldRashi) oldRashi.remove();
+                }
 
-                // Planets ko unke houses mein dalein
-                // Note: Iske liye aapka API house number bhi bhej raha hona chahiye
+                // 2. Rashi Numbers bithaayein (Lagna ke hisaab se)
+                const ascNum = result.asc_num;
+                for(let i=1; i<=12; i++) {
+                    let rashiVal = ((ascNum + i - 2) % 12) + 1;
+                    const houseDiv = document.getElementById('h'+i);
+                    
+                    // Ek naya span banayein rashi number ke liye
+                    let rashiSpan = document.createElement('span');
+                    rashiSpan.className = 'rashi-number';
+                    rashiSpan.innerText = rashiVal;
+                    
+                    // Ise ghar ke kone mein set karein
+                    rashiSpan.style.position = 'absolute';
+                    rashiSpan.style.top = '2px';
+                    rashiSpan.style.right = '5px';
+                    rashiSpan.style.color = 'red';
+                    rashiSpan.style.fontSize = '12px';
+                    
+                    houseDiv.appendChild(rashiSpan);
+                }
+
+                // 3. Planets ko unke houses mein dalein
                 result.data.forEach(p => {
-                    // Yahan hum man kar chal rahe hain ki aapke API response mein 'house' key hai
-                    // Agar nahi hai, toh purane code ka house logic API mein add karna hoga
                     if(p.house) {
                         const houseDiv = document.getElementById('h' + p.house);
-                        houseDiv.innerHTML += p.name.substring(0,2) + " ";
+                        // Planet ka naam add karein (Rashi number ke baad)
+                        let pName = document.createElement('span');
+                        pName.innerText = p.name.substring(0,2) + " ";
+                        pName.style.display = 'inline-block';
+                        pName.style.marginTop = '15px'; // Taaki number se na takraye
+                        houseDiv.appendChild(pName);
                     }
                 });
 
-                let table = "<h4>Planet Details</h4><table style='width:100%'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
+                // 4. Details Table
+                let table = "<h4>Planet Details</h4><table style='width:100%; border-collapse: collapse;' border='1'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
                     table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree}°</td></tr>`;
                 });
