@@ -14,59 +14,60 @@
         button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; width: 92%; }
         button:hover { background: #e64a19; transform: translateY(-2px); }
 
-        /* Location Suggestions Styling */
-        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; text-align: left; left: 5%; border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; display: none; }
-        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-        .suggest-item:hover { background: #f0f0f0; }
-
-        /* Kundli Chart CSS */
+        /* Kundli Chart CSS - FIXED POSITIONS */
         #chart-container { margin-top: 30px; display: none; }
-        .kundli-box { position: relative; width: 350px; height: 350px; border: 2px solid #333; margin: auto; background: #fff; }
-        .line { position: absolute; background: #333; }
+        .kundli-box { position: relative; width: 350px; height: 350px; border: 2px solid #333; margin: auto; background: #fff; overflow: hidden; }
+        .line { position: absolute; background: #333; z-index: 1; }
         .diag1 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(45deg); }
         .diag2 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(-45deg); }
-        .inner-rect { position: absolute; width: 247.5px; height: 247.5px; border: 2px solid #333; top: 51px; left: 51px; transform: rotate(45deg); }
+        .inner-rect { position: absolute; width: 247px; height: 247px; border: 2px solid #333; top: 50px; left: 50px; transform: rotate(45deg); z-index: 1; }
         
-        /* House Positioning Fixes */
-        .house { position: absolute; font-weight: bold; width: 70px; height: 70px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; z-index: 2; pointer-events: none; }
-        .h1 { top: 75px; left: 140px; }   .h2 { top: 35px; left: 70px; }
-        .h3 { top: 35px; left: 210px; }  .h4 { top: 110px; left: 70px; }
-        .h5 { top: 185px; left: 35px; }  .h6 { top: 255px; left: 70px; }
-        .h7 { top: 210px; left: 140px; } .h8 { top: 255px; left: 210px; }
-        .h9 { top: 185px; left: 245px; } .h10 { top: 110px; left: 210px; }
-        .h11 { top: 35px; left: 245px; } .h12 { top: 35px; left: 35px; }
+        /* House Styling */
+        .house { 
+            position: absolute; width: 80px; height: 80px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 5; pointer-events: none; 
+        }
 
-        .rashi-number { position: absolute; color: #e74c3c; font-size: 14px; top: 2px; right: 5px; }
-        .planet-item { font-size: 11px; margin: 1px; color: #2c3e50; }
-        .planet-list { margin-top: 20px; font-size: 14px; color: #555; }
+        /* NEW FIXED COORDINATES - Anti-Clockwise */
+        .h1 { top: 75px;  left: 135px; }  .h2 { top: 30px;  left: 60px; }
+        .h3 { top: 30px;  left: 210px; } .h4 { top: 110px; left: 70px; }
+        .h5 { top: 190px; left: 30px; }  .h6 { top: 260px; left: 60px; }
+        .h7 { top: 195px; left: 135px; } .h8 { top: 260px; left: 210px; }
+        .h9 { top: 190px; left: 240px; } .h10 { top: 110px; left: 200px; }
+        .h11 { top: 30px;  left: 240px; } .h12 { top: 30px;  left: 30px; }
+
+        .rashi-number { color: #e74c3c; font-size: 14px; font-weight: bold; margin-bottom: 2px; }
+        .planet-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 70px; }
+        .planet-item { font-size: 11px; font-weight: bold; color: #2c3e50; background: rgba(255,255,255,0.7); border-radius: 3px; padding: 1px; }
+
+        /* Table Styling */
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: white; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f4f4f4; }
+
+        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; text-align: left; left: 5%; border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; display: none; }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Hora Astro 🌌</h1>
-    
     <div class="input-group">
         <input type="text" id="location" placeholder="Sheher ka naam (e.g. Jaipur)" oninput="searchLocation()" autocomplete="off">
         <div id="suggestions"></div>
         <input type="hidden" id="lat" value="28.6139">
         <input type="hidden" id="lng" value="77.2090">
     </div>
-
-    <div class="input-group">
-        <input type="text" id="date" placeholder="Date (YYYY/MM/DD) e.g. 1980/03/27">
-    </div>
-    <div class="input-group">
-        <input type="text" id="time" placeholder="Time (HH:MM) e.g. 08:10">
-    </div>
+    <div class="input-group"><input type="text" id="date" placeholder="Date (YYYY/MM/DD)"></div>
+    <div class="input-group"><input type="text" id="time" placeholder="Time (HH:MM)"></div>
     <button onclick="fetchKundli()">Janm Kundli Dekhein</button>
 
     <div id="chart-container">
         <h3>Aapki Janm Kundli (North Indian)</h3>
         <div class="kundli-box">
-            <div class="line diag1"></div>
-            <div class="line diag2"></div>
-            <div class="inner-rect"></div>
+            <div class="line diag1"></div><div class="line diag2"></div><div class="inner-rect"></div>
             <div id="h1" class="house h1"></div><div id="h2" class="house h2"></div>
             <div id="h3" class="house h3"></div><div id="h4" class="house h4"></div>
             <div id="h5" class="house h5"></div><div id="h6" class="house h6"></div>
@@ -74,37 +75,34 @@
             <div id="h9" class="house h9"></div><div id="h10" class="house h10"></div>
             <div id="h11" class="house h11"></div><div id="h12" class="house h12"></div>
         </div>
-        <div id="planet-data" class="planet-list"></div>
+        <div id="planet-data"></div>
     </div>
 </div>
 
 <script>
+    // Search Location (Nominatim API)
     let timer;
     function searchLocation() {
-        const query = document.getElementById('location').value;
-        const suggestDiv = document.getElementById('suggestions');
-        if (query.length < 3) { suggestDiv.style.display = "none"; return; }
-
+        const q = document.getElementById('location').value;
+        const s = document.getElementById('suggestions');
+        if (q.length < 3) { s.style.display="none"; return; }
         clearTimeout(timer);
         timer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`)
-                .then(res => res.json())
-                .then(data => {
-                    suggestDiv.innerHTML = "";
-                    suggestDiv.style.display = "block";
-                    data.forEach(place => {
-                        let div = document.createElement('div');
-                        div.className = "suggest-item";
-                        div.innerText = place.display_name;
-                        div.onclick = () => {
-                            document.getElementById('location').value = place.display_name;
-                            document.getElementById('lat').value = place.lat;
-                            document.getElementById('lng').value = place.lon;
-                            suggestDiv.style.display = "none";
-                        };
-                        suggestDiv.appendChild(div);
-                    });
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
+            .then(res => res.json()).then(data => {
+                s.innerHTML = ""; s.style.display="block";
+                data.forEach(p => {
+                    let d = document.createElement('div'); d.className="suggest-item";
+                    d.innerText = p.display_name;
+                    d.onclick = () => {
+                        document.getElementById('location').value = p.display_name;
+                        document.getElementById('lat').value = p.lat;
+                        document.getElementById('lng').value = p.lon;
+                        s.style.display="none";
+                    };
+                    s.appendChild(d);
                 });
+            });
         }, 500);
     }
 
@@ -113,47 +111,38 @@
         const time = document.getElementById('time').value;
         const lat = document.getElementById('lat').value;
         const lng = document.getElementById('lng').value;
-        const container = document.getElementById('chart-container');
-        
         const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
 
         try {
-            const response = await fetch(API_URL);
-            const result = await response.json();
+            const res = await fetch(API_URL);
+            const result = await res.json();
+            if (result.status === "success") {
+                document.getElementById('chart-container').style.display = 'block';
+                const asc = result.asc_num;
 
-            if(result.status === "success") {
-                container.style.display = 'block';
-                const ascNum = result.asc_num;
-
-                // 1. Clear Houses & Add Rashi Numbers in correct sequence
-                for(let i=1; i<=12; i++) {
+                // Update Houses
+                for (let i = 1; i <= 12; i++) {
                     const houseDiv = document.getElementById('h' + i);
-                    let rashiVal = ((ascNum + i - 2) % 12) + 1;
-                    houseDiv.innerHTML = `<span class="rashi-number">${rashiVal}</span>`;
+                    let rashiVal = ((asc + i - 2) % 12) + 1;
+                    houseDiv.innerHTML = `<span class="rashi-number">${rashiVal}</span><div class="planet-wrap" id="pw${i}"></div>`;
                 }
 
-                // 2. Add Planets
+                // Add Planets
                 result.data.forEach(p => {
-                    if(p.house) {
-                        const houseDiv = document.getElementById('h' + p.house);
-                        let pSpan = document.createElement('span');
-                        pSpan.className = 'planet-item';
-                        pSpan.innerText = p.name.substring(0,2);
-                        houseDiv.appendChild(pSpan);
+                    if (p.house) {
+                        const pWrap = document.getElementById('pw' + p.house);
+                        pWrap.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
                     }
                 });
 
-                // 3. Planet Details Table
-                let table = "<h4>Planet Details</h4><table style='width:100%; border-collapse: collapse;' border='1'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
+                // Render Table
+                let table = "<table><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
-                    let deg = p.degree !== undefined ? p.degree : "0.00";
-                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${deg}°</td></tr>`;
+                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
                 });
                 document.getElementById('planet-data').innerHTML = table + "</table>";
             }
-        } catch (error) {
-            alert("Server Error! Make sure app.py is running on PythonAnywhere.");
-        }
+        } catch (e) { alert("Server Error!"); }
     }
 </script>
 </body>
