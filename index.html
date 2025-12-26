@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
         body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; }
-        .card { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card { background: white; max-width: 500px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
         /* Kundli Chart CSS */
         .kundli-box { 
@@ -22,51 +22,50 @@
             border: 2px solid #333; top: 50px; left: 50px; transform: rotate(45deg); z-index: 1; 
         }
         
-        /* House Container - Positioned precisely */
+        /* House Styling - Zero Overlap Logic */
         .house { 
             position: absolute; width: 85px; height: 85px; 
             z-index: 5; display: flex; flex-direction: column;
-            pointer-events: none;
+            pointer-events: none; padding: 5px; box-sizing: border-box;
         }
 
-        /* Fixed Coordinates for Each House */
-        .h1 { top: 75px;  left: 132px; }  .h2 { top: 30px;  left: 65px; }
-        .h3 { top: 30px;  left: 200px; } .h4 { top: 110px; left: 65px; }
-        .h5 { top: 185px; left: 30px; }  .h6 { top: 255px; left: 65px; }
-        .h7 { top: 195px; left: 132px; } .h8 { top: 255px; left: 200px; }
-        .h9 { top: 185px; left: 235px; } .h10 { top: 110px; left: 200px; }
-        .h11 { top: 30px;  left: 235px; } .h12 { top: 30px;  left: 30px; }
+        /* Fixed Coordinates */
+        .h1 { top: 75px;  left: 132px; }  .h2 { top: 25px;  left: 65px; }
+        .h3 { top: 25px;  left: 200px; } .h4 { top: 105px; left: 60px; }
+        .h5 { top: 185px; left: 25px; }  .h6 { top: 260px; left: 65px; }
+        .h7 { top: 200px; left: 132px; } .h8 { top: 260px; left: 200px; }
+        .h9 { top: 185px; left: 240px; } .h10 { top: 105px; left: 205px; }
+        .h11 { top: 25px;  left: 240px; } .h12 { top: 25px;  left: 25px; }
 
-        /* Rashi Number - Top corner positioning */
+        /* Rashi Number - Top Center */
         .rashi-number { 
-            color: #e74c3c; font-size: 13px; font-weight: bold; 
-            text-align: right; padding-right: 5px; width: 100%;
+            color: #e74c3c; font-size: 14px; font-weight: bold; 
+            height: 20px; width: 100%; text-align: center;
         }
 
-        /* Planet Grid - To prevent horizontal overlap */
-        .planet-grid {
+        /* Planet Container - Grid to prevent mixing */
+        .planet-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 columns for planets */
+            grid-template-columns: repeat(2, 1fr);
             gap: 2px;
             justify-items: center;
             align-items: center;
-            padding: 2px;
-            margin-top: 5px;
+            flex-grow: 1;
         }
         .planet-item { 
             font-size: 10px; font-weight: bold; color: #000; 
-            background: rgba(255,255,255,0.8); border-radius: 2px;
-            padding: 1px 2px; white-space: nowrap;
+            background: rgba(255,255,255,0.9); border-radius: 2px;
+            padding: 1px 2px; line-height: 1;
         }
 
-        /* Inputs & UI */
+        /* UI elements */
         .input-group { margin-bottom: 10px; position: relative; }
         input { padding: 10px; width: 85%; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 90%; }
+        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 5px; width: 90%; font-weight: bold; }
         #suggestions { position: absolute; width: 90%; background: white; z-index: 100; left: 5%; border: 1px solid #ddd; display: none; text-align: left; }
-        .suggest-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
         table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 5px; }
+        th, td { border: 1px solid #ddd; padding: 6px; }
     </style>
 </head>
 <body>
@@ -74,7 +73,7 @@
 <div class="card">
     <h2>Hora Astro 🌌</h2>
     <div class="input-group">
-        <input type="text" id="location" placeholder="Search City..." oninput="searchLocation()" autocomplete="off">
+        <input type="text" id="location" placeholder="Type City..." oninput="searchLocation()" autocomplete="off">
         <div id="suggestions"></div>
         <input type="hidden" id="lat" value="28.6139">
         <input type="hidden" id="lng" value="77.2090">
@@ -98,7 +97,6 @@
 </div>
 
 <script>
-    // Location Search
     let timer;
     function searchLocation() {
         const q = document.getElementById('location').value;
@@ -138,34 +136,31 @@
                 document.getElementById('chart-container').style.display = 'block';
                 const asc = result.asc_num;
 
-                // 1. Reset Houses & Set Rashi Numbers
                 for (let i = 1; i <= 12; i++) {
                     const houseDiv = document.getElementById('h' + i);
                     let rashiVal = ((asc + i - 2) % 12) + 1;
                     houseDiv.innerHTML = `
                         <div class="rashi-number">${rashiVal}</div>
-                        <div class="planet-grid" id="pg${i}"></div>
+                        <div class="planet-container" id="pc${i}"></div>
                     `;
                 }
 
-                // 2. Add Planets in a Grid (Anti-Overlap)
                 result.data.forEach(p => {
                     if (p.house) {
-                        const pGrid = document.getElementById('pg' + p.house);
-                        if(pGrid) {
-                            pGrid.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
+                        const pCont = document.getElementById('pc' + p.house);
+                        if(pCont) {
+                            pCont.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
                         }
                     }
                 });
 
-                // 3. Table
                 let table = "<table><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
                     table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
                 });
                 document.getElementById('planet-data').innerHTML = table + "</table>";
             }
-        } catch (e) { alert("Server Error! PythonAnywhere check karein."); }
+        } catch (e) { alert("Check Connection!"); }
     }
 </script>
 </body>
