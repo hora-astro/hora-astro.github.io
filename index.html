@@ -3,65 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora-Astro | Kundli</title>
+    <title>Hora-Astro | Kundli Fixed</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); text-align: center; padding: 20px; }
-        .card { background: white; max-width: 600px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); margin-bottom: 25px; }
-        .input-group { margin-bottom: 15px; position: relative; }
-        input { padding: 12px; width: 85%; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; width: 92%; }
+        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; }
+        .card { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* Kundli Chart CSS - IMPROVED SPACING */
-        #chart-container { margin-top: 30px; display: none; }
-        .kundli-box { position: relative; width: 360px; height: 360px; border: 2.5px solid #333; margin: auto; background: #fff; overflow: hidden; }
+        /* Kundli Chart CSS */
+        .kundli-box { 
+            position: relative; width: 350px; height: 350px; 
+            border: 2px solid #333; margin: 20px auto; background: #fff; overflow: hidden; 
+        }
         .line { position: absolute; background: #333; z-index: 1; }
-        .diag1 { width: 510px; height: 2px; top: 179px; left: -75px; transform: rotate(45deg); }
-        .diag2 { width: 510px; height: 2px; top: 179px; left: -75px; transform: rotate(-45deg); }
-        .inner-rect { position: absolute; width: 254px; height: 254px; border: 2px solid #333; top: 52px; left: 52px; transform: rotate(45deg); z-index: 1; }
+        .diag1 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(45deg); }
+        .diag2 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(-45deg); }
+        .inner-rect { 
+            position: absolute; width: 247px; height: 247px; 
+            border: 2px solid #333; top: 50px; left: 50px; transform: rotate(45deg); z-index: 1; 
+        }
         
-        /* House Styling - Zero Overlap Logic */
+        /* House Container - Positioned precisely */
         .house { 
-            position: absolute; width: 100px; height: 100px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 5; pointer-events: none; 
+            position: absolute; width: 85px; height: 85px; 
+            z-index: 5; display: flex; flex-direction: column;
+            pointer-events: none;
         }
 
-        /* Fixed Coordinates for 360px Box */
-        .h1 { top: 75px;  left: 130px; }  .h2 { top: 30px;  left: 60px; }
-        .h3 { top: 30px;  left: 200px; } .h4 { top: 110px; left: 60px; }
-        .h5 { top: 195px; left: 20px; }  .h6 { top: 265px; left: 60px; }
-        .h7 { top: 200px; left: 130px; } .h8 { top: 265px; left: 200px; }
-        .h9 { top: 195px; left: 240px; } .h10 { top: 110px; left: 200px; }
-        .h11 { top: 30px;  left: 240px; } .h12 { top: 30px;  left: 20px; }
+        /* Fixed Coordinates for Each House */
+        .h1 { top: 75px;  left: 132px; }  .h2 { top: 30px;  left: 65px; }
+        .h3 { top: 30px;  left: 200px; } .h4 { top: 110px; left: 65px; }
+        .h5 { top: 185px; left: 30px; }  .h6 { top: 255px; left: 65px; }
+        .h7 { top: 195px; left: 132px; } .h8 { top: 255px; left: 200px; }
+        .h9 { top: 185px; left: 235px; } .h10 { top: 110px; left: 200px; }
+        .h11 { top: 30px;  left: 235px; } .h12 { top: 30px;  left: 30px; }
 
-        /* Rashi Number - Pushed to top-right corner of the house */
+        /* Rashi Number - Top corner positioning */
         .rashi-number { 
-            position: absolute; color: #e74c3c; font-size: 13px; font-weight: bold; 
-            top: 2px; right: 15px; z-index: 6; 
+            color: #e74c3c; font-size: 13px; font-weight: bold; 
+            text-align: right; padding-right: 5px; width: 100%;
         }
 
-        /* Planet Container - Flex wrap for multiple planets */
-        .planet-container { 
-            display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-            gap: 2px; margin-top: 10px; width: 85px; 
+        /* Planet Grid - To prevent horizontal overlap */
+        .planet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for planets */
+            gap: 2px;
+            justify-items: center;
+            align-items: center;
+            padding: 2px;
+            margin-top: 5px;
         }
         .planet-item { 
-            font-size: 11px; font-weight: 800; color: #000; 
-            background: rgba(255,255,255,0.9); padding: 1px 2px; 
+            font-size: 10px; font-weight: bold; color: #000; 
+            background: rgba(255,255,255,0.8); border-radius: 2px;
+            padding: 1px 2px; white-space: nowrap;
         }
 
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 13px; }
-        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; text-align: left; left: 5%; border: 1px solid #ddd; display: none; }
-        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        /* Inputs & UI */
+        .input-group { margin-bottom: 10px; position: relative; }
+        input { padding: 10px; width: 85%; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 90%; }
+        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; left: 5%; border: 1px solid #ddd; display: none; text-align: left; }
+        .suggest-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Hora Astro 🌌</h1>
+    <h2>Hora Astro 🌌</h2>
     <div class="input-group">
         <input type="text" id="location" placeholder="Search City..." oninput="searchLocation()" autocomplete="off">
         <div id="suggestions"></div>
@@ -70,9 +81,9 @@
     </div>
     <div class="input-group"><input type="text" id="date" placeholder="YYYY/MM/DD"></div>
     <div class="input-group"><input type="text" id="time" placeholder="HH:MM"></div>
-    <button onclick="fetchKundli()">Janm Kundli Dekhein</button>
+    <button onclick="fetchKundli()">Kundli Dekhein</button>
 
-    <div id="chart-container">
+    <div id="chart-container" style="display:none;">
         <div class="kundli-box">
             <div class="line diag1"></div><div class="line diag2"></div><div class="inner-rect"></div>
             <div id="h1" class="house h1"></div><div id="h2" class="house h2"></div>
@@ -87,6 +98,7 @@
 </div>
 
 <script>
+    // Location Search
     let timer;
     function searchLocation() {
         const q = document.getElementById('location').value;
@@ -126,32 +138,34 @@
                 document.getElementById('chart-container').style.display = 'block';
                 const asc = result.asc_num;
 
-                // Build Houses
+                // 1. Reset Houses & Set Rashi Numbers
                 for (let i = 1; i <= 12; i++) {
                     const houseDiv = document.getElementById('h' + i);
                     let rashiVal = ((asc + i - 2) % 12) + 1;
                     houseDiv.innerHTML = `
-                        <span class="rashi-number">${rashiVal}</span>
-                        <div class="planet-container" id="pc${i}"></div>
+                        <div class="rashi-number">${rashiVal}</div>
+                        <div class="planet-grid" id="pg${i}"></div>
                     `;
                 }
 
-                // Fill Planets - Using short IDs (Su, Mo, etc.)
+                // 2. Add Planets in a Grid (Anti-Overlap)
                 result.data.forEach(p => {
                     if (p.house) {
-                        const pContainer = document.getElementById('pc' + p.house);
-                        pContainer.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
+                        const pGrid = document.getElementById('pg' + p.house);
+                        if(pGrid) {
+                            pGrid.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
+                        }
                     }
                 });
 
-                // Table
+                // 3. Table
                 let table = "<table><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
                     table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
                 });
                 document.getElementById('planet-data').innerHTML = table + "</table>";
             }
-        } catch (e) { alert("Error connecting to server!"); }
+        } catch (e) { alert("Server Error! PythonAnywhere check karein."); }
     }
 </script>
 </body>
