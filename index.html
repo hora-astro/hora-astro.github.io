@@ -2,72 +2,77 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Hora Astro | Final Rashi Fix</title>
+    <title>Hora Astro | Complete Overlap Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         
-        /* Kundli Box with Fixed Layout */
+        /* Kundli Chart Layout */
         .kundli-box { 
-            position: relative; width: 350px; height: 350px; 
+            position: relative; width: 360px; height: 360px; 
             border: 2px solid #333; margin: 20px auto; background: #fff; 
         }
         .line { position: absolute; background: #333; z-index: 1; }
-        .diag1 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(45deg); }
-        .diag2 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(-45deg); }
+        .diag1 { width: 508px; height: 2px; top: 179px; left: -74px; transform: rotate(45deg); }
+        .diag2 { width: 508px; height: 2px; top: 179px; left: -74px; transform: rotate(-45deg); }
         .inner-rect { 
-            position: absolute; width: 247px; height: 247px; 
-            border: 2px solid #333; top: 50px; left: 50px; transform: rotate(45deg); z-index: 1; 
+            position: absolute; width: 254px; height: 254px; 
+            border: 2px solid #333; top: 51px; left: 51px; transform: rotate(45deg); z-index: 1; 
         }
 
-        /* House Logic - Exact Positioning */
+        /* House Design - Positioned carefully */
         .house { 
-            position: absolute; width: 80px; height: 80px; 
+            position: absolute; width: 100px; height: 100px; 
             z-index: 10; display: flex; flex-direction: column; 
-            align-items: center; pointer-events: none;
+            pointer-events: none; box-sizing: border-box;
         }
         
-        /* सटीक कोआर्डिनेट्स ताकि राशियाँ अलग-अलग घर में ही रहें */
-        .h1 { top: 65px; left: 135px; }   .h2 { top: 15px; left: 65px; }
-        .h3 { top: 15px; left: 205px; }  .h4 { top: 105px; left: 60px; }
-        .h5 { top: 195px; left: 20px; }  .h6 { top: 265px; left: 65px; }
-        .h7 { top: 200px; left: 135px; } .h8 { top: 265px; left: 205px; }
-        .h9 { top: 195px; left: 250px; } .h10 { top: 105px; left: 210px; }
-        .h11 { top: 15px; left: 250px; } .h12 { top: 15px; left: 20px; }
+        /* Exact Coordinates to match the lines */
+        .h1 { top: 75px; left: 130px; }  .h2 { top: 10px; left: 65px; }
+        .h3 { top: 10px; left: 195px; } .h4 { top: 110px; left: 55px; }
+        .h5 { top: 200px; left: 10px; }  .h6 { top: 275px; left: 65px; }
+        .h7 { top: 210px; left: 130px; } .h8 { top: 275px; left: 195px; }
+        .h9 { top: 200px; left: 250px; } .h10 { top: 110px; left: 205px; }
+        .h11 { top: 10px; left: 250px; } .h12 { top: 10px; left: 10px; }
 
-        /* राशियाँ जो ग्रहों से बिल्कुल अलग और स्पष्ट दिखें */
+        /* Rashi Tag - Shifted to the edge of the triangle to avoid center overlap */
         .rashi-tag { 
-            color: #d32f2f; font-size: 16px; font-weight: 900; 
-            margin-bottom: 5px; text-shadow: 1px 1px 0px #fff;
+            color: #d32f2f; font-size: 15px; font-weight: bold; 
+            position: absolute; top: 2px; width: 100%; text-align: center;
+            z-index: 11;
         }
 
+        /* Planet Container - Flex wrap for multiple planets */
         .planet-wrap {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 2px; width: 100%; justify-items: center;
+            margin-top: 22px; /* Space for Rashi tag */
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 3px; width: 100%; padding: 2px;
         }
-        .p-chip { 
-            font-size: 10px; font-weight: bold; background: #eeeeee;
-            padding: 1px 3px; border-radius: 3px; border: 0.5px solid #ccc;
+        .p-item { 
+            font-size: 10px; font-weight: 800; color: #000;
+            background: rgba(255,255,255,0.9); padding: 1px 3px; 
+            border-radius: 3px; text-align: center; line-height: 1.1;
+            border: 0.5px solid #ddd;
         }
 
         input, button { padding: 12px; margin: 5px; width: 90%; border-radius: 8px; border: 1px solid #ddd; }
-        button { background: var(--primary); color: #fff; font-weight: bold; border: none; cursor: pointer; }
-        #suggestions { position: absolute; background: white; width: 90%; left: 5%; z-index: 100; border: 1px solid #ddd; display: none; }
+        button { background: var(--primary); color: #fff; font-weight: bold; border: none; cursor: pointer; font-size: 16px; }
+        #suggestions { position: absolute; background: white; width: 90%; left: 5%; z-index: 100; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>सटीक कुंडली 🌌</h2>
+    <h2 style="color:var(--primary);">Hora Astro 🌌</h2>
     <div style="position:relative;">
         <input type="text" id="loc" placeholder="शहर सर्च करें..." oninput="searchLoc()">
         <div id="suggestions"></div>
     </div>
     <input type="hidden" id="lat"> <input type="hidden" id="lng">
-    <input type="text" id="date" placeholder="YYYY/MM/DD">
-    <input type="text" id="time" placeholder="HH:MM">
-    <button onclick="fetchChart()">कुंडली लोड करें</button>
+    <input type="text" id="date" placeholder="YYYY/MM/DD (जन्म तिथि)">
+    <input type="text" id="time" placeholder="HH:MM (समय)">
+    <button onclick="fetchChart()">कुंडली देखें</button>
 
     <div id="chart-area" style="display:none;">
         <div class="kundli-box">
@@ -83,18 +88,18 @@
 </div>
 
 <script>
-    const hName = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु"};
+    const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु","Syzygy":"Sy","Pars Fortuna":"Pa"};
 
     function searchLoc() {
         const q = document.getElementById('loc').value;
         const s = document.getElementById('suggestions');
-        if (q.length < 3) return;
+        if (q.length < 3) { s.style.display="none"; return; }
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
         .then(r => r.json()).then(data => {
             s.innerHTML = ""; s.style.display="block";
             data.forEach(p => {
                 let d = document.createElement('div');
-                d.style.padding="10px"; d.style.cursor="pointer"; d.innerText=p.display_name;
+                d.style.padding="10px"; d.style.cursor="pointer"; d.innerText=p.display_name; d.style.borderBottom="1px solid #eee";
                 d.onclick = () => {
                     document.getElementById('loc').value=p.display_name;
                     document.getElementById('lat').value=p.lat;
@@ -108,32 +113,44 @@
 
     async function fetchChart() {
         const lat = document.getElementById('lat').value;
-        if(!lat) { alert("शहर चुनें!"); return; }
-        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`);
-        const result = await res.json();
+        if(!lat) { alert("कृपया लिस्ट से शहर चुनें!"); return; }
         
-        if (result.status === "success") {
-            document.getElementById('chart-area').style.display='block';
-            const lagna = result.asc_num;
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`;
+        
+        try {
+            const res = await fetch(url);
+            const result = await res.json();
+            
+            if (result.status === "success") {
+                document.getElementById('chart-area').style.display='block';
+                const lagna = result.asc_num;
 
-            // राशियों को अलग-अलग घरों में सेट करना
-            for (let i = 1; i <= 12; i++) {
-                const hDiv = document.getElementById('house' + i);
-                let rNum = ((lagna + i - 2) % 12) + 1;
-                hDiv.innerHTML = `<div class="rashi-tag">${rNum}</div><div class="planet-wrap" id="pw${i}"></div>`;
-            }
-
-            // ग्रहों को डिग्री के साथ सेट करना
-            result.data.forEach(p => {
-                if (p.house) {
-                    const pContainer = document.getElementById('pw' + p.house);
-                    if(pContainer) {
-                        const d = Math.floor(p.degree || 0);
-                        pContainer.innerHTML += `<div class="p-chip">${hName[p.name] || p.name.substring(0,2)}<br>${d}°</div>`;
-                    }
+                // 1. राशियों को हाउस के टॉप पर सेट करें (Planet Container से अलग)
+                for (let i = 1; i <= 12; i++) {
+                    const hDiv = document.getElementById('house' + i);
+                    let rNum = ((lagna + i - 2) % 12) + 1;
+                    hDiv.innerHTML = `<div class="rashi-tag">${rNum}</div><div class="planet-wrap" id="pw${i}"></div>`;
                 }
-            });
-        }
+
+                // 2. ग्रहों को उनके घर में डालें
+                result.data.forEach(p => {
+                    if (p.house) {
+                        const pContainer = document.getElementById('pw' + p.house);
+                        if(pContainer) {
+                            const deg = Math.floor(p.degree || 0);
+                            const name = hNames[p.name] || p.name.substring(0,2);
+                            pContainer.innerHTML += `<div class="p-item">${name}<br>${deg}°</div>`;
+                            
+                            // अगर 3 से ज्यादा ग्रह हैं, तो फॉन्ट और छोटा करें
+                            if(pContainer.children.length > 3) {
+                                Array.from(pContainer.children).forEach(el => el.style.fontSize = "8px");
+                                pContainer.style.gap = "1px";
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (e) { alert("Error loading data!"); }
     }
 </script>
 </body>
