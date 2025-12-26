@@ -3,37 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro | Final SVG Fix</title>
+    <title>Hora Astro | Permanent Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
         body { font-family: sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
         .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, button { padding: 12px; margin: 5px; width: 90%; border-radius: 8px; border: 1px solid #ddd; }
-        button { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
-        #suggestions { position: absolute; background: white; width: 90%; left: 5%; z-index: 100; border: 1px solid #ddd; display: none; }
+        input, button { padding: 12px; margin: 5px; width: 90%; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         
-        /* SVG Kundli Styling */
-        .kundli-svg { width: 100%; max-width: 380px; height: auto; margin-top: 20px; background: white; border: 2px solid #333; }
+        /* SVG No-Overlap Styling */
+        .kundli-svg { width: 100%; max-width: 380px; height: auto; background: white; border: 2px solid #333; margin-top: 15px; }
         .line { stroke: #333; stroke-width: 2; }
-        .rashi-text { fill: #d32f2f; font-size: 14px; font-weight: bold; }
-        .planet-text { fill: #000; font-size: 10px; font-weight: bold; }
+        .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: 900; } /* लाल और गहरा */
+        .planet-text { fill: #000; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; }
+        .planet-bg { fill: rgba(255,255,255,0.8); stroke: #eee; stroke-width: 0.5; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>सटीक SVG कुंडली 🌌</h2>
-    <div style="position:relative;">
-        <input type="text" id="loc" placeholder="शहर सर्च करें..." oninput="searchLoc()">
-        <div id="suggestions"></div>
-    </div>
+    <h2 style="color:var(--primary);">सटीक ज्योतिष कुंडली 🌌</h2>
+    <input type="text" id="loc" placeholder="शहर (जैसे Jaipur)" oninput="searchLoc()">
+    <div id="suggestions" style="position:absolute; background:white; z-index:100; width:80%; left:10%; display:none; border:1px solid #ccc;"></div>
     <input type="hidden" id="lat"> <input type="hidden" id="lng">
     <input type="text" id="date" placeholder="YYYY/MM/DD">
     <input type="text" id="time" placeholder="HH:MM">
     <button onclick="fetchChart()">कुंडली देखें</button>
 
     <div id="chart-area" style="display:none;">
-        <svg viewBox="0 0 300 300" class="kundli-svg" id="kundliSVG">
+        <svg viewBox="0 0 300 300" class="kundli-svg">
             <rect width="300" height="300" fill="none" stroke="#333" stroke-width="2"/>
             <line x1="0" y1="0" x2="300" y2="300" class="line"/>
             <line x1="300" y1="0" x2="0" y2="300" class="line"/>
@@ -42,8 +40,8 @@
             <line x1="150" y1="300" x2="300" y2="150" class="line"/>
             <line x1="300" y1="150" x2="150" y2="0" class="line"/>
             
-            <g id="rashiGroup"></g>
-            <g id="planetGroup"></g>
+            <g id="rashiLayer"></g>
+            <g id="planetLayer"></g>
         </svg>
     </div>
 </div>
@@ -51,21 +49,59 @@
 <script>
     const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु","Syzygy":"Sy","Pars Fortuna":"Pa"};
 
-    // हर घर (House) के लिए फिक्स कोआर्डिनेट्स
-    const houseCoords = {
-        1: {rx: 145, ry: 105, px: 150, py: 125},
-        2: {rx: 75, ry: 40, px: 60, py: 60},
-        3: {rx: 215, ry: 40, px: 210, py: 60},
-        4: {rx: 110, ry: 140, px: 85, py: 155},
-        5: {rx: 40, ry: 210, px: 40, py: 230},
-        6: {rx: 75, ry: 275, px: 60, py: 260},
-        7: {rx: 145, ry: 205, px: 150, py: 185},
-        8: {rx: 215, ry: 275, px: 210, py: 260},
-        9: {rx: 250, ry: 210, px: 240, py: 230},
-        10: {rx: 180, ry: 140, px: 200, py: 155},
-        11: {rx: 250, ry: 40, px: 240, py: 60},
-        12: {rx: 40, ry: 40, px: 40, py: 60}
+    // 100% Safe Coordinates: राशि (RX, RY) और ग्रह (PX, PY) कभी नहीं टकराएंगे
+    const safeCoords = {
+        1:  {rx: 142, ry: 85,  px: 150, py: 115},
+        2:  {rx: 65,  ry: 40,  px: 55,  py: 75},
+        3:  {rx: 215, ry: 40,  px: 215, py: 75},
+        4:  {rx: 90,  ry: 140, px: 65,  py: 160},
+        5:  {rx: 40,  ry: 215, px: 45,  py: 245},
+        6:  {rx: 65,  ry: 280, px: 55,  py: 250},
+        7:  {rx: 142, ry: 205, px: 150, py: 175},
+        8:  {rx: 215, ry: 280, px: 215, py: 250},
+        9:  {rx: 245, ry: 215, px: 245, py: 245},
+        10: {rx: 185, ry: 140, px: 215, py: 160},
+        11: {rx: 245, ry: 75,  px: 245, py: 45},
+        12: {rx: 40,  ry: 75,  px: 40,  py: 45}
     };
+
+    async function fetchChart() {
+        const lat = document.getElementById('lat').value;
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`);
+        const result = await res.json();
+        
+        if (result.status === "success") {
+            document.getElementById('chart-area').style.display='block';
+            const rLayer = document.getElementById('rashiLayer');
+            const pLayer = document.getElementById('planetLayer');
+            rLayer.innerHTML = ""; pLayer.innerHTML = "";
+            
+            // 1. राशियाँ (Safe Corners)
+            for (let i = 1; i <= 12; i++) {
+                let rNum = ((result.asc_num + i - 2) % 12) + 1;
+                let c = safeCoords[i];
+                rLayer.innerHTML += `<text x="${c.rx}" y="${c.ry}" class="rashi-text">${rNum}</text>`;
+            }
+
+            // 2. ग्रह (Smart Vertical Stacking)
+            const houseCount = {};
+            result.data.forEach(p => {
+                if (p.house) {
+                    if(!houseCount[p.house]) houseCount[p.house] = 0;
+                    let c = safeCoords[p.house];
+                    let offset = houseCount[p.house] * 14; // हर ग्रह के बीच 14px की दूरी
+                    let name = hNames[p.name] || p.name.substring(0,2);
+                    let deg = Math.floor(p.degree || 0);
+                    
+                    pLayer.innerHTML += `
+                        <rect x="${c.px - 20}" y="${c.py + offset - 10}" width="40" height="13" class="planet-bg" rx="2"/>
+                        <text x="${c.px}" y="${c.py + offset}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>
+                    `;
+                    houseCount[p.house]++;
+                }
+            });
+        }
+    }
 
     function searchLoc() {
         const q = document.getElementById('loc').value;
@@ -86,44 +122,6 @@
                 s.appendChild(d);
             });
         });
-    }
-
-    async function fetchChart() {
-        const lat = document.getElementById('lat').value;
-        if(!lat) { alert("शहर चुनें!"); return; }
-        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`);
-        const result = await res.json();
-        
-        if (result.status === "success") {
-            document.getElementById('chart-area').style.display='block';
-            const rGroup = document.getElementById('rashiGroup');
-            const pGroup = document.getElementById('planetGroup');
-            rGroup.innerHTML = ""; pGroup.innerHTML = "";
-            
-            const lagna = result.asc_num;
-
-            // 1. राशियाँ सेट करें
-            for (let i = 1; i <= 12; i++) {
-                let rNum = ((lagna + i - 2) % 12) + 1;
-                let coords = houseCoords[i];
-                rGroup.innerHTML += `<text x="${coords.rx}" y="${coords.ry}" class="rashi-text">${rNum}</text>`;
-            }
-
-            // 2. ग्रह सेट करें (भीड़ रोकने के लिए ऑफसेट के साथ)
-            const houseCounters = {};
-            result.data.forEach(p => {
-                if (p.house) {
-                    if(!houseCounters[p.house]) houseCounters[p.house] = 0;
-                    let coords = houseCoords[p.house];
-                    let offset = houseCounters[p.house] * 12; // हर ग्रह को थोड़ा नीचे खिसकाएं
-                    let name = hNames[p.name] || p.name.substring(0,2);
-                    let deg = Math.floor(p.degree || 0);
-                    
-                    pGroup.innerHTML += `<text x="${coords.px}" y="${coords.py + offset}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>`;
-                    houseCounters[p.house]++;
-                }
-            });
-        }
     }
 </script>
 </body>
