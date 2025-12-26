@@ -2,72 +2,29 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Hora Astro | Ultimate Separation Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hora Astro | Final SVG Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
         body { font-family: sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input, button { padding: 12px; margin: 5px; width: 90%; border-radius: 8px; border: 1px solid #ddd; }
+        button { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
+        #suggestions { position: absolute; background: white; width: 90%; left: 5%; z-index: 100; border: 1px solid #ddd; display: none; }
         
-        /* Kundli Chart Layout */
-        .kundli-box { 
-            position: relative; width: 360px; height: 360px; 
-            border: 2px solid #333; margin: 20px auto; background: #fff; 
-        }
-        .line { position: absolute; background: #333; z-index: 1; }
-        .diag1 { width: 508px; height: 2px; top: 179px; left: -74px; transform: rotate(45deg); }
-        .diag2 { width: 508px; height: 2px; top: 179px; left: -74px; transform: rotate(-45deg); }
-        .inner-rect { 
-            position: absolute; width: 254px; height: 254px; 
-            border: 2px solid #333; top: 51px; left: 51px; transform: rotate(45deg); z-index: 1; 
-        }
-
-        /* House Area */
-        .house { 
-            position: absolute; width: 85px; height: 85px; 
-            z-index: 10; pointer-events: none;
-        }
-        
-        /* 12 घरों की सटीक पोजीशन */
-        .h1 { top: 90px; left: 137px; }  .h2 { top: 15px; left: 70px; }
-        .h3 { top: 15px; left: 205px; } .h4 { top: 110px; left: 60px; }
-        .h5 { top: 205px; left: 15px; }  .h6 { top: 265px; left: 70px; }
-        .h7 { top: 200px; left: 137px; } .h8 { top: 265px; left: 205px; }
-        .h9 { top: 205px; left: 260px; } .h10 { top: 110px; left: 215px; }
-        .h11 { top: 15px; left: 260px; } .h12 { top: 15px; left: 15px; }
-
-        /* राशि नंबर के लिए विशेष 'कॉर्नर लॉक' स्टाइल */
-        .rashi-tag { 
-            position: absolute; color: #d32f2f; font-size: 14px; 
-            font-weight: bold; z-index: 15; width: 20px; height: 20px;
-        }
-        
-        /* हर घर में राशि नंबर का कोना अलग होगा ताकि ग्रहों के लिए जगह बचे */
-        .h1 .rashi-tag, .h7 .rashi-tag, .h4 .rashi-tag, .h10 .rashi-tag { top: 0; left: 33px; } /* मध्य चतुर्भुज */
-        .h2 .rashi-tag, .h3 .rashi-tag, .h11 .rashi-tag, .h12 .rashi-tag { bottom: 0; left: 33px; } /* ऊपरी त्रिकोण */
-        .h5 .rashi-tag, .h6 .rashi-tag, .h8 .rashi-tag, .h9 .rashi-tag { top: 0; left: 33px; } /* निचले त्रिकोण */
-
-        /* ग्रहों का कंटेनर जो राशि से कभी नहीं टकराएगा */
-        .planet-wrap {
-            margin-top: 18px; display: flex; flex-wrap: wrap; 
-            justify-content: center; gap: 2px; width: 100%;
-        }
-        .p-item { 
-            font-size: 10px; font-weight: bold; background: white; 
-            border: 0.5px solid #ccc; border-radius: 3px; padding: 1px 3px; 
-            text-align: center; line-height: 1.1; min-width: 28px;
-        }
-
-        input, button { padding: 12px; margin: 5px; width: 90%; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; }
-        button { background: var(--primary); color: #fff; font-weight: bold; border: none; cursor: pointer; }
-        #suggestions { position: absolute; background: white; width: 90%; left: 5%; z-index: 100; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; }
+        /* SVG Kundli Styling */
+        .kundli-svg { width: 100%; max-width: 380px; height: auto; margin-top: 20px; background: white; border: 2px solid #333; }
+        .line { stroke: #333; stroke-width: 2; }
+        .rashi-text { fill: #d32f2f; font-size: 14px; font-weight: bold; }
+        .planet-text { fill: #000; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:var(--primary); margin-bottom:15px;">Hora Astro 🌌</h2>
+    <h2>सटीक SVG कुंडली 🌌</h2>
     <div style="position:relative;">
-        <input type="text" id="loc" placeholder="शहर लिखें (जैसे Jaipur)..." oninput="searchLoc()">
+        <input type="text" id="loc" placeholder="शहर सर्च करें..." oninput="searchLoc()">
         <div id="suggestions"></div>
     </div>
     <input type="hidden" id="lat"> <input type="hidden" id="lng">
@@ -76,25 +33,44 @@
     <button onclick="fetchChart()">कुंडली देखें</button>
 
     <div id="chart-area" style="display:none;">
-        <div class="kundli-box">
-            <div class="line diag1"></div><div class="line diag2"></div><div class="inner-rect"></div>
-            <div id="house1" class="house h1"></div><div id="house2" class="house h2"></div>
-            <div id="house3" class="house h3"></div><div id="house4" class="house h4"></div>
-            <div id="house5" class="house h5"></div><div id="house6" class="house h6"></div>
-            <div id="house7" class="house h7"></div><div id="house8" class="house h8"></div>
-            <div id="house9" class="house h9"></div><div id="house10" class="house h10"></div>
-            <div id="house11" class="house h11"></div><div id="house12" class="house h12"></div>
-        </div>
+        <svg viewBox="0 0 300 300" class="kundli-svg" id="kundliSVG">
+            <rect width="300" height="300" fill="none" stroke="#333" stroke-width="2"/>
+            <line x1="0" y1="0" x2="300" y2="300" class="line"/>
+            <line x1="300" y1="0" x2="0" y2="300" class="line"/>
+            <line x1="150" y1="0" x2="0" y2="150" class="line"/>
+            <line x1="0" y1="150" x2="150" y2="300" class="line"/>
+            <line x1="150" y1="300" x2="300" y2="150" class="line"/>
+            <line x1="300" y1="150" x2="150" y2="0" class="line"/>
+            
+            <g id="rashiGroup"></g>
+            <g id="planetGroup"></g>
+        </svg>
     </div>
 </div>
 
 <script>
     const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु","Syzygy":"Sy","Pars Fortuna":"Pa"};
 
+    // हर घर (House) के लिए फिक्स कोआर्डिनेट्स
+    const houseCoords = {
+        1: {rx: 145, ry: 105, px: 150, py: 125},
+        2: {rx: 75, ry: 40, px: 60, py: 60},
+        3: {rx: 215, ry: 40, px: 210, py: 60},
+        4: {rx: 110, ry: 140, px: 85, py: 155},
+        5: {rx: 40, ry: 210, px: 40, py: 230},
+        6: {rx: 75, ry: 275, px: 60, py: 260},
+        7: {rx: 145, ry: 205, px: 150, py: 185},
+        8: {rx: 215, ry: 275, px: 210, py: 260},
+        9: {rx: 250, ry: 210, px: 240, py: 230},
+        10: {rx: 180, ry: 140, px: 200, py: 155},
+        11: {rx: 250, ry: 40, px: 240, py: 60},
+        12: {rx: 40, ry: 40, px: 40, py: 60}
+    };
+
     function searchLoc() {
         const q = document.getElementById('loc').value;
         const s = document.getElementById('suggestions');
-        if (q.length < 3) { s.style.display="none"; return; }
+        if (q.length < 3) return;
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
         .then(r => r.json()).then(data => {
             s.innerHTML = ""; s.style.display="block";
@@ -114,41 +90,40 @@
 
     async function fetchChart() {
         const lat = document.getElementById('lat').value;
-        if(!lat) { alert("शहर सिलेक्ट करें!"); return; }
+        if(!lat) { alert("शहर चुनें!"); return; }
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`);
+        const result = await res.json();
         
-        try {
-            const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`);
-            const result = await res.json();
+        if (result.status === "success") {
+            document.getElementById('chart-area').style.display='block';
+            const rGroup = document.getElementById('rashiGroup');
+            const pGroup = document.getElementById('planetGroup');
+            rGroup.innerHTML = ""; pGroup.innerHTML = "";
             
-            if (result.status === "success") {
-                document.getElementById('chart-area').style.display='block';
-                const lagna = result.asc_num;
+            const lagna = result.asc_num;
 
-                // 1. राशियों को उनके सुरक्षित 'Lock' कोनों में डालें
-                for (let i = 1; i <= 12; i++) {
-                    const hDiv = document.getElementById('house' + i);
-                    let rNum = ((lagna + i - 2) % 12) + 1;
-                    hDiv.innerHTML = `<div class="rashi-tag">${rNum}</div><div class="planet-wrap" id="pw${i}"></div>`;
-                }
-
-                // 2. ग्रहों को डिग्री के साथ अलाइन करें
-                result.data.forEach(p => {
-                    if (p.house) {
-                        const pContainer = document.getElementById('pw' + p.house);
-                        if(pContainer) {
-                            const deg = Math.floor(p.degree || 0);
-                            const name = hNames[p.name] || p.name.substring(0,2);
-                            pContainer.innerHTML += `<div class="p-item">${name}<br>${deg}°</div>`;
-                            
-                            // अगर घर में भीड़ ज्यादा है, तो फॉन्ट और छोटा करें
-                            if(pContainer.children.length > 3) {
-                                Array.from(pContainer.children).forEach(el => el.style.fontSize = "8px");
-                            }
-                        }
-                    }
-                });
+            // 1. राशियाँ सेट करें
+            for (let i = 1; i <= 12; i++) {
+                let rNum = ((lagna + i - 2) % 12) + 1;
+                let coords = houseCoords[i];
+                rGroup.innerHTML += `<text x="${coords.rx}" y="${coords.ry}" class="rashi-text">${rNum}</text>`;
             }
-        } catch (e) { alert("Data load error!"); }
+
+            // 2. ग्रह सेट करें (भीड़ रोकने के लिए ऑफसेट के साथ)
+            const houseCounters = {};
+            result.data.forEach(p => {
+                if (p.house) {
+                    if(!houseCounters[p.house]) houseCounters[p.house] = 0;
+                    let coords = houseCoords[p.house];
+                    let offset = houseCounters[p.house] * 12; // हर ग्रह को थोड़ा नीचे खिसकाएं
+                    let name = hNames[p.name] || p.name.substring(0,2);
+                    let deg = Math.floor(p.degree || 0);
+                    
+                    pGroup.innerHTML += `<text x="${coords.px}" y="${coords.py + offset}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>`;
+                    houseCounters[p.house]++;
+                }
+            });
+        }
     }
 </script>
 </body>
