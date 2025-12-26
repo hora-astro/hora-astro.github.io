@@ -3,47 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro | Complete Professional Fix</title>
+    <title>Hora Astro | Ultimate Professional Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         
-        /* Location Dropdown Style */
-        .search-box { position: relative; width: 100%; }
+        /* Location Suggestion Box */
+        .search-container { position: relative; margin-bottom: 10px; }
         #suggestions { 
-            position: absolute; background: white; width: 95%; left: 2.5%; 
-            z-index: 1000; border: 1px solid #ddd; border-radius: 0 0 8px 8px;
-            max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: none;
+            position: absolute; background: white; width: 100%; z-index: 100; 
+            border: 1px solid #ddd; border-radius: 0 0 8px 8px; max-height: 200px; 
+            overflow-y: auto; display: none; text-align: left;
         }
-        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-        .suggest-item:hover { background: #f0f0f0; }
+        .s-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
+        .s-item:hover { background: #f9f9f9; }
 
-        input, button { width: 95%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #e64a19; }
+        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
 
-        .kundli-svg { width: 100%; height: auto; background: white; border: 2px solid #333; margin-top: 20px; }
+        /* SVG Precise Styling */
+        .kundli-svg { width: 100%; height: auto; background: white; border: 2.5px solid #333; margin-top: 15px; }
         .line { stroke: #333; stroke-width: 2; }
-        .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: bold; }
-        .planet-text { fill: #000; font-size: 11px; font-weight: bold; }
+        .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: 900; }
+        .planet-text { fill: #000; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1 style="color:var(--primary); margin: 10px 0;">Hora Astro 🌌</h1>
+    <h1 style="color:var(--primary); margin:10px 0;">Hora Astro 🌌</h1>
     
-    <div class="search-box">
-        <input type="text" id="loc" placeholder="शहर का नाम लिखें (जैसे Banswara)..." autocomplete="off">
+    <div class="search-container">
+        <input type="text" id="loc" placeholder="शहर खोजें (जैसे Banswara)..." autocomplete="off">
         <div id="suggestions"></div>
     </div>
     
     <input type="hidden" id="lat"> <input type="hidden" id="lng">
     <input type="text" id="date" placeholder="YYYY/MM/DD (जन्म तिथि)">
     <input type="text" id="time" placeholder="HH:MM (समय)">
-    
     <button onclick="fetchChart()">कुंडली देखें</button>
 
     <div id="chart-area" style="display:none;">
@@ -55,6 +53,7 @@
             <line x1="0" y1="150" x2="150" y2="300" class="line"/>
             <line x1="150" y1="300" x2="300" y2="150" class="line"/>
             <line x1="300" y1="150" x2="150" y2="0" class="line"/>
+            
             <g id="rashiLayer"></g>
             <g id="planetLayer"></g>
         </svg>
@@ -64,59 +63,51 @@
 <script>
     const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु","Syzygy":"Sy","Pars Fortuna":"Pa"};
 
-    // Houses के लिए सुरक्षित Coordinates
-    const coords = {
-        1: {rx: 150, ry: 70, px: 150, py: 110},
-        2: {rx: 70, ry: 40, px: 50, py: 65},
-        3: {rx: 40, ry: 70, px: 45, py: 110},
-        4: {rx: 75, ry: 150, px: 50, py: 185},
-        5: {rx: 40, ry: 220, px: 45, py: 255},
-        6: {rx: 70, ry: 260, px: 80, py: 245},
-        7: {rx: 150, ry: 220, px: 150, py: 180},
-        8: {rx: 230, ry: 260, px: 220, py: 245},
-        9: {rx: 260, ry: 220, px: 255, py: 255},
-        10: {rx: 225, ry: 150, px: 250, py: 185},
-        11: {rx: 260, ry: 70, px: 255, py: 110},
-        12: {rx: 230, ry: 40, px: 250, py: 65}
+    // प्रत्येक घर (House) के लिए फिक्स और सुरक्षित कोआर्डिनेट्स
+    const housePoints = {
+        1:  {rx: 150, ry: 85,  px: 150, py: 115},
+        2:  {rx: 75,  ry: 45,  px: 55,  py: 75},
+        3:  {rx: 40,  ry: 80,  px: 40,  py: 110},
+        4:  {rx: 85,  ry: 155, px: 55,  py: 175},
+        5:  {rx: 40,  ry: 220, px: 40,  py: 250},
+        6:  {rx: 75,  ry: 265, px: 65,  py: 240},
+        7:  {rx: 150, ry: 215, px: 150, py: 185},
+        8:  {rx: 225, ry: 265, px: 235, py: 240},
+        9:  {rx: 260, ry: 220, px: 260, py: 250},
+        10: {rx: 215, ry: 155, px: 245, py: 175},
+        11: {rx: 260, ry: 80,  px: 260, py: 110},
+        12: {rx: 225, ry: 45,  px: 245, py: 75}
     };
 
-    // 1. Location Suggestion Logic
-    const locInput = document.getElementById('loc');
-    const suggestDiv = document.getElementById('suggestions');
+    // 1. शहर खोज लॉजिक (Location Dropdown)
+    const locInp = document.getElementById('loc');
+    const sugBox = document.getElementById('suggestions');
 
-    locInput.oninput = async () => {
-        const q = locInput.value;
-        if(q.length < 3) { suggestDiv.style.display = 'none'; return; }
-        
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
+    locInp.oninput = async () => {
+        if(locInp.value.length < 3) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${locInp.value}&limit=5`);
         const data = await res.json();
-        
-        suggestDiv.innerHTML = "";
-        if(data.length > 0) {
-            suggestDiv.style.display = 'block';
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'suggest-item';
-                div.innerText = item.display_name;
-                div.onclick = () => {
-                    locInput.value = item.display_name;
-                    document.getElementById('lat').value = item.lat;
-                    document.getElementById('lng').value = item.lon;
-                    suggestDiv.style.display = 'none';
-                };
-                suggestDiv.appendChild(div);
-            });
-        }
+        sugBox.innerHTML = ""; sugBox.style.display = 'block';
+        data.forEach(d => {
+            let item = document.createElement('div');
+            item.className = 's-item';
+            item.innerText = d.display_name;
+            item.onclick = () => {
+                locInp.value = d.display_name;
+                document.getElementById('lat').value = d.lat;
+                document.getElementById('lng').value = d.lon;
+                sugBox.style.display = 'none';
+            };
+            sugBox.appendChild(item);
+        });
     };
 
-    // 2. Kundli Logic
+    // 2. कुंडली डेटा और ड्राइंग (Kundli Core)
     async function fetchChart() {
         const lat = document.getElementById('lat').value;
-        const lng = document.getElementById('lng').value;
         if(!lat) { alert("कृपया लिस्ट से शहर चुनें!"); return; }
 
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${lng}`;
-        
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`;
         const res = await fetch(url);
         const result = await res.json();
         
@@ -126,26 +117,26 @@
             const pLayer = document.getElementById('planetLayer');
             rLayer.innerHTML = ""; pLayer.innerHTML = "";
             
-            // लग्न और राशियों का सही क्रम (Counter-Clockwise)
-            const lagnaRashi = result.asc_num;
+            // लग्न और राशियों का क्रम
+            const lagna = result.asc_num;
             for (let i = 1; i <= 12; i++) {
-                let rNum = ((lagnaRashi + i - 2) % 12) + 1;
-                let c = coords[i];
-                rLayer.innerHTML += `<text x="${c.rx}" y="${c.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
+                let rNum = ((lagna + i - 2) % 12) + 1;
+                let pt = housePoints[i];
+                rLayer.innerHTML += `<text x="${pt.rx}" y="${pt.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
             }
 
-            // ग्रहों को वर्टिकल लिस्ट में सेट करना
-            const hCount = {};
+            // ग्रहों का प्लेसमेंट (Vertical Stacking)
+            const count = {};
             result.data.forEach(p => {
                 if (p.house) {
-                    if(!hCount[p.house]) hCount[p.house] = 0;
-                    let c = coords[p.house];
-                    let offset = hCount[p.house] * 12;
+                    if(!count[p.house]) count[p.house] = 0;
+                    let pt = housePoints[p.house];
+                    let moveDown = count[p.house] * 13; // ग्रहों के बीच की दूरी
                     let name = hNames[p.name] || p.name.substring(0,2);
                     let deg = Math.floor(p.degree || 0);
                     
-                    pLayer.innerHTML += `<text x="${c.px}" y="${c.py + offset}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>`;
-                    hCount[p.house]++;
+                    pLayer.innerHTML += `<text x="${pt.px}" y="${pt.py + moveDown}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>`;
+                    count[p.house]++;
                 }
             });
         }
