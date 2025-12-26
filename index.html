@@ -13,7 +13,14 @@
         input { padding: 12px; width: 80%; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
         button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
         button:hover { background: #e64a19; transform: translateY(-2px); }
-        
+        /* Rashi Numbers Styling */
+.rashi-number {
+    position: absolute;
+    color: #e74c3c; /* Laal rang */
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+}
         /* Kundli Chart CSS */
         #chart-container { margin-top: 30px; display: none; }
         .kundli-box { position: relative; width: 350px; height: 350px; border: 2px solid #333; margin: auto; background: #fff; }
@@ -64,6 +71,35 @@
 </div>
 
 <script>
+    function drawRashiNumbers(ascNum, svg) {
+    // North Indian Chart ke 12 gharon ki fixed jagah (Coordinates)
+    const houseCoords = [
+        { x: 145, y: 135 }, // House 1
+        { x: 75,  y: 65  }, // House 2
+        { x: 35,  y: 105 }, // House 3
+        { x: 110, y: 165 }, // House 4
+        { x: 35,  y: 225 }, // House 5
+        { x: 75,  y: 265 }, // House 6
+        { x: 145, y: 195 }, // House 7
+        { x: 215, y: 265 }, // House 8
+        { x: 255, y: 225 }, // House 9
+        { x: 180, y: 165 }, // House 10
+        { x: 255, y: 105 }, // House 11
+        { x: 215, y: 65  }  // House 12
+    ];
+
+    houseCoords.forEach((coord, i) => {
+        // Formula: Lagna se shuru karke 12 tak ginnana
+        let rashiVal = ((ascNum + i - 1) % 12) + 1;
+        
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", coord.x);
+        txt.setAttribute("y", coord.y);
+        txt.setAttribute("class", "rashi-number");
+        txt.textContent = rashiVal;
+        svg.appendChild(txt);
+    });
+}
     async function fetchKundli() {
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
