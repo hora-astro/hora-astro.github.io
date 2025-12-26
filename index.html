@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hora-Astro | Kundli</title>
+    <style>
+        :root { --primary: #ff5722; --bg: #fdf2f0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); text-align: center; padding: 20px; }
+        .card { background: white; max-width: 600px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; }
+        input { padding: 12px; width: 80%; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #e64a19; transform: translateY(-2px); }
+        
+        /* Kundli Chart CSS */
+        #chart-container { margin-top: 30px; display: none; }
+        .kundli-box { position: relative; width: 350px; height: 350px; border: 2px solid #333; margin: auto; background: #fff; }
+        .line { position: absolute; background: #333; }
+        .diag1 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(45deg); }
+        .diag2 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(-45deg); }
+        .inner-rect { position: absolute; width: 247.5px; height: 247.5px; border: 2px solid #333; top: 51px; left: 51px; transform: rotate(45deg); }
+        
+        .house { position: absolute; font-size: 12px; font-weight: bold; width: 60px; text-align: center; pointer-events: none; }
+        /* Positioning Houses */
+        .h1 { top: 110px; left: 145px; } .h2 { top: 50px; left: 70px; }
+        .h3 { top: 50px; left: 220px; } .h4 { top: 110px; left: 275px; }
+        .h5 { top: 220px; left: 275px; } .h6 { top: 280px; left: 220px; }
+        .h7 { top: 240px; left: 145px; } .h8 { top: 280px; left: 70px; }
+        .h9 { top: 220px; left: 15px; }  .h10 { top: 110px; left: 15px; }
+        .h11 { top: 10px; left: 70px; }  .h12 { top: 10px; left: 220px; }
+
+        .planet-list { margin-top: 20px; font-size: 14px; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Hora Astro 🌌</h1>
+    <div class="input-group">
+        <input type="text" id="date" placeholder="Date (YYYY/MM/DD) e.g. 1980/03/27">
+    </div>
+    <div class="input-group">
+        <input type="text" id="time" placeholder="Time (HH:MM) e.g. 08:10">
+    </div>
+    <button onclick="fetchKundli()">Janm Kundli Dekhein</button>
+
+    <div id="chart-container">
+        <h3>Aapki Janm Kundli (North Indian)</h3>
+        <div class="kundli-box">
+            <div class="line diag1"></div>
+            <div class="line diag2"></div>
+            <div class="inner-rect"></div>
+            <div id="h1" class="house h1"></div><div id="h2" class="house h2"></div>
+            <div id="h3" class="house h3"></div><div id="h4" class="house h4"></div>
+            <div id="h5" class="house h5"></div><div id="h6" class="house h6"></div>
+            <div id="h7" class="house h7"></div><div id="h8" class="house h8"></div>
+            <div id="h9" class="house h9"></div><div id="h10" class="house h10"></div>
+            <div id="h11" class="house h11"></div><div id="h12" class="house h12"></div>
+        </div>
+        <div id="planet-data" class="planet-list"></div>
+    </div>
+</div>
+
+<script>
+    async function fetchKundli() {
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const container = document.getElementById('chart-container');
+        
+        // APNA USERNAME YAHAN DALEN
+        const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}`;
+
+        try {
+            const response = await fetch(API_URL);
+            const result = await response.json();
+
+            if(result.status === "success") {
+                container.style.display = 'block';
+                
+                // Sabhi houses ko khali karein
+                for(let i=1; i<=12; i++) document.getElementById('h'+i).innerHTML = "";
+
+                // Planets ko unke houses mein dalein
+                // Note: Iske liye aapka API house number bhi bhej raha hona chahiye
+                result.data.forEach(p => {
+                    // Yahan hum man kar chal rahe hain ki aapke API response mein 'house' key hai
+                    // Agar nahi hai, toh purane code ka house logic API mein add karna hoga
+                    if(p.house) {
+                        const houseDiv = document.getElementById('h' + p.house);
+                        houseDiv.innerHTML += p.name.substring(0,2) + " ";
+                    }
+                });
+
+                let table = "<h4>Planet Details</h4><table style='width:100%'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
+                result.data.forEach(p => {
+                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree}°</td></tr>`;
+                });
+                document.getElementById('planet-data').innerHTML = table + "</table>";
+            }
+        } catch (error) {
+            alert("Server se connect nahi ho pa raha. Check PythonAnywhere!");
+        }
+    }
+</script>
+</body>
+</html>
