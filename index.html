@@ -3,43 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro | Location Fixed</title>
+    <title>Hora Astro | Location & Hindi Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); text-align: center; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; }
         
-        /* Input & Search Styling */
-        .input-group { margin-bottom: 12px; position: relative; text-align: left; width: 92%; margin-left: auto; margin-right: auto; }
+        /* Location Search Styling */
+        .input-group { margin-bottom: 15px; position: relative; text-align: left; }
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { padding: 12px; width: 100%; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input:focus { border-color: var(--primary); outline: none; }
         
+        /* Dropdown Fix */
         #suggestions { 
-            position: absolute; width: 100%; background: white; z-index: 100; 
-            border: 1px solid #ddd; border-top: none; display: none; 
-            max-height: 200px; overflow-y: auto; border-radius: 0 0 8px 8px;
+            position: absolute; width: 100%; background: white; z-index: 9999; 
+            border: 1px solid #ccc; display: none; max-height: 250px; 
+            overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border-radius: 0 0 8px 8px;
         }
-        .suggest-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-        .suggest-item:hover { background: #f0f0f0; }
+        .suggest-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+        .suggest-item:hover { background: #ffede7; }
 
-        button { 
-            background: var(--primary); color: white; border: none; padding: 15px; 
-            border-radius: 8px; width: 92%; font-weight: bold; font-size: 16px; cursor: pointer; 
-        }
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
 
-        /* Kundli Chart Fixes */
-        .kundli-box { 
-            position: relative; width: 340px; height: 340px; 
-            border: 2px solid #333; margin: 25px auto; background: #fff; overflow: hidden; 
-        }
+        /* Kundli Chart Styling */
+        .kundli-box { position: relative; width: 340px; height: 340px; border: 2px solid #333; margin: 25px auto; background: #fff; overflow: hidden; }
         .line { position: absolute; background: #333; z-index: 1; }
         .diag1 { width: 480px; height: 2px; top: 169px; left: -70px; transform: rotate(45deg); }
         .diag2 { width: 480px; height: 2px; top: 169px; left: -70px; transform: rotate(-45deg); }
         .inner-rect { position: absolute; width: 240px; height: 240px; border: 2px solid #333; top: 48px; left: 48px; transform: rotate(45deg); z-index: 1; }
         
         .house { position: absolute; width: 85px; height: 85px; z-index: 5; display: flex; flex-direction: column; align-items: center; }
-        /* Coordinates */
         .h1 { top: 75px; left: 128px; } .h2 { top: 25px; left: 65px; } .h3 { top: 25px; left: 190px; }
         .h4 { top: 105px; left: 60px; } .h5 { top: 185px; left: 25px; } .h6 { top: 255px; left: 65px; }
         .h7 { top: 195px; left: 128px; } .h8 { top: 255px; left: 190px; } .h9 { top: 185px; left: 235px; }
@@ -47,10 +41,10 @@
 
         .rashi-number { color: #e74c3c; font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .planet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; justify-items: center; }
-        .planet-item { font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.8); padding: 1px 2px; border-radius: 2px; }
+        .planet-item { font-size: 10px; font-weight: bold; background: #fff; padding: 1px 2px; border: 1px solid #ddd; border-radius: 2px; }
 
         table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
     </style>
 </head>
 <body>
@@ -60,20 +54,20 @@
     
     <div class="input-group">
         <label>जन्म स्थान (अनिवार्य)</label>
-        <input type="text" id="location" placeholder="शहर का नाम लिखें..." oninput="searchLocation()" autocomplete="off">
+        <input type="text" id="location" placeholder="शहर सर्च करें..." oninput="searchLocation()" autocomplete="off">
         <div id="suggestions"></div>
         <input type="hidden" id="lat" value="">
         <input type="hidden" id="lng" value="">
     </div>
 
     <div class="input-group">
-        <label>जन्म तिथि</label>
-        <input type="text" id="date" placeholder="YYYY/MM/DD (जैसे 1995/10/25)">
+        <label>जन्म तिथि (YYYY/MM/DD)</label>
+        <input type="text" id="date" placeholder="जैसे 1995/10/25">
     </div>
 
     <div class="input-group">
-        <label>जन्म समय</label>
-        <input type="text" id="time" placeholder="HH:MM (जैसे 14:30)">
+        <label>जन्म समय (HH:MM)</label>
+        <input type="text" id="time" placeholder="जैसे 14:30">
     </div>
 
     <button onclick="fetchKundli()">कुंडली देखें</button>
@@ -104,7 +98,7 @@
         const q = document.getElementById('location').value;
         const s = document.getElementById('suggestions');
         
-        // Reset coordinates if user starts typing again
+        // Clear previous lat/lng
         document.getElementById('lat').value = "";
         document.getElementById('lng').value = "";
 
@@ -112,26 +106,30 @@
         
         clearTimeout(timer);
         timer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
-            .then(res => res.json()).then(data => {
-                s.innerHTML = ""; 
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`)
+            .then(res => res.json())
+            .then(data => {
                 if(data.length > 0) {
-                    s.style.display="block";
+                    s.innerHTML = "";
+                    s.style.display = "block";
                     data.forEach(p => {
-                        let d = document.createElement('div'); 
-                        d.className="suggest-item";
-                        d.innerText = p.display_name;
-                        d.onclick = () => {
+                        let item = document.createElement('div');
+                        item.className = "suggest-item";
+                        item.innerText = p.display_name;
+                        item.onclick = function() {
                             document.getElementById('location').value = p.display_name;
-                            document.getElementById('lat').value = p.lat; // Latitude set here
-                            document.getElementById('lng').value = p.lon; // Longitude set here
-                            s.style.display="none";
+                            document.getElementById('lat').value = p.lat;
+                            document.getElementById('lng').value = p.lon;
+                            s.style.display = "none";
                         };
-                        s.appendChild(d);
+                        s.appendChild(item);
                     });
+                } else {
+                    s.style.display = "none";
                 }
-            });
-        }, 500);
+            })
+            .catch(err => console.log("Search error:", err));
+        }, 600);
     }
 
     async function fetchKundli() {
@@ -140,9 +138,9 @@
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
 
-        // CRITICAL VALIDATION
+        // Validation: Must select from dropdown
         if (!lat || !lng) {
-            alert("कृपया सूची में से अपना शहर चुनें!");
+            alert("कृपया शहर सर्च करें और लिस्ट में से अपना शहर चुनें!");
             return;
         }
         if (!date || !time) {
@@ -184,6 +182,13 @@
             }
         } catch (e) { alert("सर्वर एरर!"); }
     }
+
+    // Hide suggestions if clicked outside
+    document.addEventListener('click', (e) => {
+        if (e.target.id !== 'location') {
+            document.getElementById('suggestions').style.display = 'none';
+        }
+    });
 </script>
 </body>
 </html>
