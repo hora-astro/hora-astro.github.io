@@ -167,12 +167,14 @@
                     }
                 });
 
-                // 4. Details Table
+                // Table wali lines ko aise sahi karein:
                 let table = "<h4>Planet Details</h4><table style='width:100%; border-collapse: collapse;' border='1'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
-                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree}°</td></tr>`;
-                });
-                document.getElementById('planet-data').innerHTML = table + "</table>";
+    // Check karein ki degree 'p.degree' hai ya 'p.deg'
+                let degreeVal = p.degree !== undefined ? p.degree : (p.deg !== undefined ? p.deg : "0");
+                table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${degreeVal}°</td></tr>`;
+});
+document.getElementById('planet-data').innerHTML = table + "</table>";
             }
         } catch (error) {
             alert("Server se connect nahi ho pa raha. Check PythonAnywhere!");
