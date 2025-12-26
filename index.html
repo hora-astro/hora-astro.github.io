@@ -3,73 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro | Location & Hindi Fix</title>
+    <title>Hora Astro | No Overlap Fix</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; }
+        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; margin: 0; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
         /* Location Search Styling */
-        .input-group { margin-bottom: 15px; position: relative; text-align: left; }
-        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { padding: 12px; width: 100%; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        
-        /* Dropdown Fix */
-        #suggestions { 
-            position: absolute; width: 100%; background: white; z-index: 9999; 
-            border: 1px solid #ccc; display: none; max-height: 250px; 
-            overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            border-radius: 0 0 8px 8px;
-        }
-        .suggest-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
-        .suggest-item:hover { background: #ffede7; }
+        .input-group { margin-bottom: 12px; position: relative; text-align: left; }
+        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #555; }
+        input { padding: 10px; width: 100%; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        #suggestions { position: absolute; width: 100%; background: white; z-index: 1000; border: 1px solid #ccc; display: none; max-height: 200px; overflow-y: auto; }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
 
-        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
-
-        /* Kundli Chart Styling */
-        .kundli-box { position: relative; width: 340px; height: 340px; border: 2px solid #333; margin: 25px auto; background: #fff; overflow: hidden; }
+        /* Kundli Chart Fixes (Zero Overlap) */
+        .kundli-box { position: relative; width: 340px; height: 340px; border: 2px solid #333; margin: 20px auto; background: #fff; overflow: hidden; }
         .line { position: absolute; background: #333; z-index: 1; }
         .diag1 { width: 480px; height: 2px; top: 169px; left: -70px; transform: rotate(45deg); }
         .diag2 { width: 480px; height: 2px; top: 169px; left: -70px; transform: rotate(-45deg); }
         .inner-rect { position: absolute; width: 240px; height: 240px; border: 2px solid #333; top: 48px; left: 48px; transform: rotate(45deg); z-index: 1; }
         
-        .house { position: absolute; width: 85px; height: 85px; z-index: 5; display: flex; flex-direction: column; align-items: center; }
-        .h1 { top: 75px; left: 128px; } .h2 { top: 25px; left: 65px; } .h3 { top: 25px; left: 190px; }
-        .h4 { top: 105px; left: 60px; } .h5 { top: 185px; left: 25px; } .h6 { top: 255px; left: 65px; }
-        .h7 { top: 195px; left: 128px; } .h8 { top: 255px; left: 190px; } .h9 { top: 185px; left: 235px; }
-        .h10 { top: 105px; left: 200px; } .h11 { top: 25px; left: 235px; } .h12 { top: 25px; left: 25px; }
+        .house { 
+            position: absolute; width: 85px; height: 85px; z-index: 5; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 2px; box-sizing: border-box;
+        }
 
-        .rashi-number { color: #e74c3c; font-size: 14px; font-weight: bold; margin-bottom: 4px; }
-        .planet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; justify-items: center; }
-        .planet-item { font-size: 10px; font-weight: bold; background: #fff; padding: 1px 2px; border: 1px solid #ddd; border-radius: 2px; }
+        /* Accurate Coordinates */
+        .h1 { top: 75px; left: 128px; } .h2 { top: 20px; left: 65px; } .h3 { top: 20px; left: 190px; }
+        .h4 { top: 105px; left: 55px; } .h5 { top: 185px; left: 20px; } .h6 { top: 260px; left: 65px; }
+        .h7 { top: 200px; left: 128px; } .h8 { top: 260px; left: 190px; } .h9 { top: 185px; left: 240px; }
+        .h10 { top: 105px; left: 200px; } .h11 { top: 20px; left: 240px; } .h12 { top: 20px; left: 25px; }
 
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
+        /* Rashi Number Styling */
+        .rashi-number { color: #e74c3c; font-size: 13px; font-weight: bold; margin-bottom: 2px; line-height: 1; }
+
+        /* Smart Planet Container */
+        .planet-container {
+            display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
+            gap: 1px; width: 100%;
+        }
+        .planet-item { 
+            font-size: 10px; font-weight: bold; color: #000; 
+            white-space: nowrap; padding: 0 1px;
+        }
+
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 6px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>ज्योतिष कुंडली 🌌</h2>
-    
     <div class="input-group">
-        <label>जन्म स्थान (अनिवार्य)</label>
-        <input type="text" id="location" placeholder="शहर सर्च करें..." oninput="searchLocation()" autocomplete="off">
+        <label>जन्म स्थान (शहर चुनें)</label>
+        <input type="text" id="location" placeholder="शहर का नाम लिखें..." oninput="searchLocation()" autocomplete="off">
         <div id="suggestions"></div>
         <input type="hidden" id="lat" value="">
         <input type="hidden" id="lng" value="">
     </div>
-
     <div class="input-group">
         <label>जन्म तिथि (YYYY/MM/DD)</label>
         <input type="text" id="date" placeholder="जैसे 1995/10/25">
     </div>
-
     <div class="input-group">
         <label>जन्म समय (HH:MM)</label>
         <input type="text" id="time" placeholder="जैसे 14:30">
     </div>
-
     <button onclick="fetchKundli()">कुंडली देखें</button>
 
     <div id="chart-container" style="display:none;">
@@ -97,59 +99,34 @@
     function searchLocation() {
         const q = document.getElementById('location').value;
         const s = document.getElementById('suggestions');
-        
-        // Clear previous lat/lng
-        document.getElementById('lat').value = "";
-        document.getElementById('lng').value = "";
-
+        document.getElementById('lat').value = ""; document.getElementById('lng').value = "";
         if (q.length < 3) { s.style.display="none"; return; }
-        
         clearTimeout(timer);
         timer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.length > 0) {
-                    s.innerHTML = "";
-                    s.style.display = "block";
-                    data.forEach(p => {
-                        let item = document.createElement('div');
-                        item.className = "suggest-item";
-                        item.innerText = p.display_name;
-                        item.onclick = function() {
-                            document.getElementById('location').value = p.display_name;
-                            document.getElementById('lat').value = p.lat;
-                            document.getElementById('lng').value = p.lon;
-                            s.style.display = "none";
-                        };
-                        s.appendChild(item);
-                    });
-                } else {
-                    s.style.display = "none";
-                }
-            })
-            .catch(err => console.log("Search error:", err));
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
+            .then(res => res.json()).then(data => {
+                s.innerHTML = ""; s.style.display = data.length ? "block" : "none";
+                data.forEach(p => {
+                    let d = document.createElement('div'); d.className="suggest-item";
+                    d.innerText = p.display_name;
+                    d.onclick = () => {
+                        document.getElementById('location').value = p.display_name;
+                        document.getElementById('lat').value = p.lat;
+                        document.getElementById('lng').value = p.lon;
+                        s.style.display="none";
+                    };
+                    s.appendChild(d);
+                });
+            });
         }, 600);
     }
 
     async function fetchKundli() {
         const lat = document.getElementById('lat').value;
         const lng = document.getElementById('lng').value;
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
+        if (!lat) { alert("कृपया लिस्ट में से शहर चुनें!"); return; }
 
-        // Validation: Must select from dropdown
-        if (!lat || !lng) {
-            alert("कृपया शहर सर्च करें और लिस्ट में से अपना शहर चुनें!");
-            return;
-        }
-        if (!date || !time) {
-            alert("कृपया जन्म तिथि और समय भरें!");
-            return;
-        }
-
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
-
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${lng}`;
         try {
             const res = await fetch(url);
             const result = await res.json();
@@ -160,7 +137,7 @@
                 for (let i = 1; i <= 12; i++) {
                     const houseDiv = document.getElementById('h' + i);
                     let rashiVal = ((asc + i - 2) % 12) + 1;
-                    houseDiv.innerHTML = `<div class="rashi-number">${rashiVal}</div><div class="planet-grid" id="pc${i}"></div>`;
+                    houseDiv.innerHTML = `<div class="rashi-number">${rashiVal}</div><div class="planet-container" id="pc${i}"></div>`;
                 }
 
                 result.data.forEach(p => {
@@ -169,26 +146,23 @@
                         if(pCont) {
                             const nameH = hindiPlanets[p.name] || p.name.substring(0,2);
                             pCont.innerHTML += `<span class="planet-item">${nameH}</span>`;
+                            
+                            // Auto-Scaling: If more than 3 planets, shrink font
+                            if(pCont.children.length > 2) {
+                                Array.from(pCont.children).forEach(el => el.style.fontSize = "8px");
+                            }
                         }
                     }
                 });
 
                 let table = "<table><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr>";
                 result.data.forEach(p => {
-                    const nameH = hindiPlanets[p.name] || p.name;
-                    table += `<tr><td>${nameH}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
+                    table += `<tr><td>${hindiPlanets[p.name] || p.name}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
                 });
                 document.getElementById('planet-data').innerHTML = table + "</table>";
             }
         } catch (e) { alert("सर्वर एरर!"); }
     }
-
-    // Hide suggestions if clicked outside
-    document.addEventListener('click', (e) => {
-        if (e.target.id !== 'location') {
-            document.getElementById('suggestions').style.display = 'none';
-        }
-    });
 </script>
 </body>
 </html>
