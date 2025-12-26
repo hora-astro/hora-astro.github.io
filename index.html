@@ -52,6 +52,12 @@
     </style>
 </head>
 <body>
+<div class="input-group" style="position: relative;">
+    <input type="text" id="location" placeholder="Apna Sheher (e.g. Jaipur) likhein" oninput="searchLocation()" autocomplete="off">
+    <div id="suggestions" style="position: absolute; width: 80%; background: white; z-index: 100; text-align: left; margin-left: 10%; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+    <input type="hidden" id="lat">
+    <input type="hidden" id="lng">
+</div>
 
 <div class="card">
     <h1>Hora Astro 🌌</h1>
@@ -180,6 +186,36 @@ document.getElementById('planet-data').innerHTML = table + "</table>";
             alert("Server se connect nahi ho pa raha. Check PythonAnywhere!");
         }
     }
+    let debounceTimer;
+function searchLocation() {
+    const query = document.getElementById('location').value;
+    const suggestDiv = document.getElementById('suggestions');
+    
+    if (query.length < 3) { suggestDiv.innerHTML = ""; return; }
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
+            .then(res => res.json())
+            .then(data => {
+                suggestDiv.innerHTML = "";
+                data.forEach(place => {
+                    let div = document.createElement('div');
+                    div.style.padding = "10px";
+                    div.style.cursor = "pointer";
+                    div.style.borderBottom = "1px solid #eee";
+                    div.innerText = place.display_name;
+                    div.onclick = () => {
+                        document.getElementById('location').value = place.display_name;
+                        document.getElementById('lat').value = place.lat;
+                        document.getElementById('lng').value = place.lon;
+                        suggestDiv.innerHTML = "";
+                    };
+                    suggestDiv.appendChild(div);
+                });
+            });
+    }, 500);
+                }
 </script>
 </body>
 </html>
