@@ -115,7 +115,7 @@
         const time = document.getElementById('time').value;
         const container = document.getElementById('chart-container');
         
-        const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}`;
+        const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date.trim()}&time=${time.trim()}`;
 
         try {
             const response = await fetch(API_URL);
