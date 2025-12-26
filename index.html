@@ -9,41 +9,15 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); text-align: center; padding: 20px; }
         .card { background: white; max-width: 600px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { color: var(--primary); margin-bottom: 25px; }
-        .input-group { margin-bottom: 15px; }
-        input { padding: 12px; width: 80%; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .input-group { margin-bottom: 15px; position: relative; }
+        input { padding: 12px; width: 85%; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; width: 92%; }
         button:hover { background: #e64a19; transform: translateY(-2px); }
-        /* Rashi Numbers Styling */
-/* Purani .house aur .rashi-number classes ko isse badal dein */
-.house { 
-    position: absolute; 
-    font-size: 11px; 
-    font-weight: bold; 
-    width: 70px; 
-    height: 70px; 
-    display: flex;
-    flex-wrap: wrap;
-    align-content: center;
-    justify-content: center;
-    text-align: center;
-}
 
-.rashi-number { 
-    position: absolute; 
-    color: #e74c3c; 
-    font-size: 14px; 
-    font-weight: bold; 
-    top: 2px;
-    right: 5px;
-    z-index: 5;
-}
-
-/* Planets ko thoda niche shift karne ke liye */
-.planet-item {
-    display: inline-block;
-    margin: 1px;
-    color: #2c3e50;
-}
+        /* Location Suggestions Styling */
+        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; text-align: left; left: 5%; border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; display: none; }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        .suggest-item:hover { background: #f0f0f0; }
 
         /* Kundli Chart CSS */
         #chart-container { margin-top: 30px; display: none; }
@@ -53,28 +27,32 @@
         .diag2 { width: 495px; height: 2px; top: 174px; left: -72px; transform: rotate(-45deg); }
         .inner-rect { position: absolute; width: 247.5px; height: 247.5px; border: 2px solid #333; top: 51px; left: 51px; transform: rotate(45deg); }
         
-        .house { position: absolute; font-size: 12px; font-weight: bold; width: 60px; text-align: center; pointer-events: none; }
-        /* Positioning Houses */
-        .h1 { top: 110px; left: 145px; } .h2 { top: 50px; left: 70px; }
-        .h3 { top: 50px; left: 220px; } .h4 { top: 110px; left: 275px; }
-        .h5 { top: 220px; left: 275px; } .h6 { top: 280px; left: 220px; }
-        .h7 { top: 240px; left: 145px; } .h8 { top: 280px; left: 70px; }
-        .h9 { top: 220px; left: 15px; }  .h10 { top: 110px; left: 15px; }
-        .h11 { top: 10px; left: 70px; }  .h12 { top: 10px; left: 220px; }
+        /* House Positioning Fixes */
+        .house { position: absolute; font-weight: bold; width: 70px; height: 70px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; z-index: 2; pointer-events: none; }
+        .h1 { top: 75px; left: 140px; }   .h2 { top: 35px; left: 70px; }
+        .h3 { top: 35px; left: 210px; }  .h4 { top: 110px; left: 70px; }
+        .h5 { top: 185px; left: 35px; }  .h6 { top: 255px; left: 70px; }
+        .h7 { top: 210px; left: 140px; } .h8 { top: 255px; left: 210px; }
+        .h9 { top: 185px; left: 245px; } .h10 { top: 110px; left: 210px; }
+        .h11 { top: 35px; left: 245px; } .h12 { top: 35px; left: 35px; }
 
+        .rashi-number { position: absolute; color: #e74c3c; font-size: 14px; top: 2px; right: 5px; }
+        .planet-item { font-size: 11px; margin: 1px; color: #2c3e50; }
         .planet-list { margin-top: 20px; font-size: 14px; color: #555; }
     </style>
 </head>
 <body>
-<div class="input-group" style="position: relative;">
-    <input type="text" id="location" placeholder="Apna Sheher (e.g. Jaipur) likhein" oninput="searchLocation()" autocomplete="off">
-    <div id="suggestions" style="position: absolute; width: 80%; background: white; z-index: 100; text-align: left; margin-left: 10%; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
-    <input type="hidden" id="lat">
-    <input type="hidden" id="lng">
-</div>
 
 <div class="card">
     <h1>Hora Astro 🌌</h1>
+    
+    <div class="input-group">
+        <input type="text" id="location" placeholder="Sheher ka naam (e.g. Jaipur)" oninput="searchLocation()" autocomplete="off">
+        <div id="suggestions"></div>
+        <input type="hidden" id="lat" value="28.6139">
+        <input type="hidden" id="lng" value="77.2090">
+    </div>
+
     <div class="input-group">
         <input type="text" id="date" placeholder="Date (YYYY/MM/DD) e.g. 1980/03/27">
     </div>
@@ -101,41 +79,42 @@
 </div>
 
 <script>
-    function drawRashiNumbers(ascNum, svg) {
-    // North Indian Chart ke 12 gharon ki fixed jagah (Coordinates)
-    const houseCoords = [
-        { x: 145, y: 135 }, // House 1
-        { x: 75,  y: 65  }, // House 2
-        { x: 35,  y: 105 }, // House 3
-        { x: 110, y: 165 }, // House 4
-        { x: 35,  y: 225 }, // House 5
-        { x: 75,  y: 265 }, // House 6
-        { x: 145, y: 195 }, // House 7
-        { x: 215, y: 265 }, // House 8
-        { x: 255, y: 225 }, // House 9
-        { x: 180, y: 165 }, // House 10
-        { x: 255, y: 105 }, // House 11
-        { x: 215, y: 65  }  // House 12
-    ];
+    let timer;
+    function searchLocation() {
+        const query = document.getElementById('location').value;
+        const suggestDiv = document.getElementById('suggestions');
+        if (query.length < 3) { suggestDiv.style.display = "none"; return; }
 
-    houseCoords.forEach((coord, i) => {
-        // Formula: Lagna se shuru karke 12 tak ginnana
-        let rashiVal = ((ascNum + i - 1) % 12) + 1;
-        
-        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        txt.setAttribute("x", coord.x);
-        txt.setAttribute("y", coord.y);
-        txt.setAttribute("class", "rashi-number");
-        txt.textContent = rashiVal;
-        svg.appendChild(txt);
-    });
-}
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`)
+                .then(res => res.json())
+                .then(data => {
+                    suggestDiv.innerHTML = "";
+                    suggestDiv.style.display = "block";
+                    data.forEach(place => {
+                        let div = document.createElement('div');
+                        div.className = "suggest-item";
+                        div.innerText = place.display_name;
+                        div.onclick = () => {
+                            document.getElementById('location').value = place.display_name;
+                            document.getElementById('lat').value = place.lat;
+                            document.getElementById('lng').value = place.lon;
+                            suggestDiv.style.display = "none";
+                        };
+                        suggestDiv.appendChild(div);
+                    });
+                });
+        }, 500);
+    }
+
     async function fetchKundli() {
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
-        const container = document.getElementById('chart-container');
         const lat = document.getElementById('lat').value;
         const lng = document.getElementById('lng').value;
+        const container = document.getElementById('chart-container');
+        
         const API_URL = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
 
         try {
@@ -143,85 +122,39 @@
             const result = await response.json();
 
             if(result.status === "success") {
-    container.style.display = 'block';
-    
-    const ascNum = result.asc_num;
+                container.style.display = 'block';
+                const ascNum = result.asc_num;
 
-    // 1. Har ghar ko saaf karein aur Rashi Numbers dalein
-    for(let i=1; i<=12; i++) {
-        const houseDiv = document.getElementById('h' + i);
-        houseDiv.innerHTML = ""; // Purana data saaf
-        
-        // Sahi Rashi calculate karein
-        let rashiVal = ((ascNum + i - 2) % 12) + 1;
-        
-        // Rashi Number ko kone mein lagayein
-        let rashiSpan = document.createElement('span');
-        rashiSpan.className = 'rashi-number';
-        rashiSpan.innerText = rashiVal;
-        houseDiv.appendChild(rashiSpan);
-    }
+                // 1. Clear Houses & Add Rashi Numbers in correct sequence
+                for(let i=1; i<=12; i++) {
+                    const houseDiv = document.getElementById('h' + i);
+                    let rashiVal = ((ascNum + i - 2) % 12) + 1;
+                    houseDiv.innerHTML = `<span class="rashi-number">${rashiVal}</span>`;
+                }
 
-    // 2. Planets ko bithaayein
-    result.data.forEach(p => {
-        if(p.house) {
-            const houseDiv = document.getElementById('h' + p.house);
-            let planetSpan = document.createElement('span');
-            planetSpan.className = 'planet-item';
-            // Planet ka short name (e.g., Sun -> Su)
-            planetSpan.innerText = p.name.substring(0,2);
-            houseDiv.appendChild(planetSpan);
-        }
-    });
-
-    // 3. Table update karein (Wahi purana logic)
-    renderTable(result.data);
-    }
+                // 2. Add Planets
+                result.data.forEach(p => {
+                    if(p.house) {
+                        const houseDiv = document.getElementById('h' + p.house);
+                        let pSpan = document.createElement('span');
+                        pSpan.className = 'planet-item';
+                        pSpan.innerText = p.name.substring(0,2);
+                        houseDiv.appendChild(pSpan);
+                    }
                 });
 
-                // Table wali lines ko aise sahi karein:
+                // 3. Planet Details Table
                 let table = "<h4>Planet Details</h4><table style='width:100%; border-collapse: collapse;' border='1'><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
                 result.data.forEach(p => {
-    // Check karein ki degree 'p.degree' hai ya 'p.deg'
-                let degreeVal = p.degree !== undefined ? p.degree : (p.deg !== undefined ? p.deg : "0");
-                table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${degreeVal}°</td></tr>`;
-});
-document.getElementById('planet-data').innerHTML = table + "</table>";
+                    let deg = p.degree !== undefined ? p.degree : "0.00";
+                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${deg}°</td></tr>`;
+                });
+                document.getElementById('planet-data').innerHTML = table + "</table>";
             }
         } catch (error) {
-            alert("Server se connect nahi ho pa raha. Check PythonAnywhere!");
+            alert("Server Error! Make sure app.py is running on PythonAnywhere.");
         }
     }
-    let debounceTimer;
-function searchLocation() {
-    const query = document.getElementById('location').value;
-    const suggestDiv = document.getElementById('suggestions');
-    
-    if (query.length < 3) { suggestDiv.innerHTML = ""; return; }
-
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
-            .then(res => res.json())
-            .then(data => {
-                suggestDiv.innerHTML = "";
-                data.forEach(place => {
-                    let div = document.createElement('div');
-                    div.style.padding = "10px";
-                    div.style.cursor = "pointer";
-                    div.style.borderBottom = "1px solid #eee";
-                    div.innerText = place.display_name;
-                    div.onclick = () => {
-                        document.getElementById('location').value = place.display_name;
-                        document.getElementById('lat').value = place.lat;
-                        document.getElementById('lng').value = place.lon;
-                        suggestDiv.innerHTML = "";
-                    };
-                    suggestDiv.appendChild(div);
-                });
-            });
-    }, 500);
-                }
 </script>
 </body>
 </html>
