@@ -143,49 +143,40 @@
             const result = await response.json();
 
             if(result.status === "success") {
-                container.style.display = 'block';
-                
-                // 1. Sabhi houses ko khali karein
-                for(let i=1; i<=12; i++) {
-                    const houseDiv = document.getElementById('h'+i);
-                    houseDiv.innerHTML = "";
-                    // Purane rashi numbers ko hatayein agar koi hain toh
-                    const oldRashi = houseDiv.querySelector('.rashi-number');
-                    if(oldRashi) oldRashi.remove();
-                }
+    container.style.display = 'block';
+    
+    const ascNum = result.asc_num;
 
-                // 2. Rashi Numbers bithaayein (Lagna ke hisaab se)
-                const ascNum = result.asc_num;
-                for(let i=1; i<=12; i++) {
-                    let rashiVal = ((ascNum + i - 2) % 12) + 1;
-                    const houseDiv = document.getElementById('h'+i);
-                    
-                    // Ek naya span banayein rashi number ke liye
-                    let rashiSpan = document.createElement('span');
-                    rashiSpan.className = 'rashi-number';
-                    rashiSpan.innerText = rashiVal;
-                    
-                    // Ise ghar ke kone mein set karein
-                    rashiSpan.style.position = 'absolute';
-                    rashiSpan.style.top = '2px';
-                    rashiSpan.style.right = '5px';
-                    rashiSpan.style.color = 'red';
-                    rashiSpan.style.fontSize = '12px';
-                    
-                    houseDiv.appendChild(rashiSpan);
-                }
+    // 1. Har ghar ko saaf karein aur Rashi Numbers dalein
+    for(let i=1; i<=12; i++) {
+        const houseDiv = document.getElementById('h' + i);
+        houseDiv.innerHTML = ""; // Purana data saaf
+        
+        // Sahi Rashi calculate karein
+        let rashiVal = ((ascNum + i - 2) % 12) + 1;
+        
+        // Rashi Number ko kone mein lagayein
+        let rashiSpan = document.createElement('span');
+        rashiSpan.className = 'rashi-number';
+        rashiSpan.innerText = rashiVal;
+        houseDiv.appendChild(rashiSpan);
+    }
 
-                // 3. Planets ko unke houses mein dalein
-                result.data.forEach(p => {
-                    if(p.house) {
-                        const houseDiv = document.getElementById('h' + p.house);
-                        // Planet ka naam add karein (Rashi number ke baad)
-                        let pName = document.createElement('span');
-                        pName.innerText = p.name.substring(0,2) + " ";
-                        pName.style.display = 'inline-block';
-                        pName.style.marginTop = '15px'; // Taaki number se na takraye
-                        houseDiv.appendChild(pName);
-                    }
+    // 2. Planets ko bithaayein
+    result.data.forEach(p => {
+        if(p.house) {
+            const houseDiv = document.getElementById('h' + p.house);
+            let planetSpan = document.createElement('span');
+            planetSpan.className = 'planet-item';
+            // Planet ka short name (e.g., Sun -> Su)
+            planetSpan.innerText = p.name.substring(0,2);
+            houseDiv.appendChild(planetSpan);
+        }
+    });
+
+    // 3. Table update karein (Wahi purana logic)
+    renderTable(result.data);
+    }
                 });
 
                 // Table wali lines ko aise sahi karein:
