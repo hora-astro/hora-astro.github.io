@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora-Astro | Kundli Fixed</title>
+    <title>Hora Astro | Kundli Fixed</title>
     <style>
         :root { --primary: #ff5722; --bg: #fdf2f0; }
-        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); text-align: center; padding: 10px; }
         .card { background: white; max-width: 500px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
         /* Kundli Chart CSS */
@@ -22,50 +22,49 @@
             border: 2px solid #333; top: 50px; left: 50px; transform: rotate(45deg); z-index: 1; 
         }
         
-        /* House Styling - Zero Overlap Logic */
+        /* House Styling - Improved Spacing */
         .house { 
-            position: absolute; width: 85px; height: 85px; 
+            position: absolute; width: 90px; height: 90px; 
             z-index: 5; display: flex; flex-direction: column;
-            pointer-events: none; padding: 5px; box-sizing: border-box;
+            pointer-events: none; box-sizing: border-box;
         }
 
-        /* Fixed Coordinates */
-        .h1 { top: 75px;  left: 132px; }  .h2 { top: 25px;  left: 65px; }
-        .h3 { top: 25px;  left: 200px; } .h4 { top: 105px; left: 60px; }
-        .h5 { top: 185px; left: 25px; }  .h6 { top: 260px; left: 65px; }
-        .h7 { top: 200px; left: 132px; } .h8 { top: 260px; left: 200px; }
+        /* Adjusted Coordinates for Better Fit */
+        .h1 { top: 70px;  left: 130px; }  .h2 { top: 20px;  left: 65px; }
+        .h3 { top: 20px;  left: 195px; } .h4 { top: 105px; left: 55px; }
+        .h5 { top: 185px; left: 20px; }  .h6 { top: 260px; left: 65px; }
+        .h7 { top: 200px; left: 130px; } .h8 { top: 260px; left: 195px; }
         .h9 { top: 185px; left: 240px; } .h10 { top: 105px; left: 205px; }
-        .h11 { top: 25px;  left: 240px; } .h12 { top: 25px;  left: 25px; }
+        .h11 { top: 20px;  left: 240px; } .h12 { top: 20px;  left: 20px; }
 
-        /* Rashi Number - Top Center */
+        /* Rashi Number - Top Center with padding */
         .rashi-number { 
             color: #e74c3c; font-size: 14px; font-weight: bold; 
-            height: 20px; width: 100%; text-align: center;
+            margin-bottom: 5px; width: 100%; text-align: center;
         }
 
-        /* Planet Container - Grid to prevent mixing */
+        /* Planet Grid - Prevents overlap */
         .planet-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 2px;
+            gap: 3px;
             justify-items: center;
-            align-items: center;
-            flex-grow: 1;
+            align-items: start;
+            padding: 0 5px;
         }
         .planet-item { 
-            font-size: 10px; font-weight: bold; color: #000; 
-            background: rgba(255,255,255,0.9); border-radius: 2px;
-            padding: 1px 2px; line-height: 1;
+            font-size: 11px; font-weight: bold; color: #000; 
+            background: rgba(255,255,255,0.7); padding: 1px 3px;
+            border-radius: 3px; white-space: nowrap;
         }
 
-        /* UI elements */
-        .input-group { margin-bottom: 10px; position: relative; }
-        input { padding: 10px; width: 85%; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 5px; width: 90%; font-weight: bold; }
-        #suggestions { position: absolute; width: 90%; background: white; z-index: 100; left: 5%; border: 1px solid #ddd; display: none; text-align: left; }
-        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        /* Inputs & Tables */
+        .input-group { margin-bottom: 10px; }
+        input { padding: 10px; width: 85%; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 5px; width: 90%; font-weight: bold; cursor: pointer; }
         table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 6px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f2f2f2; }
     </style>
 </head>
 <body>
@@ -73,14 +72,13 @@
 <div class="card">
     <h2>Hora Astro 🌌</h2>
     <div class="input-group">
-        <input type="text" id="location" placeholder="Type City..." oninput="searchLocation()" autocomplete="off">
-        <div id="suggestions"></div>
+        <input type="text" id="location" placeholder="शहर का नाम (जैसे Jaipur)">
         <input type="hidden" id="lat" value="28.6139">
         <input type="hidden" id="lng" value="77.2090">
     </div>
-    <div class="input-group"><input type="text" id="date" placeholder="YYYY/MM/DD"></div>
-    <div class="input-group"><input type="text" id="time" placeholder="HH:MM"></div>
-    <button onclick="fetchKundli()">Kundli Dekhein</button>
+    <div class="input-group"><input type="text" id="date" placeholder="YYYY/MM/DD (जैसे 1990/05/20)"></div>
+    <div class="input-group"><input type="text" id="time" placeholder="HH:MM (जैसे 10:30)"></div>
+    <button onclick="fetchKundli()">कुंडली देखें</button>
 
     <div id="chart-container" style="display:none;">
         <div class="kundli-box">
@@ -97,30 +95,13 @@
 </div>
 
 <script>
-    let timer;
-    function searchLocation() {
-        const q = document.getElementById('location').value;
-        const s = document.getElementById('suggestions');
-        if (q.length < 3) { s.style.display="none"; return; }
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`)
-            .then(res => res.json()).then(data => {
-                s.innerHTML = ""; s.style.display="block";
-                data.forEach(p => {
-                    let d = document.createElement('div'); d.className="suggest-item";
-                    d.innerText = p.display_name;
-                    d.onclick = () => {
-                        document.getElementById('location').value = p.display_name;
-                        document.getElementById('lat').value = p.lat;
-                        document.getElementById('lng').value = p.lon;
-                        s.style.display="none";
-                    };
-                    s.appendChild(d);
-                });
-            });
-        }, 500);
-    }
+    // Planet name translation mapping
+    const hindiPlanets = {
+        "Sun": "सूर्य", "Moon": "चंद्र", "Mercury": "बुध", "Venus": "शुक्र",
+        "Mars": "मंगल", "Jupiter": "गुरु", "Saturn": "शनि",
+        "North Node": "राहू", "South Node": "केतु", "Syzygy": "अमा/पूर्णि",
+        "Pars Fortuna": "भाग्य"
+    };
 
     async function fetchKundli() {
         const date = document.getElementById('date').value;
@@ -136,6 +117,7 @@
                 document.getElementById('chart-container').style.display = 'block';
                 const asc = result.asc_num;
 
+                // 1. Clear and setup Houses with Rashi Numbers
                 for (let i = 1; i <= 12; i++) {
                     const houseDiv = document.getElementById('h' + i);
                     let rashiVal = ((asc + i - 2) % 12) + 1;
@@ -145,22 +127,26 @@
                     `;
                 }
 
+                // 2. Add Planets in Hindi with Grid Layout
                 result.data.forEach(p => {
                     if (p.house) {
                         const pCont = document.getElementById('pc' + p.house);
                         if(pCont) {
-                            pCont.innerHTML += `<span class="planet-item">${p.name.substring(0,2)}</span>`;
+                            const nameHindi = hindiPlanets[p.name] || p.name.substring(0,3);
+                            pCont.innerHTML += `<span class="planet-item">${nameHindi}</span>`;
                         }
                     }
                 });
 
-                let table = "<table><tr><th>Planet</th><th>Sign</th><th>Deg</th></tr>";
+                // 3. Update Table in Hindi
+                let table = "<table><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr>";
                 result.data.forEach(p => {
-                    table += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
+                    const nameH = hindiPlanets[p.name] || p.name;
+                    table += `<tr><td>${nameH}</td><td>${p.rashi}</td><td>${p.degree || '0.00'}°</td></tr>`;
                 });
                 document.getElementById('planet-data').innerHTML = table + "</table>";
             }
-        } catch (e) { alert("Check Connection!"); }
+        } catch (e) { alert("सर्वर एरर! कृपया इंटरनेट चेक करें।"); }
     }
 </script>
 </body>
