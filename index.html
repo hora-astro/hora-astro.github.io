@@ -3,42 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Pro | Free Edition</title>
+    <title>Hora Astro Pro | D1, D9, Panchang & Dasha</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #e64a19; --bg: #fff5f2; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
         .card { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* Tabs */
+        /* Tabs Styling */
         .tabs { display: flex; overflow-x: auto; gap: 5px; margin: 15px 0; border-bottom: 2px solid #eee; }
-        .tab-btn { padding: 10px; border: none; background: #eee; cursor: pointer; flex: 1; font-weight: bold; border-radius: 8px 8px 0 0; white-space: nowrap; }
+        .tab-btn { padding: 12px; border: none; background: #eee; cursor: pointer; flex: 1; font-weight: bold; border-radius: 8px 8px 0 0; white-space: nowrap; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
-        .tab-content { display: none; }
+        .tab-content { display: none; padding: 10px 0; }
 
-        /* Kundli SVG */
-        .kundli-svg { width: 100%; height: auto; background: white; border: 2px solid #333; margin-top: 10px; }
-        .line { stroke: #333; stroke-width: 2; }
+        /* Kundli SVG Styling */
+        .kundli-svg { width: 100%; max-width: 350px; height: auto; background: white; border: 2px solid #333; margin: auto; }
+        .line { stroke: #333; stroke-width: 1.5; }
         .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: bold; }
         .planet-text { fill: #000; font-size: 11px; font-weight: bold; }
 
-        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; font-size: 13px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; text-align: left; }
+        th { background: #f8f8f8; color: var(--primary); }
+
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
-<div class="card" id="kundli-report">
-    <h1 style="color:var(--primary);">Hora Astro 🌌</h1>
+<div class="card" id="report-area">
+    <h1 style="color:var(--primary); margin-bottom: 5px;">Hora Astro Pro 🌌</h1>
+    <p style="font-size: 12px; color: #666; margin-top: 0;">D1, D9, Panchang & Vimsottari Dasha</p>
     
     <div class="no-print">
-        <input type="text" id="date" placeholder="YYYY/MM/DD (2006/11/06)">
-        <input type="text" id="time" placeholder="HH:MM (11:28)">
-        <input type="text" id="lat" placeholder="Latitude (23.33)">
-        <input type="text" id="lng" placeholder="Longitude (74.26)">
+        <input type="text" id="date" placeholder="YYYY/MM/DD (जैसे 2006/11/06)">
+        <input type="text" id="time" placeholder="HH:MM (जैसे 11:28)">
+        <input type="text" id="lat" placeholder="Latitude (जैसे 23.33)">
+        <input type="text" id="lng" placeholder="Longitude (जैसे 74.26)">
         <button onclick="fetchAllData()">कुंडली जनरेट करें</button>
     </div>
 
@@ -50,25 +54,27 @@
     </div>
 
     <div id="tab-d1" class="tab-content" style="display:block;">
-        <h3>लग्न कुंडली (D1)</h3>
-        <svg viewBox="0 0 300 300" class="kundli-svg" id="svg-d1"></svg>
+        <h3>लग्न कुंडली (D1 Chart)</h3>
+        <div id="svg-container-d1"></div>
     </div>
 
     <div id="tab-d9" class="tab-content">
-        <h3>नवांश कुंडली (D9)</h3>
-        <svg viewBox="0 0 300 300" class="kundli-svg" id="svg-d9"></svg>
+        <h3>नवांश कुंडली (D9 Chart)</h3>
+        <div id="svg-container-d9"></div>
     </div>
 
     <div id="tab-panchang" class="tab-content">
         <h3>पंचांग विवरण</h3>
-        <table id="panchang-table"></table>
+        <table id="panchang-table">
+            <tbody id="panchang-body"></tbody>
+        </table>
     </div>
 
     <div id="tab-dasha" class="tab-content">
         <h3>विंशोत्तरी महादशा</h3>
-        <table id="dasha-table">
-            <thead><tr><th>ग्रह</th><th>अंत तिथि</th></tr></thead>
-            <tbody id="dasha-list"></tbody>
+        <table>
+            <thead><tr><th>ग्रह</th><th>समाप्ति तिथि</th></tr></thead>
+            <tbody id="dasha-body"></tbody>
         </table>
     </div>
 
@@ -78,19 +84,20 @@
 <script>
     const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु"};
 
-    const houseCoords = {
+    // सटीक कोर्डिनेट्स (Houses 1-12)
+    const coords = {
         1: {rx: 150, ry: 75, px: 150, py: 110},
-        2: {rx: 75, ry: 45, px: 50, py: 70},
-        3: {rx: 40, ry: 80, px: 40, py: 115},
-        4: {rx: 75, ry: 150, px: 50, py: 185},
-        5: {rx: 40, ry: 220, px: 40, py: 255},
+        2: {rx: 75, ry: 45, px: 55, py: 70},
+        3: {rx: 40, ry: 75, px: 40, py: 110},
+        4: {rx: 85, ry: 150, px: 55, py: 180},
+        5: {rx: 40, ry: 225, px: 45, py: 255},
         6: {rx: 75, ry: 265, px: 75, py: 240},
-        7: {rx: 150, ry: 225, px: 150, py: 185},
+        7: {rx: 150, ry: 220, px: 150, py: 185},
         8: {rx: 225, ry: 265, px: 225, py: 240},
-        9: {rx: 260, ry: 220, px: 260, py: 255},
-        10: {rx: 225, ry: 150, px: 250, py: 185},
-        11: {rx: 260, ry: 80, px: 260, py: 115},
-        12: {rx: 225, ry: 45, px: 250, py: 70}
+        9: {rx: 265, ry: 225, px: 260, py: 255},
+        10: {rx: 220, ry: 150, px: 250, py: 180},
+        11: {rx: 265, ry: 75, px: 260, py: 110},
+        12: {rx: 225, ry: 45, px: 245, py: 70}
     };
 
     function openTab(evt, tabName) {
@@ -100,69 +107,93 @@
         evt.currentTarget.classList.add("active");
     }
 
+    // यही वह फंक्शन है जिसे आपने पूछा था
     async function fetchAllData() {
-        const base = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const btn = event.target;
+        btn.innerText = "लोड हो रहा है...";
         
-        const res = await fetch(base);
-        const result = await res.json();
-        
-        if(result.status === "success") {
-            drawSVG("svg-d1", result.asc_num, result.data);
-            // यहाँ D9 का डेटा भी बैकएंड से आना चाहिए, अभी के लिए D1 दिखा रहे हैं
-            drawSVG("svg-d9", result.asc_num, result.data); 
-            fillPanchang(result.panchang);
-            fillDasha(result.dasha);
+        try {
+            const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+            const res = await fetch(url);
+            const result = await res.json();
+            
+            if(result.status === "success") {
+                // 1. D1 और D9 चार्ट्स बनाएं
+                drawSVG("svg-container-d1", result.asc_num, result.d1_data);
+                drawSVG("svg-container-d9", result.d9_asc_num, result.d9_data); 
+                
+                // 2. पंचांग भरें
+                fillPanchang(result.panchang);
+                
+                // 3. दशा भरें
+                fillDasha(result.dasha);
+                
+                btn.innerText = "कुंडली जनरेट करें";
+            }
+        } catch (e) {
+            alert("Error fetching data!");
+            btn.innerText = "कुंडली जनरेट करें";
         }
     }
 
-    function drawSVG(id, lagna, planets) {
-        const svg = document.getElementById(id);
-        svg.innerHTML = `
+    function drawSVG(containerId, lagna, planets) {
+        const container = document.getElementById(containerId);
+        let svgHtml = `<svg viewBox="0 0 300 300" class="kundli-svg">
             <rect width="300" height="300" fill="none" stroke="#333" stroke-width="2"/>
             <line x1="0" y1="0" x2="300" y2="300" class="line"/>
             <line x1="300" y1="0" x2="0" y2="300" class="line"/>
             <line x1="150" y1="0" x2="0" y2="150" class="line"/>
             <line x1="0" y1="150" x2="150" y2="300" class="line"/>
             <line x1="150" y1="300" x2="300" y2="150" class="line"/>
-            <line x1="300" y1="150" x2="150" y2="0" class="line"/>
-        `;
+            <line x1="300" y1="150" x2="150" y2="0" class="line"/>`;
 
+        // राशियाँ सेट करें
         for (let i = 1; i <= 12; i++) {
             let rNum = ((lagna + i - 2) % 12) + 1;
-            let c = houseCoords[i];
-            svg.innerHTML += `<text x="${c.rx}" y="${c.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
+            let c = coords[i];
+            svgHtml += `<text x="${c.rx}" y="${c.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
         }
 
+        // ग्रह सेट करें
         const hCount = {};
         planets.forEach(p => {
             if (p.house) {
                 if(!hCount[p.house]) hCount[p.house] = 0;
-                let c = houseCoords[p.house];
+                let c = coords[p.house];
                 let offset = hCount[p.house] * 12;
                 let name = hNames[p.name] || p.name.substring(0,2);
-                svg.innerHTML += `<text x="${c.px}" y="${c.py + offset}" class="planet-text" text-anchor="middle">${name} ${Math.floor(p.degree)}°</text>`;
+                svgHtml += `<text x="${c.px}" y="${c.py + offset}" class="planet-text" text-anchor="middle">${name} ${Math.floor(p.degree)}°</text>`;
                 hCount[p.house]++;
             }
         });
+
+        svgHtml += `</svg>`;
+        container.innerHTML = svgHtml;
     }
 
     function fillPanchang(data) {
-        const table = document.getElementById("panchang-table");
-        table.innerHTML = `
-            <tr><td>तिथि</td><td>${data.tithi || 'N/A'}</td></tr>
-            <tr><td>नक्षत्र</td><td>${data.nakshatra || 'N/A'}</td></tr>
-            <tr><td>योग</td><td>${data.yoga || 'N/A'}</td></tr>
+        const body = document.getElementById("panchang-body");
+        body.innerHTML = `
+            <tr><td>तिथि (Tithi)</td><td>${data.tithi}</td></tr>
+            <tr><td>नक्षत्र (Nakshatra)</td><td>${data.nakshatra}</td></tr>
+            <tr><td>योग (Yoga)</td><td>${data.yoga}</td></tr>
+            <tr><td>वार (Day)</td><td>${data.vaar}</td></tr>
         `;
     }
 
     function fillDasha(data) {
-        const body = document.getElementById("dasha-list");
-        body.innerHTML = data.map(d => `<tr><td>${d.planet}</td><td>${d.end_date}</td></tr>`).join('');
+        const body = document.getElementById("dasha-body");
+        body.innerHTML = data.map(d => `<tr><td>${hNames[d.planet] || d.planet}</td><td>${d.end_date}</td></tr>`).join('');
     }
 
     function downloadPDF() {
-        const element = document.getElementById('kundli-report');
-        html2pdf().from(element).save();
+        const element = document.getElementById('report-area');
+        html2pdf().from(element).set({
+            margin: 10,
+            filename: 'My_Kundli_HoraAstro.pdf',
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).save();
     }
 </script>
 </body>
