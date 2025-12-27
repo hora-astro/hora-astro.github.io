@@ -1,174 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Kundli</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet"
- href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-
+<meta charset="utf-8">
+<title>Kundli Generator</title>
 <style>
-.box{border:1px solid #333;height:60px;text-align:center;padding-top:15px;}
-.chart{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+body{font-family:Arial;padding:20px}
+.box{border:1px solid #ccc;padding:15px;margin-top:10px;border-radius:10px}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #ccc;padding:6px}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>Kundli Generator</h2>
 
-<h3 class="mt-3 fw-bold text-center">Kundli Generator</h3>
+<div class="box">
+Date of Birth:
+<input id="dob" type="date"><br><br>
 
-<div class="card mt-3">
-<div class="card-body">
+Time of Birth:
+<input id="tob" type="time"><br><br>
 
-<div class="row">
-<div class="col-md-4">
-<label>DOB</label>
-<input type="date" id="dob" class="form-control">
-</div>
+Birth Place (Lat, Lon):
+<input id="lat" placeholder="23.4">
+<input id="lon" placeholder="74.3"><br><br>
 
-<div class="col-md-4">
-<label>TOB</label>
-<input type="time" id="tob" class="form-control">
-</div>
-
-<div class="col-md-4">
-<label>Birth Place</label>
-<input type="text" id="place" class="form-control">
-<small id="locInfo"></small>
-</div>
-</div>
-
-<button onclick="getKundli()" class="btn btn-primary w-100 mt-3">
-Get Kundli
-</button>
-
-</div>
+<button onclick="getKundli()">Get Kundli</button>
+<button onclick="getPDF()">Download PDF</button>
 </div>
 
 
-<div id="result" style="display:none" class="mt-3">
+<div id="result" class="box" style="display:none">
 
-<h5>Lagna: <span id="lagna"></span></h5>
+<h3 id="lagna"></h3>
 
-<h5 class="mt-3">D1 Chart</h5>
-<div class="chart" id="d1"></div>
+<h4>D1 Chart</h4>
+<pre id="d1"></pre>
 
-<h5 class="mt-3">D9 (Navamsa)</h5>
-<div class="chart" id="d9"></div>
+<h4>D9 Chart</h4>
+<pre id="d9"></pre>
 
-<h5 class="mt-3">Panchang</h5>
-<ul id="panchang"></ul>
+<h4>Planets</h4>
+<table id="planetTable"></table>
 
-<h5 class="mt-3">Vimshottari Dasha</h5>
-<table class="table" id="vim"></table>
+<h4>Panchang</h4>
+<pre id="panchang"></pre>
 
-<h5 class="mt-3">Planets</h5>
-<table class="table table-bordered" id="planets"></table>
-
-<button class="btn btn-success w-100" onclick="downloadPDF()">
-Download PDF
-</button>
-
-</div>
+<h4>Vimshottari Dasha</h4>
+<table id="dashaTable"></table>
 
 </div>
 
 
 <script>
 
-let lat=null,lon=null;
+const API = "https://hemantpurohit27.pythonanywhere.com";
 
-// ---------- LOCATION SEARCH ----------
-document.getElementById("place").addEventListener("change", async ()=>{
-
- let city = document.getElementById("place").value;
- let res = await fetch(
- `https://nominatim.openstreetmap.org/search?format=json&q=${city}`
- );
- let d = await res.json();
-
- lat=d[0].lat; lon=d[0].lon;
- document.getElementById("locInfo").innerText="Location Found ✓";
-});
-
-
-// ---------- FETCH KUNDLI ----------
 async function getKundli(){
 
- let payload={
-  dob:dob.value,
-  tob:tob.value,
-  lat:lat,
-  lon:lon
- };
+ let payload = {
+   dob: dob.value,
+   tob: tob.value,
+   lat: lat.value,
+   lon: lon.value
+ }
 
- let res=await fetch(
-  "/api/kundli",
-  {method:"POST",headers:{"Content-Type":"application/json"},
-   body:JSON.stringify(payload)}
- );
-
- let data=await res.json();
-
- lagna.innerText=data.lagna;
-
- renderChart("d1",data.d1_chart);
- renderChart("d9",data.d9_chart);
-
- panchang.innerHTML=`
- <li>Tithi: ${data.panchang.tithi}</li>
- <li>Nakshatra: ${data.panchang.nakshatra}</li>
- <li>Yoga: ${data.panchang.yoga}</li>
- <li>Karana: ${data.panchang.karana}</li>
- `;
-
- let vimRows="<tr><th>Dasha</th><th>From</th><th>To</th></tr>";
- data.vimshottari.forEach(v=>{
-  vimRows+=`<tr><td>${v.dasha}</td><td>${v.from}</td><td>${v.to}</td></tr>`;
+ let res = await fetch(API+"/api/kundli",{
+   method:"POST",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(payload)
  });
- vim.innerHTML=vimRows;
 
- let pl="<tr><th>Planet</th><th>Sign</th><th>Degree</th><th>House</th></tr>";
- data.planets.forEach(p=>{
-  pl+=`<tr><td>${p.planet}</td><td>${p.sign}</td><td>${p.degree}</td><td>${p.house}</td></tr>`;
- });
- planets.innerHTML=pl;
+ let k = await res.json();
 
- window.kundliData=data;
+ lagna.innerText = "Lagna: "+k.lagna;
+
+ d1.innerText = JSON.stringify(k.d1_chart,null,2);
+ d9.innerText = JSON.stringify(k.d9_chart,null,2);
+
+ planetTable.innerHTML =
+  "<tr><th>Planet</th><th>Sign</th><th>Degree</th></tr>" +
+  k.planets.map(p=>`<tr>
+   <td>${p.planet}</td>
+   <td>${p.sign}</td>
+   <td>${p.degree}</td>
+  </tr>`).join("");
+
+ panchang.innerText = JSON.stringify(k.panchang,null,2);
+
+ dashaTable.innerHTML =
+   k.vimshottari.map(r=>`
+   <tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>
+   `).join("");
 
  result.style.display="block";
 }
 
 
 
-// ---------- DRAW CHART ----------
-function renderChart(id,obj){
- let html="";
- for(let i=1;i<=12;i++){
-   html+=`<div class='box'><b>${i}</b><br>${obj[i]||""}</div>`;
+async function getPDF(){
+
+ let payload = {
+   dob: dob.value,
+   tob: tob.value,
+   lat: lat.value,
+   lon: lon.value
  }
- document.getElementById(id).innerHTML=html;
-}
 
+ let res = await fetch(API+"/api/pdf",{
+   method:"POST",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(payload)
+ });
 
-
-// ---------- PDF ----------
-async function downloadPDF(){
-
- let res=await fetch(
- "/api/pdf",
- {method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify(window.kundliData)}
- );
-
- let blob=await res.blob();
- let url=window.URL.createObjectURL(blob);
- let a=document.createElement("a");
- a.href=url;
- a.download="kundli.pdf";
- a.click();
+ let blob = await res.blob();
+ let url = window.URL.createObjectURL(blob);
+ window.open(url);
 }
 
 </script>
