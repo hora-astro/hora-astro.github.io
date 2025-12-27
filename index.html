@@ -1,60 +1,115 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kundli Generator</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <meta charset="utf-8">
+  <title>Kundli Generator</title>
+
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+  <style>
+    body { padding:20px; }
+    .box{
+      border:1px solid #ddd;
+      padding:15px;
+      border-radius:8px;
+      margin-bottom:25px;
+    }
+  </style>
 </head>
 
-<body class="p-4">
+<body>
 
 <h2>Kundli Generator</h2>
 
-<form method="POST">
+<div class="box">
 
-    <input class="form-control" name="name" placeholder="Name" required><br>
+  <div class="row">
+    <div class="col-md-3">
+      <label>Date of Birth</label>
+      <input type="date" id="dob" class="form-control">
+    </div>
 
-    <label>Date of Birth</label>
-    <input type="date" class="form-control" name="dob" required><br>
+    <div class="col-md-3">
+      <label>Time of Birth</label>
+      <input type="time" id="tob" class="form-control">
+    </div>
 
-    <label>Time of Birth</label>
-    <input type="time" class="form-control" name="tob" required><br>
+    <div class="col-md-3">
+      <label>Birth Place</label>
+      <input type="text" id="place" placeholder="city name"
+             class="form-control">
+    </div>
 
-    <label>Timezone (e.g. Asia/Kolkata)</label>
-    <input class="form-control" name="timezone" value="Asia/Kolkata" required><br>
+    <div class="col-md-3">
+      <label>&nbsp;</label><br>
+      <button class="btn btn-primary" onclick="getKundli()">Get Kundli</button>
+    </div>
+  </div>
 
-    <label>Latitude</label>
-    <input class="form-control" name="lat" placeholder="e.g. 23.02" required><br>
+</div>
 
-    <label>Longitude</label>
-    <input class="form-control" name="lon" placeholder="e.g. 72.57" required><br>
 
-    <button class="btn btn-primary">Generate</button>
 
-</form>
+<h3>Gun Milan</h3>
 
-<hr>
+<div class="box">
 
-{% if data %}
-<h4>Results</h4>
+  <div class="row">
+    <div class="col-md-3">
+      <label>Boy DOB</label>
+      <input type="date" id="boydob" class="form-control">
+    </div>
 
-<p><b>Lagna:</b> {{data.lagna}}</p>
+    <div class="col-md-3">
+      <label>Girl DOB</label>
+      <input type="date" id="girldob" class="form-control">
+    </div>
 
-<h5>D1 Chart</h5>
-<pre>{{data.d1}}</pre>
+    <div class="col-md-3">
+      <label>&nbsp;</label><br>
+      <button class="btn btn-success" onclick="checkMatch()">Check Match</button>
+    </div>
+  </div>
 
-<h5>D9 Chart</h5>
-<pre>{{data.d9}}</pre>
+</div>
 
-<h5>Panchang</h5>
-<p>{{data.panchang}}</p>
 
-<h5>Vimshottari</h5>
-<p>{{data.vimshottari}}</p>
+<div id="result" class="box" style="display:none;">
+  <h4>Results</h4>
 
-<a href="/download" class="btn btn-success">Download PDF</a>
+  <p><b>Lagna:</b> <span id="lagna"></span></p>
 
-{% endif %}
+  <h5>D1 Chart</h5>
+  <pre id="d1"></pre>
+
+  <h5>D9 Chart</h5>
+  <pre id="d9"></pre>
+
+  <h5>Panchang</h5>
+  <pre id="panchang"></pre>
+
+  <h5>Vimshottari</h5>
+  <pre id="dasha"></pre>
+
+  <button class="btn btn-danger" onclick="window.location='/download'">
+    Download PDF
+  </button>
+</div>
+
+
+
+<script>
+function getKundli(){
+   alert("Backend se data fetch hoga (Flask app.py)");
+   document.getElementById("result").style.display="block";
+}
+
+function checkMatch(){
+   alert("Gun Milan backend me calculate hoga");
+}
+</script>
+
 
 </body>
 </html>
