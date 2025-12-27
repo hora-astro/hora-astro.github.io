@@ -54,6 +54,43 @@
 </div>
 
 <script>
+    async function generate() {
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const lat = document.getElementById('lat').value;
+        const lng = document.getElementById('lng').value;
+        
+        // बटन को 'Loading...' पर सेट करें ताकि पता चले क्लिक हुआ है
+        const btn = document.querySelector("button");
+        const originalText = btn.innerText;
+        btn.innerText = "लोड हो रहा है...";
+        btn.disabled = true;
+
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
+        
+        console.log("Fetching from:", url); // ब्राउज़र कंसोल में चेक करने के लिए
+
+        try {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            
+            const data = await r.json();
+            console.log("Server Response:", data);
+
+            if(data.status === "success") {
+                renderChart(data.asc_num, data.d1_data);
+                renderPanchang(data.panchang);
+            } else {
+                alert("सर्वर एरर: " + data.message);
+            }
+        } catch(e) { 
+            console.error("Fetch Error:", e);
+            alert("कनेक्शन फेल: " + e.message); 
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
     async function searchCity() {
         const q = document.getElementById('city').value;
         const res = document.getElementById('search-results');
@@ -73,24 +110,6 @@
             };
             res.appendChild(d);
         });
-    }
-
-    async function generate() {
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        const lat = document.getElementById('lat').value;
-        const lng = document.getElementById('lng').value;
-        
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
-        
-        try {
-            const r = await fetch(url);
-            const data = await r.json();
-            if(data.status === "success") {
-                renderChart(data.asc_num, data.d1_data);
-                renderPanchang(data.panchang);
-            }
-        } catch(e) { alert("Error connecting to server"); }
     }
 
     function renderChart(lagna, planets) {
