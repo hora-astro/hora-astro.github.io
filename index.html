@@ -3,80 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro - कुंडली और पंचांग</title>
+    <title>Hora Astro Pro - कुंडली</title>
     <style>
-        :root { --primary: #e64a19; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 15px; text-align: center; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h2 { color: var(--primary); }
+        :root { --primary: #d35400; --bg: #fdf2e9; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; text-align: center; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin-bottom: 20px; }
         .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #555; }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 14px; outline: none; }
+        input:focus { border-color: var(--primary); }
         
-        #search-results { position: absolute; background: white; width: 100%; border: 1px solid #ddd; z-index: 100; max-height: 150px; overflow-y: auto; display: none; }
-        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; font-size: 13px; }
-        
-        .kundli-svg { width: 100%; max-width: 400px; height: auto; margin-top: 20px; }
-        .rashi-num { fill: #d32f2f; font-weight: bold; font-size: 16px; }
-        .planet-text { fill: #333; font-size: 10px; font-weight: bold; }
-        .planet-deg { fill: #666; font-size: 8px; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #e67e22; }
+        button:disabled { background: #ccc; }
 
-        .panchang-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        .panchang-table td, .panchang-table th { padding: 10px; border: 1px solid #eee; text-align: left; }
-        .panchang-table th { background: #fafafa; }
+        #search-results { position: absolute; background: white; width: 90%; border: 1px solid #ddd; z-index: 100; max-height: 150px; overflow-y: auto; display: none; border-radius: 0 0 10px 10px; }
+        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; font-size: 13px; }
+
+        .kundli-svg { width: 100%; max-width: 400px; height: auto; margin-top: 25px; border-radius: 10px; }
+        .rashi-num { fill: #c0392b; font-weight: bold; font-size: 18px; }
+        .planet-text { fill: #2c3e50; font-size: 11px; font-weight: bold; }
+        .planet-deg { fill: #7f8c8d; font-size: 9px; }
+
+        .panchang-table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; }
+        .panchang-table td, .panchang-table th { padding: 12px; border: 1px solid #f0f0f0; text-align: left; }
+        .panchang-table th { background: #f9f9f9; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Hora Astro 🌌</h2>
+    <h2>Hora Astro Pro 🌌</h2>
+    
     <div class="input-group">
-        <label>जन्म तिथि</label>
+        <label>जन्म तिथि (Date)</label>
         <input type="date" id="date" value="2006-11-06">
     </div>
+    
     <div class="input-group">
-        <label>जन्म समय</label>
+        <label>जन्म समय (Time)</label>
         <input type="time" id="time" value="11:28">
     </div>
+    
     <div class="input-group" style="position: relative;">
-        <label>जन्म स्थान</label>
-        <input type="text" id="city" placeholder="शहर खोजें..." oninput="searchCity()">
+        <label>जन्म स्थान (Search City)</label>
+        <input type="text" id="city" placeholder="शहर का नाम लिखें..." oninput="searchCity()">
         <div id="search-results"></div>
     </div>
+    
     <input type="hidden" id="lat" value="23.49">
     <input type="hidden" id="lng" value="74.35">
 
-    <button onclick="generate()">कुंडली देखें</button>
+    <button id="genBtn" onclick="generate()">कुंडली देखें</button>
 
     <div id="kundli-container"></div>
     <div id="panchang-container"></div>
 </div>
 
 <script>
+    async function searchCity() {
+        const q = document.getElementById('city').value;
+        const res = document.getElementById('search-results');
+        if(q.length < 3) { res.style.display = 'none'; return; }
+        
+        try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await resp.json();
+            res.innerHTML = ''; 
+            res.style.display = 'block';
+            data.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'result-item';
+                d.innerText = item.display_name;
+                d.onclick = () => {
+                    document.getElementById('city').value = item.display_name.split(',')[0];
+                    document.getElementById('lat').value = item.lat;
+                    document.getElementById('lng').value = item.lon;
+                    res.style.display = 'none';
+                };
+                res.appendChild(d);
+            });
+        } catch(e) { console.log("City search error"); }
+    }
+
     async function generate() {
+        const btn = document.getElementById('genBtn');
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const lat = document.getElementById('lat').value;
         const lng = document.getElementById('lng').value;
         
-        // बटन को 'Loading...' पर सेट करें ताकि पता चले क्लिक हुआ है
-        const btn = document.querySelector("button");
-        const originalText = btn.innerText;
-        btn.innerText = "लोड हो रहा है...";
+        if(!date || !time) { alert("कृपया तारीख और समय चुनें"); return; }
+
         btn.disabled = true;
+        btn.innerText = "गणना की जा रही है...";
 
         const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
         
-        console.log("Fetching from:", url); // ब्राउज़र कंसोल में चेक करने के लिए
-
         try {
             const r = await fetch(url);
-            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
-            
             const data = await r.json();
-            console.log("Server Response:", data);
-
+            
             if(data.status === "success") {
                 renderChart(data.asc_num, data.d1_data);
                 renderPanchang(data.panchang);
@@ -84,79 +112,58 @@
                 alert("सर्वर एरर: " + data.message);
             }
         } catch(e) { 
-            console.error("Fetch Error:", e);
-            alert("कनेक्शन फेल: " + e.message); 
+            alert("कनेक्शन एरर: " + e.message); 
         } finally {
-            btn.innerText = originalText;
             btn.disabled = false;
+            btn.innerText = "कुंडली देखें";
         }
-    }
-    async function searchCity() {
-        const q = document.getElementById('city').value;
-        const res = document.getElementById('search-results');
-        if(q.length < 3) return;
-        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await resp.json();
-        res.innerHTML = ''; res.style.display = 'block';
-        data.forEach(item => {
-            let d = document.createElement('div');
-            d.className = 'result-item';
-            d.innerText = item.display_name;
-            d.onclick = () => {
-                document.getElementById('city').value = item.display_name;
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lng').value = item.lon;
-                res.style.display = 'none';
-            };
-            res.appendChild(d);
-        });
     }
 
     function renderChart(lagna, planets) {
+        // SVG Coordinates for North Indian Chart
         const coords = {
             1: [150, 90], 2: [80, 45], 3: [45, 80], 4: [95, 150],
             5: [45, 220], 6: [80, 255], 7: [150, 210], 8: [220, 255],
             9: [255, 220], 10: [205, 150], 11: [255, 80], 12: [220, 45]
         };
 
-        let svg = `<svg viewBox="0 0 300 300" class="kundli-svg">
-            <rect width="300" height="300" fill="none" stroke="#333" stroke-width="2"/>
-            <line x1="0" y1="0" x2="300" y2="300" stroke="#333"/>
-            <line x1="300" y1="0" x2="0" y2="300" stroke="#333"/>
-            <line x1="150" y1="0" x2="0" y2="150" stroke="#333"/>
-            <line x1="0" y1="150" x2="150" y2="300" stroke="#333"/>
-            <line x1="150" y1="300" x2="300" y2="150" stroke="#333"/>
-            <line x1="300" y1="150" x2="150" y2="0" stroke="#333"/>`;
+        let svg = `<svg viewBox="0 0 300 300" class="kundli-svg" style="border: 2px solid #333; background: #fff;">
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="0" x2="0" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="0" x2="0" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="0" y1="150" x2="150" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="300" x2="300" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="150" x2="150" y2="0" stroke="#333" stroke-width="1.5"/>`;
 
-        // Rashi Numbers
+        // Draw Rashi Numbers
         for (let i = 1; i <= 12; i++) {
             let rashi = ((lagna + i - 2) % 12) + 1;
             svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="rashi-num" text-anchor="middle">${rashi}</text>`;
         }
 
-        // Planets and Degrees
+        // Draw Planets and Degrees
         const counts = {};
         planets.forEach(p => {
             if(!counts[p.house]) counts[p.house] = 0;
-            let space = counts[p.house] * 20;
+            let space = counts[p.house] * 22; // Multi-planet spacing
             let x = coords[p.house][0];
-            let y = coords[p.house][1] + 15 + space;
+            let y = coords[p.house][1] + 18 + space;
 
             svg += `<text x="${x}" y="${y}" class="planet-text" text-anchor="middle">${p.name}</text>`;
             svg += `<text x="${x}" y="${y+10}" class="planet-deg" text-anchor="middle">${p.degree}°</text>`;
             counts[p.house]++;
         });
 
-        document.getElementById('kundli-container').innerHTML = "<h3>लग्न कुंडली</h3>" + svg + "</svg>";
+        document.getElementById('kundli-container').innerHTML = "<h3>लग्न कुंडली (D1)</h3>" + svg + "</svg>";
     }
 
     function renderPanchang(p) {
         document.getElementById('panchang-container').innerHTML = `
             <h3>पंचांग</h3>
             <table class="panchang-table">
-                <tr><th>वार</th><td>${p.vaar}</td></tr>
-                <tr><th>तिथि</th><td>${p.tithi}</td></tr>
-                <tr><th>नक्षत्र</th><td>${p.nakshatra}</td></tr>
+                <tr><th>दिन (Vaar)</th><td>${p.vaar}</td></tr>
+                <tr><th>तिथि (Tithi)</th><td>${p.tithi}</td></tr>
+                <tr><th>नक्षत्र (Nakshatra)</th><td>${p.nakshatra}</td></tr>
             </table>`;
     }
 </script>
