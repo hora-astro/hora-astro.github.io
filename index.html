@@ -3,105 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Pro</title>
+    <title>Hora Astro Pro - D1 & D9</title>
     <style>
         body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 15px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 650px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .input-group { margin: 10px 0; text-align: left; position: relative; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #d35400; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        #results { display: none; margin-top: 20px; }
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        svg { border: 1px solid #333; width: 100%; height: auto; background: #fff; }
-        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 10; max-height: 150px; overflow-y: auto; display: none; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; display: none; }
+        svg { border: 2px solid #333; width: 100%; height: auto; background: #fff; }
+        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; max-height: 150px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; }
+        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; }
+        .city-item:hover { background: #f0f0f0; }
+        .pdf-btn { background: #27ae60; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Hora Astro Pro 🌌</h2>
-    <div class="input-group"><label>जन्म तिथि</label><input type="date" id="date" value="2006-11-06"></div>
-    <div class="input-group"><label>जन्म समय</label><input type="time" id="time" value="11:28"></div>
+    <div class="input-group"><label>जन्म तिथि (Date)</label><input type="date" id="date" value="2006-11-06"></div>
+    <div class="input-group"><label>जन्म समय (Time)</label><input type="time" id="time" value="11:28"></div>
     <div class="input-group">
         <label>जन्म स्थान (Search City)</label>
-        <input type="text" id="city" placeholder="शहर का नाम लिखें..." oninput="searchCity()">
+        <input type="text" id="city" placeholder="शहर का नाम लिखें (जैसे: Banswara)..." oninput="searchCity()">
         <div id="city-list"></div>
     </div>
     <input type="hidden" id="lat" value="23.49">
     <input type="hidden" id="lng" value="74.35">
 
-    <button onclick="generate()">कुंडली देखें</button>
+    <button id="genBtn" onclick="generate()">कुंडली देखें</button>
 
-    <div id="results">
-        <p id="panchang-text"></p>
-        <div class="chart-grid">
-            <div><h4>D1 (Lagna)</h4><div id="d1-svg"></div></div>
-            <div><h4>D9 (Navamsha)</h4><div id="d9-svg"></div></div>
-        </div>
-        <button style="background:#27ae60" onclick="downloadPDF()">PDF डाउनलोड करें</button>
+    <p id="panchang-text" style="font-weight:bold; margin-top:15px; color:#d35400;"></p>
+
+    <div class="chart-grid" id="chart-grid">
+        <div><h4>Lagna (D1)</h4><div id="d1-svg"></div></div>
+        <div><h4>Navamsha (D9)</h4><div id="d9-svg"></div></div>
     </div>
+
+    <button class="pdf-btn" id="pdfBtn" onclick="downloadPDF()">फलादेश PDF डाउनलोड करें</button>
 </div>
 
 <script>
     async function searchCity() {
         const q = document.getElementById('city').value;
         const list = document.getElementById('city-list');
-        if(q.length < 3) return;
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await r.json();
-        list.innerHTML = ''; list.style.display = 'block';
-        data.forEach(item => {
-            let d = document.createElement('div');
-            d.className = 'city-item'; d.innerText = item.display_name;
-            d.onclick = () => {
-                document.getElementById('city').value = item.display_name;
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lng').value = item.lon;
-                list.style.display = 'none';
-            };
-            list.appendChild(d);
-        });
+        if(q.length < 3) { list.style.display='none'; return; }
+        
+        try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await r.json();
+            list.innerHTML = ''; list.style.display = 'block';
+            data.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'city-item'; d.innerText = item.display_name;
+                d.onclick = () => {
+                    document.getElementById('city').value = item.display_name.split(',')[0];
+                    document.getElementById('lat').value = item.lat;
+                    document.getElementById('lng').value = item.lon;
+                    list.style.display = 'none';
+                };
+                list.appendChild(d);
+            });
+        } catch(e) { console.log("City search error"); }
     }
 
     async function generate() {
+        const btn = document.getElementById('genBtn');
+        btn.innerText = "लोड हो रहा है...";
+        btn.disabled = true;
+
         const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        
         try {
             const r = await fetch(url);
             const data = await r.json();
+            
             if(data.status === "success") {
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('panchang-text').innerText = "वार: " + data.panchang.vaar;
+                document.getElementById('chart-grid').style.display = 'grid';
+                document.getElementById('pdfBtn').style.display = 'block';
+                document.getElementById('panchang-text').innerText = "दिन (Vaar): " + data.panchang.vaar;
+                
                 renderChart('d1-svg', data.d1_asc, data.d1_data);
                 renderChart('d9-svg', data.d9_asc, data.d9_data);
-            } else { alert("Error: " + data.message); }
-        } catch(e) { alert("Server not responding"); }
+            } else {
+                alert("सर्वर एरर: " + data.message);
+            }
+        } catch(e) {
+            alert("सर्वर रिस्पॉन्स नहीं दे रहा। कृपया PythonAnywhere रीलोड करें।");
+        } finally {
+            btn.innerText = "कुंडली देखें";
+            btn.disabled = false;
+        }
     }
 
     function renderChart(container, lagna, planets) {
         const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
-        let svg = `<svg viewBox="0 0 300 300"><line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/><line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/><line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
+        
+        let svg = `<svg viewBox="0 0 300 300">
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="0" x2="0" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="0" x2="0" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="0" y1="150" x2="150" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="300" x2="300" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="150" x2="150" y2="0" stroke="#333" stroke-width="1.5"/>`;
+
         for (let i = 1; i <= 12; i++) {
             let rashi = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${rashi}</text>`;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle" font-size="16">${rashi}</text>`;
         }
+
         let counts = {};
         planets.forEach(p => {
             counts[p.house] = (counts[p.house] || 0) + 1;
-            svg += `<text x="${coords[p.house][0]}" y="${coords[p.house][1] + counts[p.house]*13}" font-size="9" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+            let yPos = coords[p.house][1] + 15 + (counts[p.house] * 12);
+            svg += `<text x="${coords[p.house][0]}" y="${yPos}" font-size="9" font-weight="bold" text-anchor="middle">${p.name} ${p.degree}°</text>`;
         });
+
         document.getElementById(container).innerHTML = svg + "</svg>";
     }
 
     async function downloadPDF() {
+        const body = { 
+            date: document.getElementById('date').value, 
+            time: document.getElementById('time').value 
+        };
         const res = await fetch('https://hemantpurohit27.pythonanywhere.com/download_pdf', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({date: document.getElementById('date').value})
+            body: JSON.stringify(body)
         });
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = "Report.pdf"; a.click();
+        const a = document.createElement('a'); a.href = url; a.download = "Hora_Astro_Report.pdf"; a.click();
     }
 </script>
 </body>
