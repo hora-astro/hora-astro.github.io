@@ -9,26 +9,19 @@
         :root { --primary: #e64a19; --bg: #fff5f2; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
         .card { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
-        /* Tabs Styling */
         .tabs { display: flex; overflow-x: auto; gap: 5px; margin: 15px 0; border-bottom: 2px solid #eee; }
         .tab-btn { padding: 12px; border: none; background: #eee; cursor: pointer; flex: 1; font-weight: bold; border-radius: 8px 8px 0 0; white-space: nowrap; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
         .tab-content { display: none; padding: 10px 0; }
-
-        /* Kundli SVG Styling */
         .kundli-svg { width: 100%; max-width: 350px; height: auto; background: white; border: 2px solid #333; margin: auto; }
         .line { stroke: #333; stroke-width: 1.5; }
         .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: bold; }
         .planet-text { fill: #000; font-size: 11px; font-weight: bold; }
-
-        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        input, button, select { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
         th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; text-align: left; }
         th { background: #f8f8f8; color: var(--primary); }
-
         @media print { .no-print { display: none; } }
     </style>
 </head>
@@ -41,6 +34,17 @@
     <div class="no-print">
         <input type="text" id="date" placeholder="YYYY/MM/DD (जैसे 2006/11/06)">
         <input type="text" id="time" placeholder="HH:MM (जैसे 11:28)">
+        
+        <select id="city-selector" onchange="setCityCoords()">
+            <option value="">-- अपना शहर चुनें --</option>
+            <option value="26.9124,75.7873">Jaipur (जयपुर)</option>
+            <option value="28.6139,77.2090">Delhi (दिल्ली)</option>
+            <option value="19.0760,72.8777">Mumbai (मुंबई)</option>
+            <option value="22.7196,75.8577">Indore (इंदौर)</option>
+            <option value="23.2599,77.4126">Bhopal (भोपाल)</option>
+            <option value="25.3176,82.9739">Varanasi (वाराणसी)</option>
+        </select>
+
         <input type="text" id="lat" placeholder="Latitude (जैसे 23.33)">
         <input type="text" id="lng" placeholder="Longitude (जैसे 74.26)">
         <button onclick="fetchAllData()">कुंडली जनरेट करें</button>
@@ -84,7 +88,6 @@
 <script>
     const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु"};
 
-    // सटीक कोर्डिनेट्स (Houses 1-12)
     const coords = {
         1: {rx: 150, ry: 75, px: 150, py: 110},
         2: {rx: 75, ry: 45, px: 55, py: 70},
@@ -100,6 +103,15 @@
         12: {rx: 225, ry: 45, px: 245, py: 70}
     };
 
+    function setCityCoords() {
+        const val = document.getElementById('city-selector').value;
+        if(val) {
+            const [lat, lng] = val.split(',');
+            document.getElementById('lat').value = lat;
+            document.getElementById('lng').value = lng;
+        }
+    }
+
     function openTab(evt, tabName) {
         document.querySelectorAll(".tab-content").forEach(t => t.style.display = "none");
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -107,32 +119,32 @@
         evt.currentTarget.classList.add("active");
     }
 
-    // यही वह फंक्शन है जिसे आपने पूछा था
     async function fetchAllData() {
-        const btn = event.target;
+        const btn = document.querySelector("button[onclick='fetchAllData()']");
+        const originalText = btn.innerText;
         btn.innerText = "लोड हो रहा है...";
         
         try {
             const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+            
             const res = await fetch(url);
+            if (!res.ok) throw new Error('Network response was not ok');
+            
             const result = await res.json();
             
             if(result.status === "success") {
-                // 1. D1 और D9 चार्ट्स बनाएं
                 drawSVG("svg-container-d1", result.asc_num, result.d1_data);
                 drawSVG("svg-container-d9", result.d9_asc_num, result.d9_data); 
-                
-                // 2. पंचांग भरें
                 fillPanchang(result.panchang);
-                
-                // 3. दशा भरें
                 fillDasha(result.dasha);
-                
-                btn.innerText = "कुंडली जनरेट करें";
+                btn.innerText = originalText;
+            } else {
+                throw new Error(result.message || 'Server error');
             }
         } catch (e) {
-            alert("Error fetching data!");
-            btn.innerText = "कुंडली जनरेट करें";
+            console.error(e);
+            alert("डेटा प्राप्त करने में त्रुटि: कृपया सुनिश्चित करें कि सर्वर चालू है और इनपुट सही है।");
+            btn.innerText = originalText;
         }
     }
 
@@ -147,14 +159,12 @@
             <line x1="150" y1="300" x2="300" y2="150" class="line"/>
             <line x1="300" y1="150" x2="150" y2="0" class="line"/>`;
 
-        // राशियाँ सेट करें
         for (let i = 1; i <= 12; i++) {
             let rNum = ((lagna + i - 2) % 12) + 1;
             let c = coords[i];
             svgHtml += `<text x="${c.rx}" y="${c.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
         }
 
-        // ग्रह सेट करें
         const hCount = {};
         planets.forEach(p => {
             if (p.house) {
@@ -183,7 +193,11 @@
 
     function fillDasha(data) {
         const body = document.getElementById("dasha-body");
-        body.innerHTML = data.map(d => `<tr><td>${hNames[d.planet] || d.planet}</td><td>${d.end_date}</td></tr>`).join('');
+        if (data && data.length > 0) {
+            body.innerHTML = data.map(d => `<tr><td>${hNames[d.planet] || d.planet}</td><td>${d.end_date}</td></tr>`).join('');
+        } else {
+            body.innerHTML = "<tr><td colspan='2'>दशा डेटा उपलब्ध नहीं है</td></tr>";
+        }
     }
 
     function downloadPDF() {
@@ -197,4 +211,4 @@
     }
 </script>
 </body>
-</html>
+    </html>
