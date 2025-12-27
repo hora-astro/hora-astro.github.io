@@ -3,139 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Pro - D1 & D9</title>
+    <title>Hora Astro | Ultimate Professional Fix</title>
     <style>
-        body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 15px; }
-        .container { max-width: 650px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .input-group { margin: 10px 0; text-align: left; position: relative; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #d35400; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; display: none; }
-        svg { border: 2px solid #333; width: 100%; height: auto; background: #fff; }
-        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; max-height: 150px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; }
-        .city-item:hover { background: #f0f0f0; }
-        .pdf-btn { background: #27ae60; margin-top: 15px; display: none; }
+        :root { --primary: #ff5722; --bg: #fdf2f0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        
+        /* Location Suggestion Box */
+        .search-container { position: relative; margin-bottom: 10px; }
+        #suggestions { 
+            position: absolute; background: white; width: 100%; z-index: 100; 
+            border: 1px solid #ddd; border-radius: 0 0 8px 8px; max-height: 200px; 
+            overflow-y: auto; display: none; text-align: left;
+        }
+        .s-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
+        .s-item:hover { background: #f9f9f9; }
+
+        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+
+        /* SVG Precise Styling */
+        .kundli-svg { width: 100%; height: auto; background: white; border: 2.5px solid #333; margin-top: 15px; }
+        .line { stroke: #333; stroke-width: 2; }
+        .rashi-text { fill: #d32f2f; font-size: 16px; font-weight: 900; }
+        .planet-text { fill: #000; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Hora Astro Pro 🌌</h2>
-    <div class="input-group"><label>जन्म तिथि (Date)</label><input type="date" id="date" value="2006-11-06"></div>
-    <div class="input-group"><label>जन्म समय (Time)</label><input type="time" id="time" value="11:28"></div>
-    <div class="input-group">
-        <label>जन्म स्थान (Search City)</label>
-        <input type="text" id="city" placeholder="शहर का नाम लिखें (जैसे: Banswara)..." oninput="searchCity()">
-        <div id="city-list"></div>
+<div class="card">
+    <h1 style="color:var(--primary); margin:10px 0;">Hora Astro 🌌</h1>
+    
+    <div class="search-container">
+        <input type="text" id="loc" placeholder="शहर खोजें (जैसे Banswara)..." autocomplete="off">
+        <div id="suggestions"></div>
     </div>
-    <input type="hidden" id="lat" value="23.49">
-    <input type="hidden" id="lng" value="74.35">
+    
+    <input type="hidden" id="lat"> <input type="hidden" id="lng">
+    <input type="text" id="date" placeholder="YYYY/MM/DD (जन्म तिथि)">
+    <input type="text" id="time" placeholder="HH:MM (समय)">
+    <button onclick="fetchChart()">कुंडली देखें</button>
 
-    <button id="genBtn" onclick="generate()">कुंडली देखें</button>
-
-    <p id="panchang-text" style="font-weight:bold; margin-top:15px; color:#d35400;"></p>
-
-    <div class="chart-grid" id="chart-grid">
-        <div><h4>Lagna (D1)</h4><div id="d1-svg"></div></div>
-        <div><h4>Navamsha (D9)</h4><div id="d9-svg"></div></div>
+    <div id="chart-area" style="display:none;">
+        <svg viewBox="0 0 300 300" class="kundli-svg">
+            <rect width="300" height="300" fill="none" stroke="#333" stroke-width="2"/>
+            <line x1="0" y1="0" x2="300" y2="300" class="line"/>
+            <line x1="300" y1="0" x2="0" y2="300" class="line"/>
+            <line x1="150" y1="0" x2="0" y2="150" class="line"/>
+            <line x1="0" y1="150" x2="150" y2="300" class="line"/>
+            <line x1="150" y1="300" x2="300" y2="150" class="line"/>
+            <line x1="300" y1="150" x2="150" y2="0" class="line"/>
+            
+            <g id="rashiLayer"></g>
+            <g id="planetLayer"></g>
+        </svg>
     </div>
-
-    <button class="pdf-btn" id="pdfBtn" onclick="downloadPDF()">फलादेश PDF डाउनलोड करें</button>
 </div>
 
 <script>
-    async function searchCity() {
-        const q = document.getElementById('city').value;
-        const list = document.getElementById('city-list');
-        if(q.length < 3) { list.style.display='none'; return; }
-        
-        try {
-            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const data = await r.json();
-            list.innerHTML = ''; list.style.display = 'block';
-            data.forEach(item => {
-                let d = document.createElement('div');
-                d.className = 'city-item'; d.innerText = item.display_name;
-                d.onclick = () => {
-                    document.getElementById('city').value = item.display_name.split(',')[0];
-                    document.getElementById('lat').value = item.lat;
-                    document.getElementById('lng').value = item.lon;
-                    list.style.display = 'none';
-                };
-                list.appendChild(d);
-            });
-        } catch(e) { console.log("City search error"); }
-    }
+    const hNames = {"Sun":"सूर्य","Moon":"चंद्र","Mercury":"बुध","Venus":"शुक्र","Mars":"मंगल","Jupiter":"गुरु","Saturn":"शनि","North Node":"राहू","South Node":"केतु","Syzygy":"Sy","Pars Fortuna":"Pa"};
 
-    async function generate() {
-        const btn = document.getElementById('genBtn');
-        btn.innerText = "लोड हो रहा है...";
-        btn.disabled = true;
+    // प्रत्येक घर (House) के लिए फिक्स और सुरक्षित कोआर्डिनेट्स
+    const housePoints = {
+        1:  {rx: 150, ry: 85,  px: 150, py: 115},
+        2:  {rx: 75,  ry: 45,  px: 55,  py: 75},
+        3:  {rx: 40,  ry: 80,  px: 40,  py: 110},
+        4:  {rx: 85,  ry: 155, px: 55,  py: 175},
+        5:  {rx: 40,  ry: 220, px: 40,  py: 250},
+        6:  {rx: 75,  ry: 265, px: 65,  py: 240},
+        7:  {rx: 150, ry: 215, px: 150, py: 185},
+        8:  {rx: 225, ry: 265, px: 235, py: 240},
+        9:  {rx: 260, ry: 220, px: 260, py: 250},
+        10: {rx: 215, ry: 155, px: 245, py: 175},
+        11: {rx: 260, ry: 80,  px: 260, py: 110},
+        12: {rx: 225, ry: 45,  px: 245, py: 75}
+    };
 
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+    // 1. शहर खोज लॉजिक (Location Dropdown)
+    const locInp = document.getElementById('loc');
+    const sugBox = document.getElementById('suggestions');
+
+    locInp.oninput = async () => {
+        if(locInp.value.length < 3) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${locInp.value}&limit=5`);
+        const data = await res.json();
+        sugBox.innerHTML = ""; sugBox.style.display = 'block';
+        data.forEach(d => {
+            let item = document.createElement('div');
+            item.className = 's-item';
+            item.innerText = d.display_name;
+            item.onclick = () => {
+                locInp.value = d.display_name;
+                document.getElementById('lat').value = d.lat;
+                document.getElementById('lng').value = d.lon;
+                sugBox.style.display = 'none';
+            };
+            sugBox.appendChild(item);
+        });
+    };
+
+    // 2. कुंडली डेटा और ड्राइंग (Kundli Core)
+    async function fetchChart() {
+        const lat = document.getElementById('lat').value;
+        if(!lat) { alert("कृपया लिस्ट से शहर चुनें!"); return; }
+
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${lat}&lng=${document.getElementById('lng').value}`;
+        const res = await fetch(url);
+        const result = await res.json();
         
-        try {
-            const r = await fetch(url);
-            const data = await r.json();
+        if (result.status === "success") {
+            document.getElementById('chart-area').style.display = 'block';
+            const rLayer = document.getElementById('rashiLayer');
+            const pLayer = document.getElementById('planetLayer');
+            rLayer.innerHTML = ""; pLayer.innerHTML = "";
             
-            if(data.status === "success") {
-                document.getElementById('chart-grid').style.display = 'grid';
-                document.getElementById('pdfBtn').style.display = 'block';
-                document.getElementById('panchang-text').innerText = "दिन (Vaar): " + data.panchang.vaar;
-                
-                renderChart('d1-svg', data.d1_asc, data.d1_data);
-                renderChart('d9-svg', data.d9_asc, data.d9_data);
-            } else {
-                alert("सर्वर एरर: " + data.message);
+            // लग्न और राशियों का क्रम
+            const lagna = result.asc_num;
+            for (let i = 1; i <= 12; i++) {
+                let rNum = ((lagna + i - 2) % 12) + 1;
+                let pt = housePoints[i];
+                rLayer.innerHTML += `<text x="${pt.rx}" y="${pt.ry}" class="rashi-text" text-anchor="middle">${rNum}</text>`;
             }
-        } catch(e) {
-            alert("सर्वर रिस्पॉन्स नहीं दे रहा। कृपया PythonAnywhere रीलोड करें।");
-        } finally {
-            btn.innerText = "कुंडली देखें";
-            btn.disabled = false;
+
+            // ग्रहों का प्लेसमेंट (Vertical Stacking)
+            const count = {};
+            result.data.forEach(p => {
+                if (p.house) {
+                    if(!count[p.house]) count[p.house] = 0;
+                    let pt = housePoints[p.house];
+                    let moveDown = count[p.house] * 13; // ग्रहों के बीच की दूरी
+                    let name = hNames[p.name] || p.name.substring(0,2);
+                    let deg = Math.floor(p.degree || 0);
+                    
+                    pLayer.innerHTML += `<text x="${pt.px}" y="${pt.py + moveDown}" class="planet-text" text-anchor="middle">${name} ${deg}°</text>`;
+                    count[p.house]++;
+                }
+            });
         }
-    }
-
-    function renderChart(container, lagna, planets) {
-        const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
-        
-        let svg = `<svg viewBox="0 0 300 300">
-            <line x1="0" y1="0" x2="300" y2="300" stroke="#333" stroke-width="1.5"/>
-            <line x1="300" y1="0" x2="0" y2="300" stroke="#333" stroke-width="1.5"/>
-            <line x1="150" y1="0" x2="0" y2="150" stroke="#333" stroke-width="1.5"/>
-            <line x1="0" y1="150" x2="150" y2="300" stroke="#333" stroke-width="1.5"/>
-            <line x1="150" y1="300" x2="300" y2="150" stroke="#333" stroke-width="1.5"/>
-            <line x1="300" y1="150" x2="150" y2="0" stroke="#333" stroke-width="1.5"/>`;
-
-        for (let i = 1; i <= 12; i++) {
-            let rashi = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle" font-size="16">${rashi}</text>`;
-        }
-
-        let counts = {};
-        planets.forEach(p => {
-            counts[p.house] = (counts[p.house] || 0) + 1;
-            let yPos = coords[p.house][1] + 15 + (counts[p.house] * 12);
-            svg += `<text x="${coords[p.house][0]}" y="${yPos}" font-size="9" font-weight="bold" text-anchor="middle">${p.name} ${p.degree}°</text>`;
-        });
-
-        document.getElementById(container).innerHTML = svg + "</svg>";
-    }
-
-    async function downloadPDF() {
-        const body = { 
-            date: document.getElementById('date').value, 
-            time: document.getElementById('time').value 
-        };
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/download_pdf', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        });
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = "Hora_Astro_Report.pdf"; a.click();
     }
 </script>
 </body>
