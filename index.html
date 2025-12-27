@@ -1,86 +1,51 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Hora Astro Pro - Fixed</title>
-    <style>
-        body { font-family: sans-serif; background: #fdf2e9; text-align: center; padding: 20px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background: #d35400; color: white; border: none; font-weight: bold; cursor: pointer; }
-        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 90%; z-index: 10; display: none; text-align: left; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        svg { width: 100%; margin-top: 20px; border: 1px solid #000; background: #fff; }
-    </style>
+    <title>Kundli App</title>
 </head>
 <body>
+<h2>Kundli Generator</h2>
 
-<div class="card">
-    <h2>Hora Astro Pro 🌌</h2>
-    <input type="date" id="date" value="2006-11-06">
-    <input type="time" id="time" value="11:28">
-    
-    <div style="position: relative;">
-        <input type="text" id="city" placeholder="शहर खोजें (जैसे: Banswara)..." oninput="searchCity()">
-        <div id="city-list"></div>
-    </div>
-    <input type="hidden" id="lat" value="23.49">
-    <input type="hidden" id="lng" value="74.35">
+<label>Date of Birth:</label>
+<input type="date" id="dob">
+<button onclick="getKundli()">Get Kundli</button>
 
-    <button onclick="fetchKundli()">कुंडली जेनरेट करें</button>
-    <div id="chart"></div>
-</div>
+<pre id="result"></pre>
+
+<hr>
+
+<h2>Gun Milan</h2>
+Boy DOB: <input type="date" id="boy">
+Girl DOB: <input type="date" id="girl">
+<button onclick="getGunMilan()">Check Match</button>
+
+<pre id="gun"></pre>
 
 <script>
-    async function searchCity() {
-        const q = document.getElementById('city').value;
-        const list = document.getElementById('city-list');
-        if(q.length < 3) return;
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await r.json();
-        list.innerHTML = ''; list.style.display = 'block';
-        data.forEach(item => {
-            let div = document.createElement('div');
-            div.className = 'city-item';
-            div.innerText = item.display_name;
-            div.onclick = () => {
-                document.getElementById('city').value = item.display_name.split(',')[0];
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lng').value = item.lon;
-                list.style.display = 'none';
-            };
-            list.appendChild(div);
-        });
-    }
+const API = "https://yourusername.pythonanywhere.com";
 
-    async function fetchKundli() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
-        
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            if(data.status === "success") {
-                drawSVG(data.lagna, data.planets);
-            } else { alert("Error: " + data.message); }
-        } catch(e) { alert("सर्वर रिस्पॉन्स नहीं दे रहा। कृपया Web Tab में Reload दबाएं।"); }
-    }
+function getKundli() {
+    let dob = document.getElementById("dob").value;
+    fetch(`${API}/kundli?dob=${dob}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    });
+}
 
-    function drawSVG(lagna, planets) {
-        const coords = {1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45]};
-        let svg = `<svg viewBox="0 0 300 300"><line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/><line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/><line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
-        
-        for (let i = 1; i <= 12; i++) {
-            let rashi = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${rashi}</text>`;
-        }
-        
-        const counts = {};
-        planets.forEach(p => {
-            counts[p.house] = (counts[p.house] || 0) + 1;
-            svg += `<text x="${coords[p.house][0]}" y="${coords[p.house][1] + counts[p.house]*14}" font-size="10" text-anchor="middle">${p.name} ${p.degree}°</text>`;
-        });
-        document.getElementById('chart').innerHTML = svg + "</svg>";
-    }
+function getGunMilan() {
+    let boy = document.getElementById("boy").value;
+    let girl = document.getElementById("girl").value;
+
+    fetch(`${API}/gun-milan?boy=${boy}&girl=${girl}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("gun").innerText =
+            JSON.stringify(data, null, 2);
+    });
+}
 </script>
+
 </body>
 </html>
