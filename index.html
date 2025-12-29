@@ -64,7 +64,7 @@
     async function startProcess() {
         // यहाँ अपने PythonAnywhere यूजरनेम के साथ URL बदलें
         const user = "hemantpurohit27"; 
-        const url = `https://${user}.pythonanywhere.com/get_kundli?date=${document.getElementById('uDate').value}&time=${document.getElementById('uTime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('uDate').value}&time=${document.getElementById('uTime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         
         try {
             const res = await fetch(url);
