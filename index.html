@@ -3,128 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Pro - Full Suite</title>
+    <title>Hora Astro Pro</title>
     <style>
-        :root { --primary: #d35400; --bg: #2c1a0a; --card: #3d2b1f; --text: #fdf2e9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; text-align: center; }
+        :root { --primary: #d35400; --dark-bg: #1a0f00; --card-bg: #2d1d10; --text: #fdf2e9; }
+        body { font-family: sans-serif; background: var(--dark-bg); color: var(--text); margin: 0; padding: 10px; text-align: center; }
         .container { max-width: 500px; margin: auto; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #4e342e; }
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: none; background: #3e2723; color: white; box-sizing: border-box; }
         
-        /* Input Section */
-        .card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #5d4037; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; background: #5d4037; color: white; box-sizing: border-box; }
-        
-        /* City Search List */
-        #cityList { position: absolute; width: 100%; background: #5d4037; border-radius: 8px; z-index: 100; display: none; text-align: left; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #795548; }
+        .tab-menu { display: flex; gap: 5px; margin: 15px 0; overflow-x: auto; }
+        .tab { flex: 1; padding: 10px; background: #3e2723; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; white-space: nowrap; }
+        .tab.active { background: var(--primary); }
 
-        /* Grid Options (Image Style) */
+        .chart-svg { width: 100%; background: white; border: 2px solid #000; border-radius: 4px; margin-top: 10px; }
+        .planet-txt { font-size: 9px; font-weight: bold; fill: #1a237e; }
+        .rashi-txt { font-size: 16px; font-weight: bold; fill: #b71c1c; }
+        
         .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .opt-box { background: var(--card); padding: 15px; border-radius: 12px; cursor: pointer; border: 1px solid #5d4037; transition: 0.3s; }
-        .opt-box:hover { background: #5d4037; transform: translateY(-3px); }
-        .opt-icon { font-size: 24px; margin-bottom: 8px; display: block; }
-        .opt-title { font-weight: bold; font-size: 14px; color: #ffab91; }
-
-        /* Chart SVG */
-        .chart-svg { width: 100%; max-width: 350px; background: white; border: 2px solid #000; margin-top: 20px; border-radius: 5px; }
-        .p-text { font-size: 10px; font-weight: bold; fill: #2c3e50; }
-        .r-text { font-size: 16px; font-weight: bold; fill: #e74c3c; }
-
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .opt-item { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #4e342e; }
+        .btn-load { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color: var(--primary);">हिन्दू कैलेंडर / कुंडली 🌌</h2>
+    <h2 style="color: var(--primary);">Hora Astro Pro 🌌</h2>
     
     <div class="card">
         <div style="display: flex; gap: 5px;">
             <input type="date" id="date" value="2006-11-06">
             <input type="time" id="time" value="11:28">
         </div>
-        <div style="position: relative;">
-            <input type="text" id="citySearch" placeholder="शहर खोजें (जैसे: Banswara)" oninput="searchCity(this.value)">
-            <div id="cityList"></div>
-        </div>
-        <input type="hidden" id="lat" value="23.49">
-        <input type="hidden" id="lng" value="74.35">
-        <button class="btn-main" style="margin-top: 10px;" onclick="calculate()">डाटा लोड करें</button>
+        <input type="text" id="city" placeholder="Banswara, Rajasthan">
+        <button class="btn-load" onclick="fetchData()">डाटा लोड करें</button>
     </div>
 
-    <div id="display-area">
-        </div>
+    <div class="tab-menu">
+        <div class="tab active" onclick="showChart('d1', this)">D1 (लग्न)</div>
+        <div class="tab" onclick="showChart('d9', this)">D9 (नवांश)</div>
+        <div class="tab" onclick="showPanchang(this)">पंचांग</div>
+        <div class="tab">मिलान</div>
+    </div>
+
+    <div id="display-area"></div>
 
     <div class="option-grid">
-        <div class="opt-box" onclick="showChart()">
-            <span class="opt-icon">☸️</span>
-            <span class="opt-title">कुंडली</span>
-            <small style="display:block; font-size:10px; color:#ccc;">ग्रह स्थिति, लग्न</small>
-        </div>
-        <div class="opt-box" onclick="showPanchang()">
-            <span class="opt-icon">📅</span>
-            <span class="opt-title">पंचांग</span>
-            <small style="display:block; font-size:10px; color:#ccc;">दैनिक शुभ समय</small>
-        </div>
-        <div class="opt-box" onclick="alert('जल्द आ रहा है!')">
-            <span class="opt-icon">👫</span>
-            <span class="opt-title">कुंडली मिलान</span>
-            <small style="display:block; font-size:10px; color:#ccc;">गुण मिलान, अष्ट कूट</small>
-        </div>
-        <div class="opt-box" onclick="alert('जल्द आ रहा है!')">
-            <span class="opt-icon">🗓️</span>
-            <span class="opt-title">मासिक कैलेंडर</span>
-            <small style="display:block; font-size:10px; color:#ccc;">त्यौहार और व्रत</small>
-        </div>
+        <div class="opt-item">🎡<br><b>कुंडली</b></div>
+        <div class="opt-item">📅<br><b>पंचांग</b></div>
+        <div class="opt-item">👫<br><b>मिलान</b></div>
+        <div class="opt-item">🗓️<br><b>कैलेंडर</b></div>
     </div>
 </div>
 
 <script>
-    async function searchCity(q) {
-        if(q.length < 3) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await res.json();
-        let list = document.getElementById('cityList');
-        list.innerHTML = ''; list.style.display = 'block';
-        data.slice(0, 5).forEach(item => {
-            let div = document.createElement('div');
-            div.className = 'city-item';
-            div.innerText = item.display_name;
-            div.onclick = () => {
-                document.getElementById('citySearch').value = item.display_name.split(',')[0];
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lng').value = item.lon;
-                list.style.display = 'none';
-            };
-            list.appendChild(div);
-        });
-    }
-
-    async function calculate() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+    async function fetchData() {
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=23.49&lng=74.35`;
         const res = await fetch(url);
-        window.astroData = await res.json();
-        if(window.astroData.status === "success") showChart();
+        window.data = await res.json();
+        showChart('d1', document.querySelector('.active'));
     }
 
-    function showChart() {
-        const area = document.getElementById('display-area');
-        if(!window.astroData) { area.innerHTML = "कृपया पहले डाटा लोड करें।"; return; }
-        area.innerHTML = `<h3>लग्न कुंडली (D1)</h3>` + drawSVG(window.astroData.d1.lagna, window.astroData.d1.planets);
+    function showChart(type, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        if(!window.data) return;
+        
+        const chartData = type === 'd1' ? window.data.d1 : window.data.d9;
+        const title = type === 'd1' ? "लग्न कुंडली (D1)" : "नवांश कुंडली (D9)";
+        document.getElementById('display-area').innerHTML = `<h3>${title}</h3>` + renderSVG(chartData, type);
     }
 
-    function showPanchang() {
-        const area = document.getElementById('display-area');
-        if(!window.astroData) return;
-        const p = window.astroData.panchang;
-        area.innerHTML = `<div class="card" style="text-align:left;">
-            <p><b>📅 वार:</b> ${p.day}</p>
-            <p><b>🌙 तिथि:</b> ${p.tithi}</p>
-            <p><b>✨ नक्षत्र:</b> ${p.nakshatra}</p>
-            <p><b>💠 योग:</b> ${p.yog}</p>
-        </div>`;
-    }
-
-    function drawSVG(lagna, planets) {
+    function renderSVG(chart, type) {
         const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
         let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
             <line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/>
@@ -132,17 +81,27 @@
             <line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
 
         for (let i = 1; i <= 12; i++) {
-            let rashi = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="r-text" text-anchor="middle">${rashi}</text>`;
+            let rashi = ((chart.lagna + i - 2) % 12) + 1;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="rashi-txt" text-anchor="middle">${rashi}</text>`;
         }
-        
-        let counts = {};
-        planets.forEach(p => {
-            counts[p.house] = (counts[p.house] || 0) + 1;
-            // यहाँ ग्रहों को एक-दूसरे के ऊपर आने से रोका गया है (Stacked positioning)
-            let yOff = coords[p.house][1] + (counts[p.house] * 13);
-            svg += `<text x="${coords[p.house][0]}" y="${yOff}" class="p-text" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+
+        let houseGroups = {};
+        chart.planets.forEach(p => {
+            let h = type === 'd1' ? p.house : p.d9_house;
+            if(!houseGroups[h]) houseGroups[h] = [];
+            houseGroups[h].push(p);
         });
+
+        for (let h in houseGroups) {
+            houseGroups[h].forEach((p, index) => {
+                // स्मार्ट पोजीशनिंग: ग्रहों को ग्रिड की तरह व्यवस्थित करना
+                let xOff = coords[h][0] + (index % 2 === 0 ? -20 : 20);
+                let yOff = coords[h][1] + 15 + (Math.floor(index / 2) * 12);
+                if(index === 0 && houseGroups[h].length === 1) xOff = coords[h][0]; // सिंगल ग्रह सेंटर में
+                
+                svg += `<text x="${xOff}" y="${yOff}" class="planet-txt" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+            });
+        }
         return svg + "</svg>";
     }
 </script>
