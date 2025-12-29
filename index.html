@@ -66,7 +66,7 @@
     async function loadReport() {
         const btn = document.querySelector('.btn-main');
         btn.innerText = "डाटा लोड हो रहा है...";
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('uDate').value}&time=${document.getElementById('uTime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const url = `https://hemantpurohit27.pythonanywhere.com
         try {
             const res = await fetch(url);
             window.fullData = await res.json();
