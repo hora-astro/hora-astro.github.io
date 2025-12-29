@@ -6,19 +6,20 @@
     <title>Hora Astro Advanced Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --navy: #020c1b; --gold: #cca300; --white: #e6f1ff; --card: #0a192f; }
-        body { background: var(--navy); color: var(--white); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        :root { --navy: #0a192f; --gold: #ffd700; --text: #e6f1ff; --card: #112240; }
+        body { background: var(--navy); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--gold); margin-bottom: 20px; }
-        h1 { color: var(--gold); text-align: center; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #233554; background: #020c1b; color: white; box-sizing: border-box; }
-        .btn-gold { width: 100%; padding: 15px; background: var(--gold); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .tab-bar { display: flex; gap: 5px; overflow-x: auto; margin: 15px 0; padding-bottom: 5px; }
-        .tab { flex: 0 0 auto; padding: 8px 16px; background: #112240; border-radius: 20px; cursor: pointer; font-size: 13px; border: 1px solid transparent; }
-        .tab.active { background: var(--gold); color: black; }
-        .chart-box { background: white; border-radius: 10px; padding: 15px; margin-top: 10px; border: 4px double var(--gold); }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 10px; border-bottom: 1px solid #233554; text-align: left; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #233554; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: var(--gold); text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #233554; background: #0a192f; color: white; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: var(--gold); color: #0a192f; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn:hover { background: #e6c200; transform: translateY(-2px); }
+        .tab-bar { display: flex; gap: 8px; overflow-x: auto; margin: 20px 0; padding-bottom: 5px; }
+        .tab { flex: 0 0 auto; padding: 10px 20px; background: #233554; border-radius: 30px; cursor: pointer; font-size: 13px; color: var(--text); border: 1px solid transparent; }
+        .tab.active { background: var(--gold); color: #0a192f; border: 1px solid var(--gold); }
+        .chart-svg { background: white; border-radius: 10px; padding: 15px; width: 100%; box-sizing: border-box; border: 3px solid var(--gold); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #233554; text-align: left; }
     </style>
 </head>
 <body>
@@ -27,73 +28,89 @@
     <h1>Hora Astro Advanced 🌌</h1>
     <div class="card">
         <input type="text" id="uName" placeholder="पूरा नाम" value="Hemant Purohit">
-        <div style="display:flex; gap:5px;">
+        <div style="display: flex; gap: 8px;">
             <input type="date" id="uDate" value="2006-11-06">
             <input type="time" id="uTime" value="11:28">
         </div>
-        <input type="text" placeholder="शहर खोजें..." oninput="geoFind(this.value)">
-        <div style="display:flex; gap:5px;">
-            <input type="text" id="lat" placeholder="Latitude" value="23.4915">
-            <input type="text" id="lng" placeholder="Longitude" value="74.3502">
+        <input type="text" id="uCity" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="lat" placeholder="Latitude" value="23.49">
+            <input type="text" id="lng" placeholder="Longitude" value="74.35">
         </div>
-        <button class="btn-gold" id="procBtn" onclick="fetchAstro()">कुंडली जनरेट करें</button>
+        <button class="btn" id="mainBtn" onclick="fetchKundli()">कुंडली जनरेट करें</button>
     </div>
 
-    <div id="res" style="display:none;">
-        <button class="btn-gold" style="background: #27ae60; color: white;" onclick="downloadPDF()">📄 PDF रिपोर्ट डाउनलोड करें</button>
+    <div id="resultSection" style="display:none;">
+        <button class="btn" style="background:#27ae60; color:white; margin-bottom:10px;" onclick="savePDF()">📄 PDF रिपोर्ट डाउनलोड करें</button>
         <div class="tab-bar">
-            <div class="tab active" onclick="show('d1', this)">D1 लग्न</div>
-            <div class="tab" onclick="show('d9', this)">D9 नवांश</div>
-            <div class="tab" onclick="show('kp', this)">KP स्पष्ट</div>
-            <div class="tab" onclick="show('ds', this)">दशा विवरण</div>
-            <div class="tab" onclick="show('pr', this)">फलादेश</div>
+            <div class="tab active" onclick="switchUI('d1', this)">D1 लग्न</div>
+            <div class="tab" onclick="showD9(this)">D9 नवांश</div>
+            <div class="tab" onclick="switchUI('kp', this)">KP स्पष्ट</div>
+            <div class="tab" onclick="switchUI('ds', this)">दशा</div>
+            <div class="tab" onclick="switchUI('pr', this)">फलादेश</div>
         </div>
-        <div id="view"></div>
+        <div id="displayArea"></div>
     </div>
 </div>
 
 <script>
-    async function geoFind(q) {
+    async function searchLoc(q) {
         if(q.length < 3) return;
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const d = await r.json();
-        if(d[0]) { document.getElementById('lat').value=d[0].lat; document.getElementById('lng').value=d[0].lon; }
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const data = await res.json();
+        if(data[0]) {
+            document.getElementById('lat').value = data[0].lat;
+            document.getElementById('lng').value = data[0].lon;
+        }
     }
 
-    async function fetchAstro() {
-        const btn = document.getElementById('procBtn');
-        btn.innerText = "गणना की जा रही है...";
-        // अपनी URL को 'https' के साथ लिखें
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('uDate').value}&time=${document.getElementById('uTime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+    async function fetchKundli() {
+        const btn = document.getElementById('mainBtn');
+        btn.innerText = "सर्वर से कनेक्ट हो रहा है...";
+        
+        // आपका सही PythonAnywhere URL
+        const apiUrl = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('uDate').value}&time=${document.getElementById('uTime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         
         try {
-            const response = await fetch(url);
-            window.kData = await response.json();
-            document.getElementById('res').style.display = 'block';
-            show('d1', document.querySelector('.tab.active'));
-        } catch(e) { alert("सर्वर त्रुटि: सुनिश्चित करें कि app.py रीलोड किया गया है।"); }
-        finally { btn.innerText = "कुंडली जनरेट करें"; }
+            const response = await fetch(apiUrl);
+            window.astroData = await response.json();
+            if(window.astroData.status === "success") {
+                document.getElementById('resultSection').style.display = 'block';
+                switchUI('d1', document.querySelector('.tab.active'));
+            } else {
+                alert("सर्वर त्रुटि: " + window.astroData.message);
+            }
+        } catch(e) {
+            alert("संपर्क विफल! PythonAnywhere Web Tab में जाकर 'Reload' बटन दबाएं।");
+        } finally {
+            btn.innerText = "कुंडली जनरेट करें";
+        }
     }
 
-    function show(t, el) {
-        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    function switchUI(type, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
-        const v = document.getElementById('view');
-        const d = window.kData;
+        const area = document.getElementById('displayArea');
+        const data = window.astroData;
 
-        if(t === 'd1') v.innerHTML = `<h3>लग्न कुंडली (D1)</h3><div class="chart-box">${drawChart(d.d1, d.lagna)}</div>`;
-        if(t === 'd9') v.innerHTML = `<h3>नवांश कुंडली (D9)</h3><div class="chart-box">${drawChart(d.d9, 1)}</div>`;
-        if(t === 'kp') {
-            let h = `<table><tr><th>भाव</th><th>राशि</th><th>अंश</th></tr>`;
-            d.kp.forEach(k => h += `<tr><td>भाव ${k.n}</td><td>${k.s}</td><td>${k.d}</td></tr>`);
-            v.innerHTML = h + `</table>`;
+        if(type === 'd1') area.innerHTML = `<div class="chart-svg">${drawChart(data.d1, data.lagna)}</div>`;
+        if(type === 'kp') {
+            let html = `<table><tr><th>भाव</th><th>राशि</th><th>अंश</th></tr>`;
+            data.kp.forEach(k => html += `<tr><td>Cusp ${k.n}</td><td>${k.s}</td><td>${k.d}</td></tr>`);
+            area.innerHTML = html + `</table>`;
         }
-        if(t === 'ds') {
-            let h = `<h3>विंशोत्तरी महादशा</h3>`;
-            d.dasha.forEach(s => h += `<div class="card" style="padding:10px; margin-bottom:5px;"><b>${s.planet}</b> - समाप्त: ${s.date}</div>`);
-            v.innerHTML = h;
+        if(type === 'ds') {
+            let html = `<h3>विंशोत्तरी महादशा</h3>`;
+            data.dasha.forEach(d => html += `<div class="card" style="margin-bottom:5px;"><b>${d.p}</b> - समाप्ति तिथि: ${d.e}</div>`);
+            area.innerHTML = html;
         }
-        if(t === 'pr') v.innerHTML = `<div class="card"><h3>भविष्यवाणी</h3><p>${d.prediction}</p></div>`;
+        if(type === 'pr') area.innerHTML = `<div class="card"><h3>फलादेश</h3><p>${data.prediction}</p></div>`;
+    }
+
+    function showD9(el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('displayArea').innerHTML = `<div class="chart-svg">${drawChart(window.astroData.d9, 1)}</div>`;
     }
 
     function drawChart(planets, lagna) {
@@ -110,15 +127,15 @@
         return svg + "</svg>";
     }
 
-    function downloadPDF() {
+    function savePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFontSize(22); doc.text("Hora Astro Premium Report", 10, 20);
-        doc.setFontSize(14); doc.text(`जातक: ${document.getElementById('uName').value}`, 10, 40);
-        doc.text(`जन्म विवरण: ${document.getElementById('uDate').value} | ${document.getElementById('uTime').value}`, 10, 50);
+        doc.setFontSize(22); doc.text("Hora Astro Kundli Report", 10, 20);
+        doc.setFontSize(14); doc.text(`नाम: ${document.getElementById('uName').value}`, 10, 40);
+        doc.text(`जन्म तिथि: ${document.getElementById('uDate').value} ${document.getElementById('uTime').value}`, 10, 50);
         doc.text("फलादेश:", 10, 70);
-        doc.text(window.kData.prediction, 10, 80, {maxWidth: 180});
-        doc.save(`${document.getElementById('uName').value}_Kundli.pdf`);
+        doc.text(window.astroData.prediction, 10, 80, {maxWidth: 180});
+        doc.save("Kundli.pdf");
     }
 </script>
 </body>
