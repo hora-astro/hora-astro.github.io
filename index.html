@@ -2,84 +2,125 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Hora Astro Pro - D1/D9 Final</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Hora Astro Pro - Full Suite</title>
     <style>
-        body { font-family: sans-serif; background: #fdf2e9; text-align: center; }
-        .main-card { max-width: 950px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .input-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .charts-flex { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
-        .chart-box { width: 420px; border: 1px solid #ccc; padding: 10px; border-radius: 10px; }
-        svg { width: 100%; height: auto; border: 1.5px solid #000; background: #fff; }
-        .btn-pdf { background: #27ae60; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; display: none; }
-        .rashi { fill: red; font-weight: bold; font-size: 16px; }
-        .planet { fill: #2c3e50; font-size: 11px; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2e9; text-align: center; padding: 10px; }
+        .main-card { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        .search-results { background: white; border: 1px solid #ddd; position: absolute; width: 560px; z-index: 1000; display: none; }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        .btn-row { display: flex; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
+        button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-main { background: #d35400; color: white; min-width: 100%; margin-bottom: 10px; }
+        .btn-tab { background: #ecf0f1; color: #333; }
+        .active-tab { background: #3498db; color: white; }
+        .chart-svg { width: 100%; border: 2px solid #333; margin-top: 20px; background: white; }
     </style>
 </head>
 <body>
 
-<div class="main-card" id="kundli-report">
-    <h2>Hora Astro - लग्न एवं नवांश कुंडली 🌌</h2>
-    <div class="input-row">
-        <input type="date" id="date" value="2006-11-06">
-        <input type="time" id="time" value="11:28">
-        <button onclick="generate()" style="background:#d35400; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">कुंडली जेनरेट करें</button>
+<div class="main-card">
+    <h2>Hora Astro Pro 🌌</h2>
+    
+    <div class="input-group">
+        <label>जन्म तिथि और समय</label>
+        <div style="display: flex; gap: 5px;">
+            <input type="date" id="date" value="2006-11-06">
+            <input type="time" id="time" value="11:28">
+        </div>
     </div>
 
-    <div class="charts-flex">
-        <div class="chart-box">
-            <h3>लग्न कुंडली (D1)</h3>
-            <div id="d1-container"></div>
-        </div>
-        <div class="chart-box">
-            <h3>नवांश कुंडली (D9)</h3>
-            <div id="d9-container"></div>
-        </div>
+    <div class="input-group" style="position: relative;">
+        <label>जन्म स्थान (Search City)</label>
+        <input type="text" id="citySearch" placeholder="शहर का नाम लिखें..." oninput="searchCity(this.value)">
+        <div id="results" class="search-results"></div>
+    </div>
+
+    <input type="hidden" id="lat" value="23.49">
+    <input type="hidden" id="lng" value="74.35">
+
+    <button class="btn-main" onclick="getKundli()">कुंडली जनरेट करें</button>
+
+    <div class="btn-row">
+        <button class="btn-tab active-tab" onclick="showTab('d1')">D1 (लग्न)</button>
+        <button class="btn-tab" onclick="showTab('panchang')">पंचांग</button>
+        <button class="btn-tab" onclick="showTab('milan')">गुण मिलान</button>
+    </div>
+
+    <div id="content-area">
+        <div id="d1-chart"></div>
     </div>
 </div>
-<button class="btn-pdf" id="pdfBtn" onclick="saveAsPDF()">PDF डाउनलोड करें 📄</button>
 
 <script>
-    async function generate() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=23.49&lng=74.35`;
-        try {
-            const r = await fetch(url);
-            const data = await r.json();
-            if(data.status === "success") {
-                drawSVG('d1-container', data.d1.lagna, data.d1.planets);
-                drawSVG('d9-container', data.d9.lagna, data.d9.planets);
-                document.getElementById('pdfBtn').style.display = 'inline-block';
-            } else { alert("सर्वर एरर: " + data.message); }
-        } catch(e) { alert("सर्वर रिस्पॉन्स नहीं दे रहा!"); }
+    // लोकेशन सर्च फंक्शन
+    async function searchCity(query) {
+        if (query.length < 3) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+        const data = await res.json();
+        let html = '';
+        data.slice(0, 5).forEach(item => {
+            html += `<div class="search-item" onclick="selectCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
+        });
+        document.getElementById('results').innerHTML = html;
+        document.getElementById('results').style.display = 'block';
     }
 
-    function drawSVG(divId, lagna, planets) {
-        const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
-        let svg = `<svg viewBox="0 0 300 300"><line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/><line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/><line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
+    function selectCity(name, lat, lon) {
+        document.getElementById('citySearch').value = name;
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lon;
+        document.getElementById('results').style.display = 'none';
+    }
+
+    async function getKundli() {
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const res = await fetch(url);
+        const data = await res.json();
         
+        if(data.status === "success") {
+            window.kundliData = data;
+            showTab('d1');
+        } else { alert("Error: " + data.message); }
+    }
+
+    function showTab(type) {
+        const area = document.getElementById('content-area');
+        if(!window.kundliData) return;
+
+        if(type === 'd1') {
+            area.innerHTML = drawSVG(window.kundliData.d1.lagna, window.kundliData.d1.planets);
+        } else if(type === 'panchang') {
+            area.innerHTML = `<div style="padding:20px; text-align:left;">
+                <p><b>दिन:</b> ${window.kundliData.panchang.day}</p>
+                <p><b>तिथि:</b> शुक्ल पक्ष</p>
+                <p><b>नक्षत्र:</b> गणना जारी...</p>
+            </div>`;
+        } else if(type === 'milan') {
+            area.innerHTML = `<div style="padding:20px;"><h4>गुण मिलान (जल्द आ रहा है)</h4><p>यहाँ आप अष्टकूट मिलान देख पाएंगे।</p></div>`;
+        }
+    }
+
+    function drawSVG(lagna, planets) {
+        const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
+        let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/>
+            <line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/>
+            <line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
+
         for (let i = 1; i <= 12; i++) {
             let rashi = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="rashi" text-anchor="middle">${rashi}</text>`;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${rashi}</text>`;
         }
         
-        let houseOccupation = {};
+        let houseCounts = {};
         planets.forEach(p => {
-            houseOccupation[p.house] = (houseOccupation[p.house] || 0) + 1;
-            let yOffset = coords[p.house][1] + (houseOccupation[p.house] * 12);
-            svg += `<text x="${coords[p.house][0]}" y="${yOffset}" class="planet" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+            houseCounts[p.house] = (houseCounts[p.house] || 0) + 1;
+            let yOff = coords[p.house][1] + (houseCounts[p.house] * 12);
+            svg += `<text x="${coords[p.house][0]}" y="${yOff}" font-size="10" font-weight="bold" text-anchor="middle">${p.name} ${p.degree}°</text>`;
         });
-        document.getElementById(divId).innerHTML = svg + "</svg>";
-    }
-
-    async function saveAsPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        const element = document.getElementById('kundli-report');
-        const canvas = await html2canvas(element);
-        const imgData = canvas.toDataURL('image/png');
-        doc.addImage(imgData, 'PNG', 10, 10, 270, 0);
-        doc.save("Kundli_Report.pdf");
+        return svg + "</svg>";
     }
 </script>
 </body>
