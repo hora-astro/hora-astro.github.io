@@ -2,80 +2,149 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Hora Astro Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hora Astro KP Pro</title>
     <style>
-        :root { --bg: #1e1208; --card: #2d1d12; --main: #d35400; --text: #fdf2e9; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 10px; }
+        :root { --main: #d35400; --bg: #1a0f00; --card: #2d1d12; --text: #fdf2e9; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
+        .container { max-width: 500px; margin: auto; }
         .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #4e342e; margin-bottom: 15px; }
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; background: #3d2b1f; color: white; border: none; }
-        .btn { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: none; background: #3d2b1f; color: white; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        /* Location Dropdown */
-        #cityList { background: #3d2b1f; border-radius: 5px; position: absolute; width: 90%; z-index: 10; display: none; }
-        .city-opt { padding: 10px; border-bottom: 1px solid #4e342e; cursor: pointer; }
+        .tab-bar { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; }
+        .tab { flex: 1; padding: 10px; background: #3d2b1f; border-radius: 8px; cursor: pointer; white-space: nowrap; font-size: 13px; }
+        .tab.active { background: var(--main); }
 
-        .panchang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pan-item { background: #3d2b1f; padding: 10px; border-radius: 8px; border-left: 3px solid var(--main); }
-        .chart-svg { width: 100%; background: white; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; border-bottom: 1px solid #4e342e; text-align: left; }
+        th { color: var(--main); }
+
+        .chart-svg { width: 100%; background: white; border: 2px solid #000; border-radius: 8px; }
+        #cityList { position: absolute; background: #3d2b1f; width: 90%; z-index: 100; border-radius: 8px; max-height: 150px; overflow-y: auto; }
+        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #4e342e; text-align: left; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 style="color:var(--main)">Hora Astro Pro 🌌</h2>
-    <input type="text" id="cityName" placeholder="शहर खोजें (जैसे: Banswara)" oninput="searchCity(this.value)">
-    <div id="cityList"></div>
-    <div style="display:flex; gap:5px;">
-        <input type="date" id="date" value="2006-11-06">
-        <input type="time" id="time" value="11:28">
+<div class="container">
+    <h2 style="color: var(--main);">हिन्दू कैलेंडर / कुंडली 🌌</h2>
+    
+    <div class="card">
+        <input type="text" id="userName" placeholder="नाम लिखें">
+        <div style="display: flex; gap: 5px;">
+            <input type="date" id="date" value="2006-11-06">
+            <input type="time" id="time" value="11:28">
+        </div>
+        <div style="position: relative;">
+            <input type="text" id="citySearch" placeholder="शहर खोजें (जैसे: Banswara)" oninput="searchLocation(this.value)">
+            <div id="cityList"></div>
+        </div>
+        <input type="hidden" id="lat" value="23.49"><input type="hidden" id="lng" value="74.35">
+        <button class="btn" onclick="loadData()">डाटा लोड करें</button>
     </div>
-    <input type="hidden" id="lat"><input type="hidden" id="lng">
-    <button class="btn" onclick="fetchAstro()">कुंडली और पंचांग लोड करें</button>
+
+    <div id="results" style="display:none;">
+        <div class="tab-bar">
+            <div class="tab active" onclick="switchView('d1', this)">D1 लग्न</div>
+            <div class="tab" onclick="switchView('kp', this)">KP भाव स्पष्ट</div>
+            <div class="tab" onclick="switchView('dasha', this)">विंशोत्तरी दशा</div>
+            <div class="tab" onclick="switchView('pred', this)">फलादेश</div>
+        </div>
+        <div id="display-area"></div>
+    </div>
 </div>
 
-<div id="result-area"></div>
-
 <script>
-    async function searchCity(q) {
+    async function searchLocation(q) {
         if(q.length < 3) return;
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await r.json();
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const data = await res.json();
         const list = document.getElementById('cityList');
         list.innerHTML = ''; list.style.display = 'block';
-        data.slice(0, 5).forEach(c => {
+        data.forEach(item => {
             let div = document.createElement('div');
-            div.className = 'city-opt';
-            div.innerText = c.display_name;
+            div.className = 'city-item';
+            div.innerText = item.display_name;
             div.onclick = () => {
-                document.getElementById('cityName').value = c.display_name.split(',')[0];
-                document.getElementById('lat').value = c.lat;
-                document.getElementById('lng').value = c.lon;
+                document.getElementById('citySearch').value = item.display_name.split(',')[0];
+                document.getElementById('lat').value = item.lat;
+                document.getElementById('lng').value = item.lon;
                 list.style.display = 'none';
             };
             list.appendChild(div);
         });
     }
 
-    async function fetchAstro() {
+    async function loadData() {
+        const btn = document.querySelector('.btn');
+        btn.innerText = "गणना हो रही है...";
         const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if(data.status === "error") { alert("सर्वर एरर: " + data.message); return; }
         
-        renderAll(data);
+        try {
+            const res = await fetch(url);
+            window.fullData = await res.json();
+            if(window.fullData.status === "error") throw new Error(window.fullData.message);
+            document.getElementById('results').style.display = 'block';
+            switchView('d1', document.querySelector('.tab.active'));
+        } catch (e) { alert("सर्वर त्रुटि: " + e.message); }
+        finally { btn.innerText = "डाटा लोड करें"; }
     }
 
-    function renderAll(data) {
-        const p = data.panchang;
-        let html = `<h3>पंचांग विवरणी</h3><div class="card panchang-grid">
-            <div class="pan-item"><b>वार:</b><br>${p.var}</div>
-            <div class="pan-item"><b>तिथि:</b><br>${p.tithi}</div>
-            <div class="pan-item"><b>नक्षत्र:</b><br>${p.nakshatra}</div>
-            <div class="pan-item"><b>योग/करण:</b><br>${p.yog}/${p.karan}</div>
-            <div class="pan-item"><b>सूर्य राशि:</b><br>${p.sury_rashi}</div>
-            <div class="pan-item"><b>समय:</b><br>${p.time}</div>
-        </div>`;
-        document.getElementById('result-area').innerHTML = html;
+    function switchView(view, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        const area = document.getElementById('display-area');
+        const name = document.getElementById('userName').value || "जातक";
+
+        if(view === 'd1') {
+            area.innerHTML = `<h3>${name} - लग्न कुंडली</h3>` + drawChart(window.fullData);
+        } else if(view === 'kp') {
+            let table = `<div class="card"><h3>Sidereal Nirayana Bhav</h3><table><tr><th>भाव</th><th>डिग्री</th><th>राशि</th></tr>`;
+            window.fullData.houses.forEach(h => {
+                table += `<tr><td>House ${h.no}</td><td>${h.degree}</td><td>${h.sign}</td></tr>`;
+            });
+            area.innerHTML = table + `</table></div>`;
+        } else if(view === 'dasha') {
+            let dashaHtml = `<div class="card"><h3>विंशोत्तरी महादशा</h3>`;
+            window.fullData.dasha.forEach(d => {
+                dashaHtml += `<div style="padding:12px; border-bottom:1px solid #4e342e; text-align:left;">
+                    <b>${d.planet}</b> - समाप्ति तिथि: <span style="color:var(--main)">${d.end_date}</span>
+                </div>`;
+            });
+            area.innerHTML = dashaHtml + `</div>`;
+        } else if(view === 'pred') {
+            area.innerHTML = `<div class="card"><h3>फलादेश</h3><p style="line-height:1.6;">${window.fullData.prediction}</p></div>`;
+        }
+    }
+
+    function drawChart(data) {
+        const hPos = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[95,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[205,150], 11:[260,75], 12:[225,40] };
+        let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/>
+            <line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/>
+            <line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
+
+        for (let i = 1; i <= 12; i++) {
+            let rashi = ((data.lagna + i - 2) % 12) + 1;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" style="font-size:16px; font-weight:bold; fill:#c0392b" text-anchor="middle">${rashi}</text>`;
+        }
+
+        let groups = {};
+        data.planets.forEach(p => {
+            if(!groups[p.house]) groups[p.house] = [];
+            groups[p.house].push(p);
+        });
+
+        for (let h in groups) {
+            groups[h].forEach((p, idx) => {
+                let xOff = (idx % 2 === 0) ? -28 : 28;
+                let yOff = Math.floor(idx / 2) * 15 + 18;
+                if(groups[h].length === 1) xOff = 0; 
+                svg += `<text x="${hPos[h][0] + xOff}" y="${hPos[h][1] + yOff}" style="font-size:10px; font-weight:bold; fill:#2980b9" text-anchor="middle">${p.name} ${p.deg}</text>`;
+            });
+        }
+        return svg + "</svg>";
     }
 </script>
 </body>
