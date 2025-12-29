@@ -1,124 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-<meta charset="utf-8">
-<title>Kundli Generator</title>
-<style>
-body{font-family:Arial;padding:20px}
-.box{border:1px solid #ccc;padding:15px;margin-top:10px;border-radius:10px}
-table{border-collapse:collapse;width:100%}
-td,th{border:1px solid #ccc;padding:6px}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hora Astro Pro - Kundli</title>
+    <style>
+        :root { --primary: #d35400; --bg: #fdf2e9; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 550px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        h2 { color: var(--primary); margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; position: relative; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #e67e22; }
 
+        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; max-height: 200px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+        .city-item:hover { background: #f0f0f0; }
+
+        #chart-area { margin-top: 30px; display: none; }
+        .kundli-svg { width: 100%; max-width: 400px; height: auto; background: #fff; border: 2px solid #333; margin: auto; display: block; }
+        
+        .rashi-text { fill: #e74c3c; font-weight: bold; font-size: 18px; pointer-events: none; }
+        .planet-text { fill: #2c3e50; font-size: 11px; font-weight: bold; pointer-events: none; }
+        .panchang { margin: 15px 0; font-weight: bold; color: #27ae60; }
+    </style>
+</head>
 <body>
 
-<h2>Kundli Generator</h2>
+<div class="container">
+    <h2>Hora Astro Pro 🌌</h2>
+    
+    <div class="input-group">
+        <label>जन्म तिथि</label>
+        <input type="date" id="date" value="2006-11-06">
+    </div>
 
-<div class="box">
-Date of Birth:
-<input id="dob" type="date"><br><br>
+    <div class="input-group">
+        <label>जन्म समय</label>
+        <input type="time" id="time" value="11:28">
+    </div>
 
-Time of Birth:
-<input id="tob" type="time"><br><br>
+    <div class="input-group">
+        <label>जन्म स्थान (शहर खोजें)</label>
+        <input type="text" id="city" placeholder="शहर का नाम लिखें (जैसे: Banswara)..." oninput="searchCity()">
+        <div id="city-list"></div>
+    </div>
 
-Birth Place (Lat, Lon):
-<input id="lat" placeholder="23.4">
-<input id="lon" placeholder="74.3"><br><br>
+    <input type="hidden" id="lat" value="23.49">
+    <input type="hidden" id="lng" value="74.35">
 
-<button onclick="getKundli()">Get Kundli</button>
-<button onclick="getPDF()">Download PDF</button>
+    <button id="mainBtn" onclick="generate()">कुंडली और ग्रह देखें</button>
+
+    <div id="chart-area">
+        <p class="panchang" id="vaar-info"></p>
+        <div id="svg-container"></div>
+    </div>
 </div>
-
-
-<div id="result" class="box" style="display:none">
-
-<h3 id="lagna"></h3>
-
-<h4>D1 Chart</h4>
-<pre id="d1"></pre>
-
-<h4>D9 Chart</h4>
-<pre id="d9"></pre>
-
-<h4>Planets</h4>
-<table id="planetTable"></table>
-
-<h4>Panchang</h4>
-<pre id="panchang"></pre>
-
-<h4>Vimshottari Dasha</h4>
-<table id="dashaTable"></table>
-
-</div>
-
 
 <script>
+    // 1. शहर खोजने का फंक्शन
+    async function searchCity() {
+        const q = document.getElementById('city').value;
+        const list = document.getElementById('city-list');
+        if(q.length < 3) { list.style.display = 'none'; return; }
+        
+        try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await r.json();
+            list.innerHTML = ''; list.style.display = 'block';
+            data.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'city-item'; d.innerText = item.display_name;
+                d.onclick = () => {
+                    document.getElementById('city').value = item.display_name.split(',')[0];
+                    document.getElementById('lat').value = item.lat;
+                    document.getElementById('lng').value = item.lon;
+                    list.style.display = 'none';
+                };
+                list.appendChild(d);
+            });
+        } catch(e) { console.error("Search failed"); }
+    }
 
-const API = "https://hemantpurohit27.pythonanywhere.com";
+    // 2. कुंडली डेटा सर्वर से लाने का फंक्शन
+    async function generate() {
+        const btn = document.getElementById('mainBtn');
+        btn.innerText = "गणना हो रही है...";
+        btn.disabled = true;
 
-async function getKundli(){
+        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if(data.status === "success") {
+                document.getElementById('chart-area').style.display = 'block';
+                document.getElementById('vaar-info').innerText = "दिन: " + data.panchang.day;
+                drawKundli(data.lagna, data.planets);
+            } else {
+                alert("सर्वर एरर: " + data.message);
+            }
+        } catch(e) {
+            alert("सर्वर रिस्पॉन्स नहीं दे रहा। कृपया PythonAnywhere रीलोड करें।");
+        } finally {
+            btn.innerText = "कुंडली और ग्रह देखें";
+            btn.disabled = false;
+        }
+    }
 
- let payload = {
-   dob: dob.value,
-   tob: tob.value,
-   lat: lat.value,
-   lon: lon.value
- }
+    // 3. SVG चार्ट बनाने का फंक्शन
+    function drawKundli(lagna, planets) {
+        // उत्तर भारतीय कुंडली के घर के केंद्र (Coordinates)
+        const coords = { 
+            1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 
+            7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] 
+        };
 
- let res = await fetch(API+"/api/kundli",{
-   method:"POST",
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify(payload)
- });
+        // SVG फ्रेम और लाइन्स
+        let svg = `<svg viewBox="0 0 300 300" class="kundli-svg">
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="0" x2="0" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="0" x2="0" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="0" y1="150" x2="150" y2="300" stroke="#333" stroke-width="1.5"/>
+            <line x1="150" y1="300" x2="300" y2="150" stroke="#333" stroke-width="1.5"/>
+            <line x1="300" y1="150" x2="150" y2="0" stroke="#333" stroke-width="1.5"/>`;
 
- let k = await res.json();
+        // राशि नंबर लिखना (Red color)
+        for (let i = 1; i <= 12; i++) {
+            let rashi = ((lagna + i - 2) % 12) + 1;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="rashi-text" text-anchor="middle">${rashi}</text>`;
+        }
 
- lagna.innerText = "Lagna: "+k.lagna;
+        // ग्रहों को हाउस में सेट करना
+        let houseOccupation = {};
+        planets.forEach(p => {
+            if(!houseOccupation[p.house]) houseOccupation[p.house] = 0;
+            houseOccupation[p.house]++;
+            
+            // अगर एक घर में एक से ज्यादा ग्रह हैं, तो उन्हें नीचे खिसकाना (offset)
+            let yPos = coords[p.house][1] + 10 + (houseOccupation[p.house] * 13);
+            svg += `<text x="${coords[p.house][0]}" y="${yPos}" class="planet-text" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+        });
 
- d1.innerText = JSON.stringify(k.d1_chart,null,2);
- d9.innerText = JSON.stringify(k.d9_chart,null,2);
-
- planetTable.innerHTML =
-  "<tr><th>Planet</th><th>Sign</th><th>Degree</th></tr>" +
-  k.planets.map(p=>`<tr>
-   <td>${p.planet}</td>
-   <td>${p.sign}</td>
-   <td>${p.degree}</td>
-  </tr>`).join("");
-
- panchang.innerText = JSON.stringify(k.panchang,null,2);
-
- dashaTable.innerHTML =
-   k.vimshottari.map(r=>`
-   <tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>
-   `).join("");
-
- result.style.display="block";
-}
-
-
-
-async function getPDF(){
-
- let payload = {
-   dob: dob.value,
-   tob: tob.value,
-   lat: lat.value,
-   lon: lon.value
- }
-
- let res = await fetch(API+"/api/pdf",{
-   method:"POST",
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify(payload)
- });
-
- let blob = await res.blob();
- let url = window.URL.createObjectURL(blob);
- window.open(url);
-}
-
+        document.getElementById('svg-container').innerHTML = svg + `</svg>`;
+    }
 </script>
 
 </body>
