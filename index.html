@@ -5,29 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hora Astro Pro</title>
     <style>
-        :root { --primary: #d35400; --dark-bg: #1a0f00; --card-bg: #2d1d10; --text: #fdf2e9; }
-        body { font-family: sans-serif; background: var(--dark-bg); color: var(--text); margin: 0; padding: 10px; text-align: center; }
-        .container { max-width: 500px; margin: auto; }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #4e342e; }
+        :root { --main: #d35400; --bg: #1a0f00; --card: #2d1d10; --text: #fdf2e9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .container { max-width: 450px; margin: auto; }
+        .header { font-size: 22px; color: var(--main); font-weight: bold; margin: 15px 0; }
+        
+        .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #4e342e; margin-bottom: 15px; }
         input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: none; background: #3e2723; color: white; box-sizing: border-box; }
         
-        .tab-menu { display: flex; gap: 5px; margin: 15px 0; overflow-x: auto; }
-        .tab { flex: 1; padding: 10px; background: #3e2723; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; white-space: nowrap; }
-        .tab.active { background: var(--primary); }
-
-        .chart-svg { width: 100%; background: white; border: 2px solid #000; border-radius: 4px; margin-top: 10px; }
-        .planet-txt { font-size: 9px; font-weight: bold; fill: #1a237e; }
-        .rashi-txt { font-size: 16px; font-weight: bold; fill: #b71c1c; }
+        .btn-load { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         
-        .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .opt-item { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #4e342e; }
-        .btn-load { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .tab-bar { display: flex; gap: 5px; margin: 15px 0; }
+        .tab { flex: 1; padding: 10px; background: #3e2723; border-radius: 8px; cursor: pointer; font-size: 13px; text-align: center; }
+        .tab.active { background: var(--main); }
+
+        /* Chart Styling - Overlap Fix */
+        .chart-svg { width: 100%; background: #fff; border: 1.5px solid #000; border-radius: 5px; }
+        .r-num { font-size: 16px; font-weight: bold; fill: #d32f2f; }
+        .p-name { font-size: 9px; font-weight: bold; fill: #0d47a1; }
+
+        .panchang-info { text-align: left; line-height: 1.8; }
+        .panchang-item { border-bottom: 1px solid #4e342e; padding: 8px 0; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color: var(--primary);">Hora Astro Pro 🌌</h2>
+    <div class="header">Hora Astro Pro 🌌</div>
     
     <div class="card">
         <div style="display: flex; gap: 5px;">
@@ -35,71 +39,76 @@
             <input type="time" id="time" value="11:28">
         </div>
         <input type="text" id="city" placeholder="Banswara, Rajasthan">
-        <button class="btn-load" onclick="fetchData()">डाटा लोड करें</button>
+        <button class="btn-load" onclick="loadData()">कुंडली जनरेट करें</button>
     </div>
 
-    <div class="tab-menu">
-        <div class="tab active" onclick="showChart('d1', this)">D1 (लग्न)</div>
-        <div class="tab" onclick="showChart('d9', this)">D9 (नवांश)</div>
-        <div class="tab" onclick="showPanchang(this)">पंचांग</div>
-        <div class="tab">मिलान</div>
+    <div class="tab-bar">
+        <div class="tab active" onclick="showView('d1', this)">D1 लग्न</div>
+        <div class="tab" onclick="showView('d9', this)">D9 नवांश</div>
+        <div class="tab" onclick="showView('panchang', this)">पंचांग</div>
     </div>
 
-    <div id="display-area"></div>
-
-    <div class="option-grid">
-        <div class="opt-item">🎡<br><b>कुंडली</b></div>
-        <div class="opt-item">📅<br><b>पंचांग</b></div>
-        <div class="opt-item">👫<br><b>मिलान</b></div>
-        <div class="opt-item">🗓️<br><b>कैलेंडर</b></div>
-    </div>
+    <div id="content-area"></div>
 </div>
 
 <script>
-    async function fetchData() {
+    async function loadData() {
         const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=23.49&lng=74.35`;
-        const res = await fetch(url);
-        window.data = await res.json();
-        showChart('d1', document.querySelector('.active'));
+        try {
+            const res = await fetch(url);
+            window.fullData = await res.json();
+            showView('d1', document.querySelector('.active'));
+        } catch (e) { alert("सर्वर त्रुटि!"); }
     }
 
-    function showChart(type, el) {
+    function showView(type, el) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
-        if(!window.data) return;
-        
-        const chartData = type === 'd1' ? window.data.d1 : window.data.d9;
-        const title = type === 'd1' ? "लग्न कुंडली (D1)" : "नवांश कुंडली (D9)";
-        document.getElementById('display-area').innerHTML = `<h3>${title}</h3>` + renderSVG(chartData, type);
+        const area = document.getElementById('content-area');
+        if(!window.fullData) return;
+
+        if(type === 'panchang') {
+            const p = window.fullData.panchang;
+            area.innerHTML = `<div class="card panchang-info">
+                <div class="panchang-item"><span>दिन:</span> <b>${p.day}</b></div>
+                <div class="panchang-item"><span>पक्ष:</span> <b>${p.tithi}</b></div>
+                <div class="panchang-item"><span>सूर्य राशि:</span> <b>${p.sun_sign}</b></div>
+                <div class="panchang-item"><span>चंद्र राशि:</span> <b>${p.moon_sign}</b></div>
+            </div>`;
+        } else {
+            const chartData = type === 'd1' ? window.fullData.d1 : window.fullData.d9;
+            area.innerHTML = `<h3 style="color:var(--main)">${type.toUpperCase()} चार्ट</h3>` + drawChart(chartData);
+        }
     }
 
-    function renderSVG(chart, type) {
-        const coords = { 1:[150,90], 2:[80,45], 3:[45,80], 4:[95,150], 5:[45,220], 6:[80,255], 7:[150,210], 8:[220,255], 9:[255,220], 10:[205,150], 11:[255,80], 12:[220,45] };
+    function drawChart(data) {
+        const hPos = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[95,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[205,150], 11:[260,75], 12:[225,40] };
         let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
             <line x1="0" y1="0" x2="300" y2="300" stroke="#000"/><line x1="300" y1="0" x2="0" y2="300" stroke="#000"/>
             <line x1="150" y1="0" x2="0" y2="150" stroke="#000"/><line x1="0" y1="150" x2="150" y2="300" stroke="#000"/>
             <line x1="150" y1="300" x2="300" y2="150" stroke="#000"/><line x1="300" y1="150" x2="150" y2="0" stroke="#000"/>`;
 
+        // राशि नंबर (सेंटर में)
         for (let i = 1; i <= 12; i++) {
-            let rashi = ((chart.lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" class="rashi-txt" text-anchor="middle">${rashi}</text>`;
+            let rashi = ((data.lagna + i - 2) % 12) + 1;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" class="r-num" text-anchor="middle">${rashi}</text>`;
         }
 
-        let houseGroups = {};
-        chart.planets.forEach(p => {
-            let h = type === 'd1' ? p.house : p.d9_house;
-            if(!houseGroups[h]) houseGroups[h] = [];
-            houseGroups[h].push(p);
+        // ग्रहों के लिए ग्रिड लॉजिक
+        let groups = {};
+        data.planets.forEach(p => {
+            if(!groups[p.house]) groups[p.house] = [];
+            groups[p.house].push(p);
         });
 
-        for (let h in houseGroups) {
-            houseGroups[h].forEach((p, index) => {
-                // स्मार्ट पोजीशनिंग: ग्रहों को ग्रिड की तरह व्यवस्थित करना
-                let xOff = coords[h][0] + (index % 2 === 0 ? -20 : 20);
-                let yOff = coords[h][1] + 15 + (Math.floor(index / 2) * 12);
-                if(index === 0 && houseGroups[h].length === 1) xOff = coords[h][0]; // सिंगल ग्रह सेंटर में
-                
-                svg += `<text x="${xOff}" y="${yOff}" class="planet-txt" text-anchor="middle">${p.name} ${p.degree}°</text>`;
+        for (let h in groups) {
+            groups[h].forEach((p, idx) => {
+                // 2 कॉलम में व्यवस्थित करना (Overlap रोकने के लिए)
+                let col = idx % 2 === 0 ? -22 : 22;
+                let row = Math.floor(idx / 2) * 11 + 15;
+                if(groups[h].length === 1) col = 0; // अकेला ग्रह सेंटर में
+
+                svg += `<text x="${hPos[h][0] + col}" y="${hPos[h][1] + row}" class="p-name" text-anchor="middle">${p.name} ${p.degree}</text>`;
             });
         }
         return svg + "</svg>";
