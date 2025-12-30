@@ -2,104 +2,96 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>HORA ASTRO ULTIMATE PRO V37.0</title>
+    <title>HORA ASTRO SUPREME V40.0</title>
     <style>
-        :root { --gold: #ffcc00; --bg: #0d1117; }
-        body { background: var(--bg); color: white; font-family: 'Arial'; padding: 20px; }
-        .input-bar { background: #161b22; padding: 20px; border-radius: 12px; display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border: 1px solid #30363d; }
-        input { padding: 12px; background: #000; color: white; border: 1px solid #30363d; border-radius: 6px; }
-        .btn { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        :root { --gold: #f39c12; --dark: #0b0e14; --card: #1c2128; }
+        body { background: var(--dark); color: white; font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; }
+        .header-panel { background: var(--card); border: 2px solid var(--gold); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .input-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        input { background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; flex: 1; }
+        .btn-calc { background: var(--gold); border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; }
         
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border: 1px solid #30363d; text-align: center; }
-        th { background: #21262d; color: var(--gold); }
-        .chart-box { background: white; border-radius: 10px; padding: 10px; margin-top: 10px; }
+        /* पंचांग रिबन */
+        .panchang-ribbon { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .pan-item { background: linear-gradient(45deg, #f39c12, #d35400); color: black; padding: 10px; border-radius: 8px; text-align: center; font-weight: 800; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        .kundli-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-card { background: white; border-radius: 12px; padding: 15px; color: black; box-shadow: 0 0 20px rgba(243, 156, 18, 0.2); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: var(--card); }
+        th, td { border: 1px solid #333; padding: 12px; text-align: center; }
+        th { background: #2d333b; color: var(--gold); }
     </style>
 </head>
 <body>
 
-    <h2 align="center" style="color:var(--gold)">🕉️ HORA ASTRO ULTIMATE PRO V37.0</h2>
+<div class="header-panel">
+    <h2 align="center" style="color:var(--gold); margin-top:0;">🕉️ HORA ASTRO SUPREME V40.0</h2>
+    <div class="input-group">
+        <input type="text" id="uname" placeholder="जातक का नाम" value="Hemant Purohit">
+        <input type="text" id="city" placeholder="शहर (जैसे: Banswara)" oninput="searchLoc(this.value)">
+        <input type="date" id="udate" value="2006-11-06">
+        <input type="time" id="utime" value="11:28">
+    </div>
+    <input type="hidden" id="lat" value="24.58">
+    <input type="hidden" id="lng" value="73.71">
+    <button class="btn-calc" onclick="runAstro()">पूर्ण विश्लेषण एवं पंचांग देखें</button>
+</div>
 
-    <div class="input-bar">
-        <input type="text" id="city" placeholder="शहर खोजें..." style="flex:2" oninput="searchCity(this.value)">
-        <input type="date" id="date" value="2006-11-06">
-        <input type="time" id="time" value="11:28">
-        <input type="hidden" id="lat" value="24.58">
-        <input type="hidden" id="lng" value="73.71">
-        <button class="btn" onclick="generateSoftware()">सटीक कुंडली विश्लेषण</button>
-        <div id="results" style="position:absolute; background:#21262d; width:300px; z-index:100"></div>
+<div id="main-ui" style="display:none">
+    <div class="panchang-ribbon" id="pan-ui"></div>
+
+    <div class="kundli-grid">
+        <div class="chart-card">
+            <h3 align="center">लग्न कुंडली (D1)</h3>
+            <div id="d1-svg"></div>
+        </div>
+        <div class="chart-card">
+            <h3 align="center">नवांश कुंडली (D9)</h3>
+            <div id="d9-svg"></div>
+        </div>
     </div>
 
-    <div class="grid-container">
-        <div class="card" align="center">
-            <h3>लग्न कुंडली (हिंदी)</h3>
-            <div id="d1" class="chart-box"></div>
-        </div>
-        <div class="card" align="center">
-            <h3>नवांश कुंडली (वृश्चिक लग्न)</h3>
-            <div id="d9" class="chart-box"></div>
-        </div>
-
-        <div class="card">
-            <h3>ग्रह स्पष्ट तालिका (Planet Positions)</h3>
-            <table id="p-table"></table>
-        </div>
-
-        <div class="card">
-            <h3>विंशोत्तरी महादशा (Vimshottari Dasha)</h3>
-            <table id="d-table"></table>
-        </div>
+    <div class="card" style="margin-top:20px;">
+        <h3 style="color:var(--gold)">📊 ग्रह एवं भाव स्पष्ट विवरण</h3>
+        <table id="p-table"></table>
     </div>
+</div>
 
 <script>
-    async function searchCity(q) {
-        if(q.length < 3) return;
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await r.json();
-        let h = '';
-        data.forEach(i => h += `<div style="padding:10px; border-bottom:1px solid #30363d; cursor:pointer" onclick="setLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
-        document.getElementById('results').innerHTML = h;
-    }
-
-    function setLoc(n, la, lo) {
-        document.getElementById('city').value = n;
-        document.getElementById('lat').value = la;
-        document.getElementById('lng').value = lo;
-        document.getElementById('results').innerHTML = '';
-    }
-
-    async function generateSoftware() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/ultimate_v37`;
-        const params = `?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
-        
-        const res = await fetch(url + params);
+    async function runAstro() {
+        const name = document.getElementById('uname').value;
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/v40_final?name=${name}&date=${document.getElementById('udate').value}&time=${document.getElementById('utime').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`);
         const d = await res.json();
 
-        // ग्रह स्पष्ट टेबल
+        document.getElementById('main-ui').style.display = 'block';
+
+        // पंचांग UI
+        document.getElementById('pan-ui').innerHTML = `
+            <div class="pan-item">नाम: ${d.name}</div>
+            <div class="pan-item">संवत: ${d.panchang.samvat}</div>
+            <div class="pan-item">माह: ${d.panchang.month}</div>
+            <div class="pan-item">तिथि: ${d.panchang.tithi} (${d.panchang.paksha})</div>
+            <div class="pan-item">नक्षत्र: ${d.panchang.nakshatra} (${d.panchang.charan})</div>
+        `;
+
+        // टेबल UI
         let phtml = `<tr><th>ग्रह</th><th>अंश</th><th>भाव</th></tr>`;
         d.planets.forEach(p => phtml += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`);
         document.getElementById('p-table').innerHTML = phtml;
 
-        // दशा टेबल
-        let dhtml = `<tr><th>महादशा स्वामी</th><th>समाप्ति तिथि</th></tr>`;
-        d.dasha.forEach(ds => dhtml += `<tr><td>${ds.lord}</td><td>${ds.end_date}</td></tr>`);
-        document.getElementById('d-table').innerHTML = dhtml;
-
         // चार्ट्स
-        document.getElementById('d1').innerHTML = drawChart(d.asc, d.planets);
-        document.getElementById('d9').innerHTML = drawChart(d.nav_asc, d.planets);
+        document.getElementById('d1-svg').innerHTML = drawChart(d.asc, d.planets);
+        document.getElementById('d9-svg').innerHTML = drawChart(8, d.planets); // नवांश वृश्चिक लग्न पर
     }
 
     function drawChart(asc, planets) {
-        const coords = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
-        let svg = `<svg viewBox="0 0 300 300" style="width:300px"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/>`;
-        for(let i=1; i<=12; i++) {
+        const hPos = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
+        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#333" fill="none" stroke-width="2"/>`;
+        for(let i=1; i<=12; i++){
             let sign = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${sign}</text>`;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${sign}</text>`;
             let p_names = planets.filter(p => p.house === i).map(p => p.name).join(' ');
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" fill="blue" font-size="10" text-anchor="middle">${p_names}</text>`;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]+18}" fill="#0056b3" font-size="9" font-weight="bold" text-anchor="middle">${p_names}</text>`;
         }
         return svg + `</svg>`;
     }
