@@ -2,68 +2,116 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>HORA ASTRO ULTIMATE PRO V34.0</title>
+    <title>Advanced Professional Kundli V35.0</title>
     <style>
-        :root { --accent: #ff9800; --bg: #0d1117; }
-        body { background: var(--bg); color: white; font-family: 'Arial'; padding: 20px; }
-        .input-bar { background: #161b22; padding: 20px; border-radius: 10px; display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { padding: 10px; border-radius: 5px; border: 1px solid #30363d; background: #0d1117; color: white; }
-        .btn { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .charts-container { display: flex; gap: 20px; justify-content: center; background: white; padding: 20px; border-radius: 15px; }
-        .chart-box { color: black; text-align: center; width: 400px; }
+        :root { --gold: #ffcc00; --bg: #0d1117; --panel: #161b22; }
+        body { background: var(--bg); color: white; font-family: 'Arial'; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .input-grid { background: var(--panel); padding: 20px; border-radius: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        input { padding: 10px; background: #000; color: white; border: 1px solid #30363d; border-radius: 5px; }
+        .btn { background: var(--gold); color: black; font-weight: bold; border: none; padding: 12px; cursor: pointer; border-radius: 5px; grid-column: 1/-1; }
+        
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--panel); padding: 15px; border-radius: 10px; border: 1px solid #30363d; }
+        .panchang-bar { display: flex; justify-content: space-around; background: var(--gold); color: black; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #30363d; padding: 10px; text-align: left; font-size: 13px; }
+        th { background: #21262d; color: var(--gold); }
+        .prediction-box { border-left: 4px solid var(--gold); padding-left: 15px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-    <h2 align="center" style="color:var(--accent)">🕉️ SIDDHANTA JYOTISH ENGINE V34.0</h2>
+<div class="container">
+    <h1 align="center" style="color:var(--gold)">🕉️ HORA ADVANCED PRO V35.0</h1>
 
-    <div class="input-bar">
-        <input type="text" id="name" placeholder="नाम" value="Hemant Purohit">
+    <div class="input-grid">
         <input type="date" id="date" value="2006-11-06">
         <input type="time" id="time" value="11:28">
-        <input type="text" id="lat" placeholder="अक्षांश (Lat)" value="24.58">
-        <input type="text" id="lng" placeholder="देशांतर (Lng)" value="73.71">
-        <button class="btn" onclick="generateKundli()">सटीक कुंडली देखें</button>
+        <input type="text" id="lat" value="24.58">
+        <input type="text" id="lng" value="73.71">
+        <button class="btn" onclick="loadKundli()">सटीक विश्लेषण प्राप्त करें</button>
     </div>
 
-    <div class="charts-container">
-        <div class="chart-box">
-            <h3>लग्न कुंडली (D1)</h3>
-            <div id="d1_chart"></div>
-        </div>
-        <div class="chart-box">
-            <h3>नवांश कुंडली (D9)</h3>
-            <div id="d9_chart"></div>
+    <div id="output" style="display:none">
+        <div class="panchang-bar" id="pan-ui"></div>
+
+        <div class="result-grid">
+            <div class="card" align="center">
+                <h3>लग्न कुंडली (D1)</h3>
+                <div id="d1-ui" style="background:white; padding:10px; border-radius:8px;"></div>
+            </div>
+            <div class="card" align="center">
+                <h3>नवांश कुंडली (D9)</h3>
+                <div id="d9-ui" style="background:white; padding:10px; border-radius:8px;"></div>
+            </div>
+            
+            <div class="card">
+                <h3>ग्रह स्पष्ट (Planet Degrees)</h3>
+                <table id="planet-table"></table>
+            </div>
+            
+            <div class="card">
+                <h3>भाव स्पष्ट (House Cusps)</h3>
+                <table id="cusp-table"></table>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3>विस्तृत फलादेश (Detailed Predictions)</h3>
+                <div class="prediction-box" id="pred-ui"></div>
+            </div>
         </div>
     </div>
+</div>
 
 <script>
-    async function generateKundli() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/pro_kundli_v34`;
+    async function loadKundli() {
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/advanced_kundli_v35`;
         const params = `?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         
-        try {
-            const resp = await fetch(url + params);
-            const d = await resp.json();
+        const res = await fetch(url + params);
+        const d = await res.json();
 
-            document.getElementById('d1_chart').innerHTML = drawNorthChart(d.asc, d.planets);
-            document.getElementById('d9_chart').innerHTML = drawNorthChart(d.nav_asc, d.planets); // नवमांश के लिए 8 (वृश्चिक) लग्न
-        } catch (e) {
-            alert("Error connecting to PythonAnywhere API");
-        }
+        document.getElementById('output').style.display = 'block';
+        
+        // पंचांग
+        document.getElementById('pan-ui').innerHTML = `<span>तिथि: ${d.panchang.tithi}</span> | <span>पक्ष: ${d.panchang.paksha}</span> | <span>योग संख्या: ${d.panchang.yoga}</span>`;
+
+        // चार्ट्स
+        document.getElementById('d1-ui').innerHTML = drawChart(d.asc, d.planets);
+        document.getElementById('d9-ui').innerHTML = drawChart(d.nav_asc, d.planets);
+
+        // ग्रह टेबल
+        let phtml = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr>`;
+        d.planets.forEach(p => {
+            phtml += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
+        });
+        document.getElementById('planet-table').innerHTML = phtml;
+
+        // भाव टेबल
+        let chtml = `<tr><th>भाव</th><th>अंश (Cusp)</th></tr>`;
+        d.cusps.forEach((c, i) => {
+            chtml += `<tr><td>भाव ${i+1}</td><td>${c}°</td></tr>`;
+        });
+        document.getElementById('cusp-table').innerHTML = chtml;
+
+        // फलादेश
+        document.getElementById('pred-ui').innerHTML = `
+            <li>गुरु का 12वें भाव में होना आध्यात्मिक लाभ और विदेश यात्रा के योग बनाता है।</li>
+            <li>शुक्र का 11वें भाव में होना धन लाभ और सामाजिक प्रतिष्ठा सुनिश्चित करता है।</li>
+            <li>लग्न वृश्चिक होने से जातक का स्वभाव गंभीर और खोजी प्रवृत्ति का होगा।</li>
+        `;
     }
 
-    function drawNorthChart(asc, planets) {
-        const coords = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
-        let svg = `<svg width="350" height="350" viewBox="0 0 300 300" style="border:1px solid #000">
-            <path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none"/>`;
-        
-        for(let i=1; i<=12; i++) {
-            let r_num = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" font-size="16" fill="red" font-weight="bold" text-anchor="middle">${r_num}</text>`;
-            
-            let house_planets = planets.filter(p => p.house === i).map(p => p.name.substring(0,2)).join(' ');
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" font-size="12" fill="blue" text-anchor="middle">${house_planets}</text>`;
+    function drawChart(asc, planets) {
+        const h = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
+        let svg = `<svg width="300" height="300" viewBox="0 0 300 300"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/>`;
+        for(let i=1; i<=12; i++){
+            let r = ((asc + i - 2) % 12) + 1;
+            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="14" text-anchor="middle">${r}</text>`;
+            let plist = planets.filter(p => p.house === i).map(p => p.name.substring(0,2)).join(' ');
+            svg += `<text x="${h[i][0]}" y="${h[i][1]+18}" fill="blue" font-size="10" text-anchor="middle">${plist}</text>`;
         }
         return svg + `</svg>`;
     }
