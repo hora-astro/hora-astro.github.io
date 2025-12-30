@@ -51,7 +51,7 @@
 
 <script>
     async function calculateKP() {
-        const url = `https://your-username.pythonanywhere.com/api/kp_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/kp_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         const res = await fetch(url);
         const data = await res.json();
 
