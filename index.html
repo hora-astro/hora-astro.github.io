@@ -2,91 +2,107 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro-Omni Ultimate Pro V31.0</title>
+    <title>HORA ASTRO ADVANCED PRO V32.0</title>
     <style>
-        :root { --accent: #ff9800; --bg: #050a10; --card: #111827; }
-        body { background: var(--bg); color: #fff; font-family: 'Arial'; padding: 20px; }
-        .grid-panchang { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
-        .pan-box { background: var(--card); border: 1px solid var(--accent); padding: 15px; border-radius: 8px; text-align: center; }
-        .chart-container { display: flex; justify-content: space-around; background: #fff; padding: 30px; border-radius: 20px; color: #000; }
-        .prediction-card { background: #1a202c; border-left: 6px solid #48bb78; padding: 20px; margin-top: 20px; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #2d3748; padding: 12px; text-align: left; }
-        th { color: var(--accent); }
+        :root { --gold: #ffcc00; --bg: #0a0e14; --card: #161b22; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Arial; padding: 20px; }
+        .master-panel { max-width: 1200px; margin: auto; }
+        
+        /* Input Form */
+        .input-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid #30363d; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        input { padding: 12px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 6px; }
+        .btn-main { grid-column: 1 / -1; background: var(--gold); color: black; font-weight: bold; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+
+        /* Panchang & Info */
+        .info-header { background: linear-gradient(90deg, #1f2937, #111827); padding: 15px; border-radius: 8px; border-left: 5px solid var(--gold); margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .panchang-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+        .pan-item { background: #1c2128; padding: 15px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--gold); }
+
+        /* Chart */
+        .chart-section { background: white; padding: 20px; border-radius: 15px; display: flex; justify-content: center; margin-bottom: 20px; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border: 1px solid #30363d; }
+        th { background: #21262d; color: var(--gold); }
+        .high-bal { color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2 align="center" style="color:var(--accent)">🕉️ ASTRO-OMNI PROFESSIONAL V31.0</h2>
+<div class="master-panel">
+    <h1 align="center" style="color:var(--gold)">🕉️ HORA ASTRO PROFESSIONAL V32.0</h1>
 
-    <div class="grid-panchang" id="panchang_ui">
-        </div>
-
-    <div class="chart-container" id="chart_ui">
-        </div>
-
-    <div class="prediction-card" id="pred_ui">
-        <h3>📜 विस्तृत फलादेश (Detailed Analysis):</h3>
-        <div id="aspects_text"></div>
+    <div class="input-box">
+        <input type="text" id="name" placeholder="जातक का नाम" value="हेमंत पुरोहित">
+        <input type="text" id="place" placeholder="जन्म स्थान" value="Banswara">
+        <input type="date" id="date" value="2006-11-06">
+        <input type="time" id="time" value="11:28">
+        <input type="text" id="lat" placeholder="Latitude" value="24.58">
+        <input type="text" id="lng" placeholder="Longitude" value="73.71">
+        <button class="btn-main" onclick="getAnalysis()">पूर्ण कुंडली और विश्लेषण प्राप्त करें</button>
     </div>
 
-    <table>
-        <thead>
-            <tr><th>ग्रह</th><th>राशि</th><th>अंश (Deg)</th><th>नक्षत्र</th><th>चरण</th><th>भाव (House)</th></tr>
-        </thead>
-        <tbody id="planet_table"></tbody>
-    </table>
+    <div id="result_area" style="display:none">
+        <div class="info-header" id="meta_ui"></div>
+
+        <div class="panchang-grid" id="pan_ui"></div>
+
+        <div class="chart-section" id="chart_ui"></div>
+
+        <table>
+            <thead>
+                <tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th><th>बलाबल</th></tr>
+            </thead>
+            <tbody id="planet_body"></tbody>
+        </table>
+    </div>
+</div>
 
 <script>
-    async function loadKundli() {
-        const resp = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/quantum_astro_v31?date=2006-11-06&time=11:28&lat=24.58&lng=73.71`);
-        const data = await resp.json();
+    async function getAnalysis() {
+        const query = `name=${document.getElementById('name').value}&place=${document.getElementById('place').value}&date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const response = await fetch(`http://localhost:5000/api/pro_kundli_v32?${query}`);
+        const d = await response.json();
 
-        // 1. Render Panchang
-        const p = data.panchang;
-        document.getElementById('panchang_ui').innerHTML = `
-            <div class="pan-box"><b>वार</b><br>${p.war}</div>
-            <div class="pan-box"><b>तिथि</b><br>${p.tithi}</div>
-            <div class="pan-box"><b>पक्ष</b><br>${p.paksha}</div>
-            <div class="pan-box"><b>योग</b><br>${p.yoga}</div>
-            <div class="pan-box"><b>करण</b><br>${p.karan}</div>
+        document.getElementById('result_area').style.display = 'block';
+
+        // Meta रेंडर
+        document.getElementById('meta_ui').innerHTML = `<span>👤 नाम: ${d.meta.name}</span> <span>📍 स्थान: ${d.meta.place}</span> <span>📅 दिनांक: ${d.meta.date}</span>`;
+
+        // पंचांग रेंडर
+        document.getElementById('pan_ui').innerHTML = `
+            <div class="pan-item">📅 वार<br>${d.panchang.war}</div>
+            <div class="pan-item">🌙 तिथि<br>${d.panchang.tithi}</div>
+            <div class="pan-item">🌓 पक्ष<br>${d.panchang.paksha}</div>
+            <div class="pan-item">🌀 योग<br>${d.panchang.yoga}</div>
+            <div class="pan-item">⚙️ करण<br>${d.panchang.karan}</div>
         `;
 
-        // 2. Render D1 Chart (Logic fix for Ju, Ve, Ke)
-        document.getElementById('chart_ui').innerHTML = drawNorthChart(data.asc, data.planets);
+        // चार्ट रेंडर
+        document.getElementById('chart_ui').innerHTML = drawChart(d.asc, d.planets);
 
-        // 3. Render Planet Table
-        document.getElementById('planet_table').innerHTML = data.planets.map(pl => `
+        // टेबल रेंडर
+        document.getElementById('planet_body').innerHTML = d.planets.map(p => `
             <tr>
-                <td>${pl.name}</td><td>${pl.sign}</td><td>${pl.deg}°</td>
-                <td>${pl.nak}</td><td>${pl.charan}</td><td>${pl.house}</td>
+                <td style="color:var(--gold)">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td>
+                <td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td>
+                <td class="${p.bal === 'उच्च' ? 'high-bal' : ''}">${p.bal}</td>
             </tr>
         `).join('');
-
-        // 4. Render Predictions
-        document.getElementById('aspects_text').innerHTML = data.aspects.map(a => `• ${a}<br>`).join('');
     }
 
-    function drawNorthChart(lagna, planets) {
-        // Simplified North Indian Chart SVG logic
-        const coords = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
-        let svg = `<svg width="400" height="400" viewBox="0 0 300 300" style="border:2px solid #000">
-            <path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none"/>`;
-        
-        for(let i=1; i<=12; i++) {
-            let r_num = ((lagna + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" font-size="16" fill="red" font-weight="bold">${r_num}</text>`;
-            
-            // Filter planets for this house
-            let p_in_house = planets.filter(p => p.house === i);
-            p_in_house.forEach((p, idx) => {
-                svg += `<text x="${coords[i][0]}" y="${coords[i][1] + 20 + (idx*15)}" font-size="12" fill="blue">${p.name.substring(0,2)}</text>`;
-            });
+    function drawChart(asc, planets) {
+        const h = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
+        let svg = `<svg width="400" height="400" viewBox="0 0 300 300"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/>`;
+        for(let i=1; i<=12; i++){
+            let r = ((asc + i - 2) % 12) + 1;
+            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="16">${r}</text>`;
+            let p_list = planets.filter(p => p.house === i).map(p => p.name.substring(0,2)).join(' ');
+            svg += `<text x="${h[i][0]}" y="${h[i][1]+20}" fill="blue" font-size="12" text-anchor="middle">${p_list}</text>`;
         }
         return svg + `</svg>`;
     }
-
-    window.onload = loadKundli;
 </script>
 </body>
 </html>
