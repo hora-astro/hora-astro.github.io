@@ -3,123 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultramax Jyotish Engine v5.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>Omni-Astro Quantum v7.0</title>
     <style>
-        :root { --accent: #f39c12; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: #f8fafc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
-        input, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; font-size: 16px; }
-        button { background: var(--accent); color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
-        button:hover { opacity: 0.8; }
-        .tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; }
-        .tab { background: #334155; padding: 10px 20px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 14px; }
-        .tab.active { background: var(--accent); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .kundli-container { background: white; padding: 10px; border-radius: 10px; border: 4px solid var(--accent); }
+        :root { --accent: #ff9f43; --bg: #0c111a; --card: #161d29; }
+        body { background: var(--bg); color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
+        .hero-input { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #2d3748; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; font-size: 16px; }
+        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 20px; }
+        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-top: 30px; }
+        .chart-box { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(255,159,67,0.2); }
+        .kp-card { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 25px; border-left: 5px solid var(--accent); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #2d3748; }
         th { color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1 align="center" style="color:var(--accent); margin-top:0;">ULTRAMAX KUNDLI PRO 👑</h1>
-    <input type="text" id="name" placeholder="जातक का नाम दर्ज करें" value="Hemant Purohit">
-    <div style="display:flex; gap:10px;">
-        <input type="date" id="date" value="2006-11-06">
-        <input type="time" id="time" value="11:28">
-    </div>
-    <input type="text" id="loc" placeholder="शहर का नाम (उदा: Banswara, Rajasthan)" value="Banswara, Rajasthan">
-    <button onclick="calculate()">कुंडली तैयार करें</button>
-</div>
-
-<div id="resultView" style="display:none;">
-    <div class="tabs">
-        <div class="tab active" onclick="openTab('v', this)">वैदिक चार्ट (D1/D9)</div>
-        <div class="tab" onclick="openTab('k', this)">KP पद्धति</div>
-        <div class="tab" onclick="openTab('p', this)">पंचांग & दशा</div>
-    </div>
-
-    <div id="v" class="sec">
-        <div class="grid">
-            <div><h3 align="center">D1 लग्न कुंडली</h3><div id="d1" class="kundli-container"></div></div>
-            <div><h3 align="center">D9 नवांश कुंडली</h3><div id="d9" class="kundli-container"></div></div>
+<div class="container">
+    <div class="hero-input">
+        <h1 align="center" style="margin:0; color:var(--accent);">OMNI-ASTRO QUANTUM v7.0 🌌</h1>
+        <p align="center" style="opacity:0.7;">Professional KP & Vedic Analysis Software</p>
+        <div class="input-group">
+            <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
+            <input type="date" id="date" value="2006-11-06">
+            <input type="time" id="time" value="11:28">
+            <input type="text" id="city" placeholder="स्थान (उदा. Banswara)">
         </div>
+        <button onclick="generateQuantumChart()">कुंडली विश्लेषण शुरू करें</button>
     </div>
 
-    <div id="k" class="sec" style="display:none;">
-        <div class="card">
-            <h3>KP House Cusps (Placidus)</h3>
+    <div id="dashboard" style="display:none;">
+        <div class="chart-grid">
+            <div class="chart-box"><h3 align="center" style="color:#000">D1 लग्न (Vedic)</h3><div id="d1"></div></div>
+            <div class="chart-box"><h3 align="center" style="color:#000">D9 नवांश (Quantum)</h3><div id="d9"></div></div>
+        </div>
+
+        <div class="kp-card">
+            <h3>KP System (House Cusps)</h3>
             <table id="kpTable"></table>
         </div>
     </div>
-
-    <div id="p" class="sec" style="display:none;">
-        <div class="card">
-            <h3>दैनिक पंचांग</h3>
-            <table id="panTable"></table>
-        </div>
-        <div class="card">
-            <h3>विंशोत्तरी महादशा</h3>
-            <table id="dashTable"></table>
-        </div>
-    </div>
-
-    <button style="background:#27ae60;" onclick="downloadPDF()">📄 PDF रिपोर्ट डाउनलोड करें</button>
 </div>
 
 <script>
-    async function calculate() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}`;
-        try {
-            const res = await fetch(url);
-            const d = await res.json();
-            if(d.status === "success") {
-                document.getElementById('resultView').style.display = 'block';
-                document.getElementById('d1').innerHTML = drawSVG(d.d1);
-                document.getElementById('d9').innerHTML = drawSVG(d.d9);
-                
-                let kpT = "<tr><th>House</th><th>Degree</th></tr>";
-                d.kp.houses.forEach((h, i) => kpT += `<tr><td>Cusp ${i+1}</td><td>${Math.floor(h%30)}°</td></tr>`);
-                document.getElementById('kpTable').innerHTML = kpT;
-
-                let dsT = "<tr><th>ग्रह</th><th>अंत वर्ष</th></tr>";
-                d.dasha.forEach(s => dsT += `<tr><td>${s.p}</td><td>${s.y}</td></tr>`);
-                document.getElementById('dashTable').innerHTML = dsT;
-
-                document.getElementById('panTable').innerHTML = `<tr><td>तिथि</td><td>${d.panchang.tithi}</td></tr><tr><td>नक्षत्र</td><td>${d.panchang.nak}</td></tr>`;
-            } else { alert("सर्वर एरर: " + d.message); }
-        } catch(e) { alert("कनेक्शन एरर!"); }
-    }
-
-    function openTab(id, el) {
-        document.querySelectorAll('.sec').forEach(s => s.style.display = 'none');
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(id).style.display = 'block';
-        el.classList.add('active');
-    }
-
-    function drawSVG(c) {
-        const p = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[100,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[200,150], 11:[260,75], 12:[225,40] };
-        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/>`;
-        for (let i = 1; i <= 12; i++) {
-            let num = ((c.lagna + i - 2) % 12) + 1;
-            svg += `<text x="${p[i][0]}" y="${p[i][1]}" fill="red" font-weight="bold" text-anchor="middle">${num}</text>`;
+    async function generateQuantumChart() {
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}`);
+        const data = await res.json();
+        
+        if(data.status === "success") {
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('d1').innerHTML = drawChart(data.d1);
+            document.getElementById('d9').innerHTML = drawChart(data.d9);
+            
+            let html = "<tr><th>Cusp No.</th><th>Sign (राशि)</th><th>Exact Degree</th></tr>";
+            data.kp.forEach(k => html += `<tr><td>भाव ${k.h}</td><td>${k.s}</td><td>${k.deg}</td></tr>`);
+            document.getElementById('kpTable').innerHTML = html;
         }
-        c.planets.forEach(pl => {
-            svg += `<text x="${p[pl.h][0]}" y="${p[pl.h][1]+22}" font-size="11" fill="blue" font-weight="bold" text-anchor="middle">${pl.n} ${pl.d}</text>`;
-        });
-        return svg + "</svg>";
     }
 
-    function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("KUNDLI REPORT - " + document.getElementById('name').value, 10, 10);
-        doc.text("Birth Date: " + document.getElementById('date').value, 10, 20);
-        doc.save("Kundli.pdf");
+    function drawChart(data) {
+        const hPos = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[95,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[205,150], 11:[260,75], 12:[225,40] };
+        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#000" fill="none" stroke-width="2.5"/><rect width="300" height="300" fill="none" stroke="#000" stroke-width="3"/>`;
+        
+        // Render House Numbers
+        for (let i = 1; i <= 12; i++) {
+            let r = ((data.lagna + i - 2) % 12) + 1;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" fill="#e74c3c" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
+        }
+
+        // Quantum Collision Fix: स्मार्ट स्टैकिंग
+        let houseRegistry = {};
+        data.planets.forEach(p => {
+            if(!houseRegistry[p.h]) houseRegistry[p.h] = 0;
+            let stackOffset = houseRegistry[p.h] * 16; 
+            svg += `<text x="${hPos[p.h][0]}" y="${hPos[p.h][1] + 20 + stackOffset}" fill="#2c3e50" font-size="12" font-weight="900" text-anchor="middle">${p.n} ${p.d}</text>`;
+            houseRegistry[p.h]++;
+        });
+
+        return svg + "</svg>";
     }
 </script>
 </body>
