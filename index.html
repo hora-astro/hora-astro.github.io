@@ -2,181 +2,71 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HORA ASTRO SUPREME V33.0</title>
+    <title>HORA ASTRO ULTIMATE PRO V34.0</title>
     <style>
-        :root { --gold: #f1c40f; --bg: #0c1117; --card: #161b22; --text: #e6edf3; }
-        body { background: var(--bg); color: var(--text); font-family: 'Arial', sans-serif; margin: 0; padding: 20px; }
-        .master-container { max-width: 1100px; margin: auto; }
-        
-        /* प्रोफेशनल इनपुट पैनल */
-        .input-panel { 
-            background: var(--card); padding: 25px; border-radius: 12px; 
-            border: 1px solid #30363d; display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        input, select { padding: 12px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 6px; outline: none; }
-        .btn-calculate { 
-            grid-column: 1 / -1; background: var(--gold); color: #000; 
-            font-weight: bold; padding: 15px; border: none; border-radius: 8px; 
-            cursor: pointer; font-size: 17px; transition: 0.3s;
-        }
-        .btn-calculate:hover { background: #d4ac0d; transform: scale(1.01); }
-
-        /* पंचांग सेक्शन */
-        .panchang-bar { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-            gap: 10px; margin: 25px 0; 
-        }
-        .pan-item { 
-            background: #1f2937; padding: 15px; border-radius: 8px; 
-            text-align: center; border-bottom: 4px solid var(--gold); 
-        }
-
-        /* कुंडली चार्ट्स */
-        .charts-flex { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 30px; }
-        .chart-box { 
-            background: white; padding: 20px; border-radius: 15px; 
-            color: black; width: 450px; text-align: center; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        /* डेटा टेबल */
-        .table-container { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
-        table { width: 100%; border-collapse: collapse; background: var(--card); }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #30363d; }
-        th { background: #21262d; color: var(--gold); font-size: 14px; }
-        .planet-name { font-weight: bold; color: var(--gold); }
+        :root { --accent: #ff9800; --bg: #0d1117; }
+        body { background: var(--bg); color: white; font-family: 'Arial'; padding: 20px; }
+        .input-bar { background: #161b22; padding: 20px; border-radius: 10px; display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { padding: 10px; border-radius: 5px; border: 1px solid #30363d; background: #0d1117; color: white; }
+        .btn { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .charts-container { display: flex; gap: 20px; justify-content: center; background: white; padding: 20px; border-radius: 15px; }
+        .chart-box { color: black; text-align: center; width: 400px; }
     </style>
 </head>
 <body>
 
-<div class="master-container">
-    <h1 align="center" style="color:var(--gold); letter-spacing: 2px;">🕉️ HORA ASTRO SUPREME V33.0</h1>
+    <h2 align="center" style="color:var(--accent)">🕉️ SIDDHANTA JYOTISH ENGINE V34.0</h2>
 
-    <div class="input-panel">
-        <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
-        <input type="text" id="place" placeholder="शहर (उदा. Banswara)" value="Banswara, Rajasthan">
+    <div class="input-bar">
+        <input type="text" id="name" placeholder="नाम" value="Hemant Purohit">
         <input type="date" id="date" value="2006-11-06">
         <input type="time" id="time" value="11:28">
-        <input type="text" id="lat" placeholder="Latitude" value="24.58">
-        <input type="text" id="lng" placeholder="Longitude" value="73.71">
-        <button class="btn-calculate" onclick="fetchKundli()">सटीक कुंडली विश्लेषण प्राप्त करें</button>
+        <input type="text" id="lat" placeholder="अक्षांश (Lat)" value="24.58">
+        <input type="text" id="lng" placeholder="देशांतर (Lng)" value="73.71">
+        <button class="btn" onclick="generateKundli()">सटीक कुंडली देखें</button>
     </div>
 
-    <div id="loader" style="display:none; text-align:center; margin:20px;">गणना की जा रही है... कृपया प्रतीक्षा करें...</div>
-
-    <div id="main-results" style="display:none">
-        <div class="panchang-bar" id="panchang_ui"></div>
-
-        <div class="charts-flex">
-            <div class="chart-box">
-                <h3 style="margin-top:0">लग्न कुंडली (D1)</h3>
-                <div id="d1_svg"></div>
-            </div>
-            <div class="chart-box">
-                <h3 style="margin-top:0">नवांश कुंडली (D9)</h3>
-                <div id="d9_svg"></div>
-            </div>
+    <div class="charts-container">
+        <div class="chart-box">
+            <h3>लग्न कुंडली (D1)</h3>
+            <div id="d1_chart"></div>
         </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ग्रह</th><th>राशि</th><th>अंश (Deg)</th><th>नक्षत्र</th><th>चरण</th><th>भाव (House)</th>
-                    </tr>
-                </thead>
-                <tbody id="planet_table"></tbody>
-            </table>
+        <div class="chart-box">
+            <h3>नवांश कुंडली (D9)</h3>
+            <div id="d9_chart"></div>
         </div>
     </div>
-</div>
 
 <script>
-    async function fetchKundli() {
-        const loader = document.getElementById('loader');
-        const results = document.getElementById('main-results');
+    async function generateKundli() {
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/pro_kundli_v34`;
+        const params = `?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         
-        // आपका PythonAnywhere URL
-        const BASE_URL = "https://hemantpurohit27.pythonanywhere.com/api/pro_kundli_v32";
-        
-        const params = new URLSearchParams({
-            name: document.getElementById('name').value,
-            place: document.getElementById('place').value,
-            date: document.getElementById('date').value,
-            time: document.getElementById('time').value,
-            lat: document.getElementById('lat').value,
-            lng: document.getElementById('lng').value
-        });
-
         try {
-            loader.style.display = 'block';
-            results.style.display = 'none';
+            const resp = await fetch(url + params);
+            const d = await resp.json();
 
-            const response = await fetch(`${BASE_URL}?${params.toString()}`);
-            const data = await response.json();
-
-            if(data.error) throw new Error(data.error);
-
-            renderUI(data);
-            loader.style.display = 'none';
-            results.style.display = 'block';
-
-        } catch (err) {
-            loader.style.display = 'none';
-            alert("सर्वर त्रुटि: " + err.message);
+            document.getElementById('d1_chart').innerHTML = drawNorthChart(d.asc, d.planets);
+            document.getElementById('d9_chart').innerHTML = drawNorthChart(d.nav_asc, d.planets); // नवमांश के लिए 8 (वृश्चिक) लग्न
+        } catch (e) {
+            alert("Error connecting to PythonAnywhere API");
         }
     }
 
-    function renderUI(d) {
-        // पंचांग रेंडर
-        document.getElementById('panchang_ui').innerHTML = `
-            <div class="pan-item"><b>वार</b><br>${d.panchang.war}</div>
-            <div class="pan-item"><b>तिथि</b><br>${d.panchang.tithi}</div>
-            <div class="pan-item"><b>पक्ष</b><br>${d.panchang.paksha}</div>
-            <div class="pan-item"><b>योग</b><br>${d.panchang.yoga}</div>
-            <div class="pan-item"><b>करण</b><br>${d.panchang.karan}</div>
-        `;
-
-        // चार्ट्स रेंडर
-        document.getElementById('d1_svg').innerHTML = drawNorthChart(d.asc, d.planets, 'd1');
-        document.getElementById('d9_svg').innerHTML = drawNorthChart(d.asc, d.planets, 'd9'); // नोट: नवांश के लिए अलग लॉजिक लगता है
-
-        // टेबल रेंडर
-        document.getElementById('planet_table').innerHTML = d.planets.map(p => `
-            <tr>
-                <td class="planet-name">${p.name}</td>
-                <td>${p.sign}</td>
-                <td>${p.deg}°</td>
-                <td>${p.nak}</td>
-                <td>${p.charan}</td>
-                <td style="font-weight:bold; color:#2ecc71">${p.house}</td>
-            </tr>
-        `).join('');
-    }
-
-    function drawNorthChart(asc, planets, mode) {
+    function drawNorthChart(asc, planets) {
         const coords = {1:[150,100], 2:[75,50], 3:[50,75], 4:[100,150], 5:[50,225], 6:[75,250], 7:[150,200], 8:[225,250], 9:[250,225], 10:[200,150], 11:[250,75], 12:[225,50]};
+        let svg = `<svg width="350" height="350" viewBox="0 0 300 300" style="border:1px solid #000">
+            <path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none"/>`;
         
-        let svg = `<svg viewBox="0 0 300 300" style="width:100%; height:auto;">
-            <path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#333" fill="none" stroke-width="2"/>`;
-        
-        // राशि नंबर (Red)
         for(let i=1; i<=12; i++) {
             let r_num = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="#e74c3c" font-weight="bold" font-size="16" text-anchor="middle">${r_num}</text>`;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" font-size="16" fill="red" font-weight="bold" text-anchor="middle">${r_num}</text>`;
             
-            // ग्रहों की प्लेसमेंट
             let house_planets = planets.filter(p => p.house === i).map(p => p.name.substring(0,2)).join(' ');
-            if(house_planets) {
-                svg += `<text x="${coords[i][0]}" y="${coords[i][1]+22}" fill="#2980b9" font-size="11" font-weight="bold" text-anchor="middle">${house_planets}</text>`;
-            }
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" font-size="12" fill="blue" text-anchor="middle">${house_planets}</text>`;
         }
         return svg + `</svg>`;
     }
 </script>
-
 </body>
 </html>
