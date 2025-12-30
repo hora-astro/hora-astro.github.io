@@ -2,89 +2,98 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Astro Quantum v7.0</title>
+    <title>Astro-Omni Prime v8.0</title>
     <style>
-        :root { --accent: #ff9f43; --bg: #0c111a; --card: #161d29; }
-        body { background: var(--bg); color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; }
-        .hero-input { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #2d3748; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
-        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; font-size: 16px; }
-        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 20px; }
-        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
-        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-top: 30px; }
-        .chart-box { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(255,159,67,0.2); }
-        .kp-card { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 25px; border-left: 5px solid var(--accent); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #2d3748; }
-        th { color: var(--accent); }
+        :root { --gold: #D4AF37; --deep: #050a14; --text: #e0e0e0; }
+        body { background: var(--deep); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        .header { text-align: center; padding: 20px; border-bottom: 2px solid var(--gold); }
+        .input-card { background: #121826; padding: 25px; border-radius: 15px; margin: 20px auto; max-width: 900px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        input, button { padding: 12px; border-radius: 8px; border: 1px solid #333; font-size: 15px; }
+        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; border: none; }
+        .panchang-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .p-item { background: #1a2233; padding: 15px; border-radius: 10px; border-top: 3px solid var(--gold); text-align: center; }
+        .chart-area { background: white; padding: 10px; border-radius: 12px; border: 5px solid var(--gold); max-width: 450px; margin: auto; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #121826; }
+        th, td { padding: 12px; border: 1px solid #2d3748; text-align: left; }
+        th { color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="hero-input">
-        <h1 align="center" style="margin:0; color:var(--accent);">OMNI-ASTRO QUANTUM v7.0 🌌</h1>
-        <p align="center" style="opacity:0.7;">Professional KP & Vedic Analysis Software</p>
-        <div class="input-group">
-            <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
-            <input type="date" id="date" value="2006-11-06">
-            <input type="time" id="time" value="11:28">
-            <input type="text" id="city" placeholder="स्थान (उदा. Banswara)">
-        </div>
-        <button onclick="generateQuantumChart()">कुंडली विश्लेषण शुरू करें</button>
+<div class="header">
+    <h1 style="color:var(--gold); margin:0;">ASTRO-OMNI PRIME v8.0 🕉️</h1>
+    <p>Advanced Professional Astrology Software</p>
+</div>
+
+<div class="input-card">
+    <input type="text" id="name" placeholder="नाम">
+    <input type="date" id="date" value="2006-11-06">
+    <input type="time" id="time" value="11:28">
+    <input type="text" id="loc" placeholder="स्थान (उदा. Banswara, IN)">
+    <button onclick="calculate()">कुंडली विश्लेषण</button>
+</div>
+
+<div id="results" style="display:none;">
+    <div class="panchang-grid">
+        <div class="p-item"><b>तिथि</b><br><span id="tithi"></span></div>
+        <div class="p-item"><b>नक्षत्र</b><br><span id="nak"></span></div>
+        <div class="p-item"><b>योग</b><br><span id="yog"></span></div>
+        <div class="p-item"><b>करण</b><br><span id="kar"></span></div>
     </div>
 
-    <div id="dashboard" style="display:none;">
-        <div class="chart-grid">
-            <div class="chart-box"><h3 align="center" style="color:#000">D1 लग्न (Vedic)</h3><div id="d1"></div></div>
-            <div class="chart-box"><h3 align="center" style="color:#000">D9 नवांश (Quantum)</h3><div id="d9"></div></div>
-        </div>
+    <div class="chart-area" id="kundliBox"></div>
 
-        <div class="kp-card">
-            <h3>KP System (House Cusps)</h3>
-            <table id="kpTable"></table>
-        </div>
-    </div>
+    <table>
+        <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश (Degrees)</th><th>भाव</th></tr></thead>
+        <tbody id="planetTable"></tbody>
+    </table>
 </div>
 
 <script>
-    async function generateQuantumChart() {
+    async function calculate() {
         const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}`);
-        const data = await res.json();
+        const d = await res.json();
         
-        if(data.status === "success") {
-            document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('d1').innerHTML = drawChart(data.d1);
-            document.getElementById('d9').innerHTML = drawChart(data.d9);
-            
-            let html = "<tr><th>Cusp No.</th><th>Sign (राशि)</th><th>Exact Degree</th></tr>";
-            data.kp.forEach(k => html += `<tr><td>भाव ${k.h}</td><td>${k.s}</td><td>${k.deg}</td></tr>`);
-            document.getElementById('kpTable').innerHTML = html;
+        if(d.status === "success") {
+            const info = d.data;
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('tithi').innerText = info.panchang.tithi;
+            document.getElementById('nak').innerText = info.panchang.nakshatra;
+            document.getElementById('yog').innerText = info.panchang.yoga;
+            document.getElementById('kar').innerText = info.panchang.karana;
+
+            // Draw Kundli
+            drawKundli(info);
+
+            // Fill Table
+            let html = "";
+            info.planets.forEach(p => {
+                html += `<tr><td>${p.n}</td><td>${p.rashi}</td><td>${p.d}</td><td>${p.h}</td></tr>`;
+            });
+            document.getElementById('planetTable').innerHTML = html;
         }
     }
 
-    function drawChart(data) {
-        const hPos = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[95,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[205,150], 11:[260,75], 12:[225,40] };
+    function drawKundli(info) {
+        const p = { 1:[150,85], 2:[75,40], 3:[40,75], 4:[100,150], 5:[40,225], 6:[75,260], 7:[150,215], 8:[225,260], 9:[260,225], 10:[200,150], 11:[260,75], 12:[225,40] };
         let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#000" fill="none" stroke-width="2.5"/><rect width="300" height="300" fill="none" stroke="#000" stroke-width="3"/>`;
         
-        // Render House Numbers
+        // Rashi Numbers (Lagna in Center)
         for (let i = 1; i <= 12; i++) {
-            let r = ((data.lagna + i - 2) % 12) + 1;
-            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" fill="#e74c3c" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
+            let num = ((info.lagna + i - 2) % 12) + 1;
+            svg += `<text x="${p[i][0]}" y="${p[i][1]}" fill="#c0392b" font-weight="bold" font-size="20" text-anchor="middle">${num}</text>`;
         }
 
-        // Quantum Collision Fix: स्मार्ट स्टैकिंग
-        let houseRegistry = {};
-        data.planets.forEach(p => {
-            if(!houseRegistry[p.h]) houseRegistry[p.h] = 0;
-            let stackOffset = houseRegistry[p.h] * 16; 
-            svg += `<text x="${hPos[p.h][0]}" y="${hPos[p.h][1] + 20 + stackOffset}" fill="#2c3e50" font-size="12" font-weight="900" text-anchor="middle">${p.n} ${p.d}</text>`;
-            houseRegistry[p.h]++;
+        // Planet Stacking (Overlap Fix)
+        let counts = {};
+        info.planets.forEach(pl => {
+            if(!counts[pl.h]) counts[pl.h] = 0;
+            let yOff = counts[pl.h] * 16;
+            svg += `<text x="${p[pl.h][0]}" y="${p[pl.h][1] + 20 + yOff}" fill="#2980b9" font-size="12" font-weight="bold" text-anchor="middle">${pl.n} ${pl.d}</text>`;
+            counts[pl.h]++;
         });
 
-        return svg + "</svg>";
+        document.getElementById('kundliBox').innerHTML = svg + "</svg>";
     }
 </script>
 </body>
