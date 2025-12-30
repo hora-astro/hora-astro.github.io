@@ -3,73 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Royal Pro</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>Hora Astro Hybrid Pro</title>
     <style>
-        :root { --gold: #d4af37; --dark: #0a0a0c; --card: #16161a; }
-        body { background: var(--dark); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2a2a2e; margin-bottom: 20px; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; box-sizing: border-box; }
-        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; border: none; }
-        .chart-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 768px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
-        .kundli-box { background: white; padding: 10px; border-radius: 10px; border: 3px solid var(--gold); }
-        .label-text { font-size: 12px; color: var(--gold); margin-top: 10px; }
-        .panchang-table { width: 100%; border-collapse: collapse; }
-        .panchang-table td { padding: 10px; border-bottom: 1px solid #2a2a2e; }
+        :root { --gold: #f1c40f; --dark: #0f172a; --card: #1e293b; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
+        .container { max-width: 900px; margin: auto; }
+        .input-card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; }
+        input, button { padding: 12px; border-radius: 8px; border: 1px solid #444; margin: 5px 0; font-size: 16px; }
+        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; width: 100%; border: none; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { padding: 12px 20px; background: #334155; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--gold); color: black; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .kundli-svg { background: white; padding: 10px; border-radius: 12px; border: 5px solid var(--gold); }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: #334155; color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 style="color:var(--gold); text-align:center;">HORA ASTRO ROYAL 👑</h2>
-    <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
-    <div style="display:flex; gap:10px;">
-        <input type="date" id="date" value="2006-11-06">
-        <input type="time" id="time" value="11:28">
-    </div>
-    <input type="text" id="city" placeholder="Banswara, Rajasthan (Lat: 23.49, Lng: 74.35)">
-    <button onclick="calculate()">कुंडली जनरेट करें</button>
-</div>
-
-<div id="results" style="display:none;">
-    <button style="background: #27ae60; color: white; margin-bottom: 20px;" onclick="downloadPDF()">📄 विस्तृत PDF रिपोर्ट डाउनलोड करें</button>
+<div class="container">
+    <h1 style="text-align:center; color:var(--gold);">HORA ASTRO HYBRID V3.0 🌌</h1>
     
-    <div class="card">
-        <h3>पंचांग & विवरण</h3>
-        <table class="panchang-table" id="panTable"></table>
+    <div class="input-card">
+        <div style="display:flex; gap:10px;">
+            <input type="date" id="date" value="2006-11-06" style="flex:1">
+            <input type="time" id="time" value="11:28" style="flex:1">
+        </div>
+        <button onclick="fetchData()">पूर्ण विवरण प्राप्त करें</button>
     </div>
 
-    <div class="chart-grid">
-        <div class="card">
-            <h4 style="text-align:center;">D1 लग्न कुंडली</h4>
-            <div class="kundli-box" id="d1Box"></div>
+    <div id="resultArea" style="display:none;">
+        <div class="tabs">
+            <div class="tab active" onclick="show('vedic', this)">वैदिक (D1/D9)</div>
+            <div class="tab" onclick="show('kp', this)">KP पद्धति</div>
+            <div class="tab" onclick="show('dash', this)">दशा विवरण</div>
+            <div class="tab" onclick="show('pan', this)">पंचांग</div>
         </div>
-        <div class="card">
-            <h4 style="text-align:center;">D9 नवांश कुंडली</h4>
-            <div class="kundli-box" id="d9Box"></div>
-        </div>
-    </div>
 
-    <div class="card">
-        <h3>विस्तृत फलादेश</h3>
-        <p id="predictionText"></p>
+        <div id="vedic" class="content-section">
+            <div class="grid">
+                <div><h3 align="center">D1 लग्न कुंडली</h3><div id="d1Box" class="kundli-svg"></div></div>
+                <div><h3 align="center">D9 नवांश कुंडली</h3><div id="d9Box" class="kundli-svg"></div></div>
+            </div>
+        </div>
+
+        <div id="kp" class="content-section" style="display:none;">
+            <h3>KP Placidus House Cusps</h3>
+            <table id="kpTable"></table>
+        </div>
+
+        <div id="dash" class="content-section" style="display:none;">
+            <h3>विंशोत्तरी महादशा</h3>
+            <table id="dashTable"></table>
+        </div>
+
+        <div id="pan" class="content-section" style="display:none;">
+            <h3>दैनिक पंचांग</h3>
+            <table id="panTable"></table>
+        </div>
     </div>
 </div>
 
 <script>
-    async function calculate() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=23.49&lng=74.35`;
-        const res = await fetch(url);
-        window.data = await res.json();
-        
-        if(window.data.status === "success") {
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('d1Box').innerHTML = draw(window.data.d1);
-            document.getElementById('d9Box').innerHTML = draw(window.data.d9);
-            document.getElementById('panTable').innerHTML = `<tr><td>तिथि</td><td>${window.data.panchang.tithi}</td></tr><tr><td>नक्षत्र</td><td>${window.data.panchang.nakshatra}</td></tr>`;
-            document.getElementById('predictionText').innerText = window.data.prediction;
+    async function fetchData() {
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/get_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=23.49&lng=74.35`);
+        const d = await res.json();
+        if(d.status === "success") {
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('d1Box').innerHTML = draw(d.d1);
+            document.getElementById('d9Box').innerHTML = draw(d.d9);
+            
+            // KP Table
+            let kpHtml = "<tr><th>Cusp</th><th>राशि</th><th>डिग्री</th></tr>";
+            d.kp.cusps.forEach(c => kpHtml += `<tr><td>भाव ${c.h}</td><td>${c.s}</td><td>${c.d}</td></tr>`);
+            document.getElementById('kpTable').innerHTML = kpHtml;
+
+            // Dasha Table
+            let dashaHtml = "<tr><th>महादशा स्वामी</th><th>समाप्ति वर्ष</th></tr>";
+            d.dasha.forEach(s => dashaHtml += `<tr><td>${s.p}</td><td>${s.e}</td></tr>`);
+            document.getElementById('dashTable').innerHTML = dashaHtml;
+
+            // Panchang Table
+            document.getElementById('panTable').innerHTML = `<tr><td>तिथि</td><td>${d.panchang.tithi}</td></tr><tr><td>नक्षत्र</td><td>${d.panchang.nak}</td></tr>`;
         }
+    }
+
+    function show(id, el) {
+        document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).style.display = 'block';
+        el.classList.add('active');
     }
 
     function draw(chart) {
@@ -80,20 +105,9 @@
             svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" style="font-size:18px; fill:red; font-weight:bold" text-anchor="middle">${r}</text>`;
         }
         chart.planets.forEach(p => {
-            let existing = svg.match(new RegExp(`y="${hPos[p.h][1]+20}"`, 'g')) || [];
-            let yOffset = 20 + (existing.length * 12);
-            svg += `<text x="${hPos[p.h][0]}" y="${hPos[p.h][1] + yOffset}" style="font-size:10px; fill:blue; font-weight:bold" text-anchor="middle">${p.n} ${p.d}</text>`;
+            svg += `<text x="${hPos[p.h][0]}" y="${hPos[p.h][1] + 20}" style="font-size:10px; fill:blue; font-weight:bold" text-anchor="middle">${p.n} ${p.d}</text>`;
         });
         return svg + "</svg>";
-    }
-
-    function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("HORA ASTRO ROYAL REPORT", 10, 10);
-        doc.text(`Name: ${document.getElementById('name').value}`, 10, 20);
-        doc.text(`Prediction: ${window.data.prediction}`, 10, 40, {maxWidth: 180});
-        doc.save("Kundli_Report.pdf");
     }
 </script>
 </body>
