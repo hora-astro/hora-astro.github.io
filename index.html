@@ -2,99 +2,87 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Siddhanta Jyotish Pro v17.0</title>
+    <title>KP Professional Astrology v18.0</title>
     <style>
-        :root { --gold: #f1c40f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .input-bar { background: var(--card); padding: 20px; border-radius: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; border-bottom: 3px solid var(--gold); }
-        input, button { padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; }
-        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; border: none; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .chart-box { background: white; padding: 15px; border-radius: 12px; color: black; }
-        .panchang-strip { background: var(--gold); color: black; padding: 10px; border-radius: 5px; margin: 15px 0; display: flex; justify-content: space-around; font-weight: bold; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: var(--card); }
-        th, td { padding: 12px; border: 1px solid #334155; text-align: left; }
-        th { color: var(--gold); }
+        body { background: #050a14; color: #e2e8f0; font-family: sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #1a202c; padding: 20px; border-radius: 10px; border: 1px solid #4a5568; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border: 1px solid #2d3748; text-align: left; font-size: 14px; }
+        th { background: #2d3748; color: #f6ad55; }
+        .chart-svg { background: white; border-radius: 8px; padding: 10px; width: 100%; max-width: 400px; }
+        h2 { color: #f6ad55; text-align: center; }
     </style>
 </head>
 <body>
 
-    <h2 align="center" style="color:var(--gold)">ASTROSAGE REPLICA ENGINE 🕉️</h2>
+    <h2>KP SYSTEM (PLACIDUS) SOFTWARE</h2>
 
-    <div class="input-bar">
+    <div class="card" style="margin-bottom:20px; display:flex; gap:10px; justify-content:center;">
         <input type="date" id="date" value="2006-11-06">
         <input type="time" id="time" value="11:28">
-        <input type="text" id="lat" value="24.58" placeholder="Lat">
-        <input type="text" id="lng" value="73.71" placeholder="Lng">
-        <button onclick="getKundli()">कुंडली जनरेट करें</button>
+        <input type="text" id="lat" value="24.58" style="width:60px">
+        <input type="text" id="lng" value="73.71" style="width:60px">
+        <button onclick="calculateKP()" style="background:#f6ad55; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">KP गणना करें</button>
     </div>
 
-    <div id="loader" style="display:none; text-align:center; margin:20px;">गणना की जा रही है...</div>
-
-    <div id="results" style="display:none">
-        <div class="panchang-strip">
-            <span>तिथि: <span id="tithi"></span></span>
-            <span>नक्षत्र: <span id="nak"></span></span>
+    <div class="grid">
+        <div class="card">
+            <h3>KP House Cusps (भाव चलित तालिका)</h3>
+            <table id="cusp_table">
+                <thead><tr><th>Cusp (भाव)</th><th>Sign (राशि)</th><th>Degree (अंश)</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <div class="dashboard">
-            <div class="chart-box">
-                <h3 align="center">D1 - लग्न कुंडली</h3>
-                <div id="d1_svg"></div>
-            </div>
-            <div class="chart-box">
-                <h3 align="center">D9 - नवांश कुंडली</h3>
-                <div id="d9_svg"></div>
-            </div>
+        <div class="card">
+            <h3>Planet Positions (ग्रह स्थिति)</h3>
+            <table id="planet_table">
+                <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव (House)</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
+    </div>
 
-        <table>
-            <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>भाव</th></tr></thead>
-            <tbody id="planet_data"></tbody>
-        </table>
+    <div class="card" style="margin-top:20px; text-align:center;">
+        <h3>KP Lagna Chart</h3>
+        <div id="chart_area" style="display:flex; justify-content:center;"></div>
     </div>
 
 <script>
-    async function getKundli() {
-        document.getElementById('loader').style.display = 'block';
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/astrosage_style_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
-        
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('results').style.display = 'block';
+    async function calculateKP() {
+        const url = `https://your-username.pythonanywhere.com/api/kp_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-            document.getElementById('tithi').innerText = data.panchang.tithi;
-            document.getElementById('nak').innerText = data.panchang.nakshatra;
+        // 1. Cusp Table
+        let cHtm = "";
+        data.cusps.forEach(c => {
+            cHtm += `<tr><td>भाव ${c.no}</td><td>${c.sign}</td><td>${c.degree}</td></tr>`;
+        });
+        document.querySelector("#cusp_table tbody").innerHTML = cHtm;
 
-            document.getElementById('d1_svg').innerHTML = drawSVG(data.ascendant, data.planets, 'sign');
-            document.getElementById('d9_svg').innerHTML = drawSVG(data.d9_asc, data.planets, 'd9'); // D9 लॉजिक बैकएंड में अपडेटेड है
+        // 2. Planet Table
+        let pHtm = "";
+        data.planets.forEach(p => {
+            pHtm += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.degree}</td><td>${p.house}</td></tr>`;
+        });
+        document.querySelector("#planet_table tbody").innerHTML = pHtm;
 
-            let html = "";
-            data.planets.forEach(p => {
-                html += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.degree}</td><td>${p.house}</td></tr>`;
-            });
-            document.getElementById('planet_data').innerHTML = html;
-        } catch(e) { alert("Server Error!"); }
+        // 3. Chart Drawing (Uses the same SVG logic from previous versions)
+        document.getElementById('chart_area').innerHTML = drawNorthChart(data.ascendant, data.planets);
     }
 
-    function drawSVG(lagna, planets, type) {
+    function drawNorthChart(lagna, planets) {
+        // SVG Logic (Condensed for brevity)
         const h = {1:[150,80], 2:[75,40], 3:[40,75], 4:[100,150], 5:[40,225], 6:[75,260], 7:[150,220], 8:[225,260], 9:[260,225], 10:[200,150], 11:[260,75], 12:[225,40]};
-        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/><rect width="300" height="300" fill="none" stroke="black" stroke-width="3"/>`;
-        
+        let svg = `<svg viewBox="0 0 300 300" class="chart-svg"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/><rect width="300" height="300" fill="none" stroke="black" stroke-width="3"/>`;
         for(let i=1; i<=12; i++) {
             let r = ((lagna + i - 2) % 12) + 1;
             svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${r}</text>`;
         }
-
-        let tracker = {};
         planets.forEach(p => {
-            let house = ((p.sign - lagna + 12) % 12) + 1;
-            if(!tracker[house]) tracker[house] = 0;
-            svg += `<text x="${h[house][0]}" y="${h[house][1] + 20 + (tracker[house]*15)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name.substring(0,2)}</text>`;
-            tracker[house]++;
+            svg += `<text x="${h[p.house][0]}" y="${h[p.house][1]+20}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name.substring(0,2)}</text>`;
         });
         return svg + "</svg>";
     }
