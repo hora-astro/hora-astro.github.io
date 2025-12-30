@@ -84,7 +84,7 @@
 
     // 2. कुंडली लोड करना
     async function loadKundli() {
-        const url = `/api/kundli_v22?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/kundli_v22?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         const res = await fetch(url);
         const d = await res.json();
 
