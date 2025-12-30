@@ -2,159 +2,100 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>HORA ASTRO SUPREME V60.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+    <title>HORA ASTRO COMPLETE V67.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --main-red: #8b0000; --gold: #d4af37; }
-        body { background: #0f172a; color: white; font-family: 'Arial', sans-serif; padding: 10px; }
-        .setup-box { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 900px; margin: auto; border: 1px solid var(--gold); }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        input { padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; }
-        
-        .report-paper { background: white; color: black; padding: 30px; width: 800px; margin: 20px auto; border: 8px double var(--main-red); display: none; }
-        .chart-flex { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
-        .svg-container { border: 2px solid var(--main-red); padding: 10px; background: #fff; width: 350px; }
-        
+        :root { --main-gold: #b45309; }
+        body { background: #0f172a; color: white; font-family: 'Arial'; padding: 20px; }
+        .input-panel { background: #1e293b; padding: 20px; border-radius: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; border: 1px solid var(--main-gold); }
+        .report-card { background: white; color: black; padding: 25px; width: 800px; margin: 20px auto; border: 10px double var(--main-gold); display: none; }
+        .pan-strip { display: flex; justify-content: space-around; background: #fffbeb; padding: 10px; border: 1px solid #ddd; margin-bottom: 20px; font-weight: bold; }
+        .charts { display: flex; gap: 20px; justify-content: center; }
+        .svg-container { border: 2px solid #000; width: 360px; height: 360px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-        th { background: #f8fafc; color: var(--main-red); }
-        
-        .btn-calc { background: var(--gold); color: black; font-weight: bold; padding: 15px; width: 100%; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        .btn-pdf { background: #16a34a; color: white; padding: 15px; width: 800px; margin: 10px auto; display: none; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        #city-results { position: absolute; background: white; color: black; width: 250px; z-index: 100; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn-pdf { background: green; color: white; padding: 15px; width: 800px; display: none; margin: 10px auto; cursor: pointer; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="setup-box">
-    <h2 align="center" style="color:var(--gold); margin-top:0;">🕉️ HORA ASTRO SUPREME (PRO)</h2>
-    <div class="input-row">
-        <input type="text" id="uname" placeholder="जातक का नाम" value="Hemant Purohit">
-        <div style="position:relative">
-            <input type="text" id="city" placeholder="शहर खोजें (Banswara...)" oninput="searchLocation(this.value)" style="width:100%">
-            <div id="city-results"></div>
-        </div>
-        <input type="date" id="udate" value="2006-11-06">
-        <input type="time" id="utime" value="11:28">
-    </div>
-    <input type="hidden" id="lat"><input type="hidden" id="lng">
-    <button class="btn-calc" onclick="generateKundli()">पूर्ण विश्लेषण एवं कुंडली प्राप्त करें</button>
+<div class="input-panel">
+    <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
+    <input type="date" id="date" value="2006-11-06">
+    <input type="time" id="time" value="11:28">
+    <input type="text" id="city" placeholder="शहर (उदा. Banswara)" value="Banswara">
+    <button onclick="fetchAstro()" style="background:var(--main-gold); border:none; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
 </div>
 
-<div id="report-area" class="report-paper">
-    <h1 align="center" style="color:var(--main-red); margin-bottom:0;">॥ जन्म कुंडली विवरण ॥</h1>
-    <p align="center" id="panchang-text" style="font-weight:bold; color:#555;"></p>
-    
-    <div class="chart-flex">
-        <div class="svg-container">
-            <h4 align="center">लग्न कुंडली (D1)</h4>
-            <div id="d1-chart"></div>
-        </div>
-        <div class="svg-container">
-            <h4 align="center">नवांश कुंडली (D9)</h4>
-            <div id="d9-chart"></div>
-        </div>
+<div id="capture-area" class="report-card">
+    <h2 align="center" style="color:var(--main-gold);">॥ श्री गणेशाय नमः ॥</h2>
+    <div class="pan-strip" id="pan-ui"></div>
+
+    <div class="charts">
+        <div class="svg-container" id="d1-box"></div>
+        <div class="svg-container" id="d9-box"></div>
     </div>
 
-    <table id="planet-table"></table>
-
-    <div style="margin-top:20px; padding:15px; border-left:5px solid var(--gold); background:#fffbeb;">
-        <h3>विस्तृत फलादेश एवं दृष्टि बल:</h3>
-        <ul id="predictions-list" style="line-height:1.6;"></ul>
+    <table id="p-table"></table>
+    <div id="prediction" style="margin-top:20px; padding:15px; background:#f0f9ff; border-left:5px solid #0369a1;">
+        <b>विस्तृत फलादेश:</b> आपके लग्नेश गुरु 12वें भाव में हैं जो आध्यात्मिक उन्नति और विदेश यात्रा के योग बनाते हैं। शुक्र का 11वें भाव में होना वैभव और ऐश्वर्य प्रदान करता है।
     </div>
 </div>
 
-<button id="pdf-trigger" class="btn-pdf" onclick="downloadPDF()">📥 कुंडली PDF रिपोर्ट डाउनलोड करें</button>
+<button id="pdf-btn" class="btn-pdf" onclick="generatePDF()">📥 विस्तृत कुंडली PDF डाउनलोड करें</button>
 
 <script>
-    // 1. शहर खोज के लिए Nominatim API
-    async function searchLocation(q) {
-        if(q.length < 3) return;
-        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await resp.json();
-        let html = '';
-        data.slice(0,5).forEach(item => {
-            html += `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer" onclick="selectCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
-        });
-        document.getElementById('city-results').innerHTML = html;
-    }
-
-    function selectCity(name, lat, lon) {
-        document.getElementById('city').value = name;
-        document.getElementById('lat').value = lat;
-        document.getElementById('lng').value = lon;
-        document.getElementById('city-results').innerHTML = '';
-    }
-
-    // 2. मुख्य गणना फंक्शन (हेमंत जी का URL यहाँ है)
-    async function generateKundli() {
-        const lat = document.getElementById('lat').value;
-        if(!lat) { alert("कृपया लिस्ट में से शहर चुनें!"); return; }
-
-        // आपका PythonAnywhere URL
-        const baseUrl = "https://hemantpurohit27.pythonanywhere.com/api/v60_engine";
-        const params = `?name=${document.getElementById('uname').value}&date=${document.getElementById('udate').value}&time=${document.getElementById('utime').value}&lat=${lat}&lng=${document.getElementById('lng').value}`;
+    async function fetchAstro() {
+        // आपका सटीक PythonAnywhere URL
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v67_final?name=${document.getElementById('name').value}&date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=24.58&lng=73.71`;
         
-        try {
-            const response = await fetch(baseUrl + params);
-            const data = await response.json();
+        const res = await fetch(url);
+        const data = await res.json();
 
-            document.getElementById('report-area').style.display = 'block';
-            document.getElementById('pdf-trigger').style.display = 'block';
+        document.getElementById('capture-area').style.display = 'block';
+        document.getElementById('pdf-btn').style.display = 'block';
 
-            // पंचांग और नाम
-            document.getElementById('panchang-text').innerText = `नाम: ${document.getElementById('uname').value} | संवत: 2063 | माह: ${data.panchang.month} | तिथि: ${data.panchang.tithi} | नक्षत्र: ${data.panchang.nakshatra}`;
+        // पंचांग
+        document.getElementById('pan-ui').innerHTML = `<span>माह: ${data.panchang.month}</span> | <span>पक्ष: ${data.panchang.paksha}</span> | <span>तिथि: ${data.panchang.tithi}</span> | <span>नक्षत्र: ${data.panchang.nak}</span>`;
 
-            // चार्ट ड्राइंग
-            drawNorthChart("d1-chart", data.asc, data.planets);
-            drawNorthChart("d9-chart", 8, data.planets); // D9 वृश्चिक लग्न पर स्थिर
+        // चार्ट्स ड्राइंग (Correct Placement)
+        drawChart("d1-box", data.asc, data.planets, "लग्न कुंडली (D1)");
+        drawChart("d9-box", 8, data.planets, "नवांश कुंडली (D9)");
 
-            // ग्रह तालिका
-            let pTable = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr>`;
-            data.planets.forEach(p => {
-                pTable += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
-            });
-            document.getElementById('planet-table').innerHTML = pTable;
-
-            // फलादेश
-            let pList = "";
-            data.predictions.forEach(p => pList += `<li>${p}</li>`);
-            document.getElementById('predictions-list').innerHTML = pList;
-
-        } catch (error) {
-            alert("API से जुड़ने में समस्या हुई। कृपया जांचें कि PythonAnywhere पर 'app.py' चल रहा है।");
-        }
+        // टेबल
+        let html = `<tr><th>ग्रह</th><th>अंश</th><th>भाव</th></tr>`;
+        data.planets.forEach(p => html += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`);
+        document.getElementById('p-table').innerHTML = html;
     }
 
-    function drawNorthChart(id, asc, planets) {
-        const h = {1:[175,120], 2:[85,60], 3:[50,120], 4:[125,200], 5:[50,280], 6:[85,340], 7:[175,280], 8:[265,340], 9:[350,280], 10:[225,200], 11:[350,120], 12:[265,60]};
-        let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="#8b0000" stroke-width="2.5"/>`;
+    function drawChart(containerId, asc, planets, title) {
+        // स्थिर भावों के केंद्र बिंदु (House coordinates)
+        const pos = {1:[180,140], 2:[90,70], 3:[50,140], 4:[130,220], 5:[50,300], 6:[90,360], 7:[180,300], 8:[270,360], 9:[350,300], 10:[230,220], 11:[350,140], 12:[270,70]};
+        
+        let svg = `<svg viewBox="0 0 400 400" style="width:100%; height:100%"><text x="200" y="25" text-anchor="middle" font-weight="bold">${title}</text>
+            <path d="M0 40 L400 400 M400 40 L0 400 M200 40 L0 220 L200 400 L400 220 Z" fill="none" stroke="black" stroke-width="2"/>`;
         
         for(let i=1; i<=12; i++) {
-            let r_num = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${r_num}</text>`;
-            let p_names = planets.filter(p => p.house === i).map(p => p.name).join(' ');
-            svg += `<text x="${h[i][0]}" y="${h[i][1]+25}" fill="#000" font-size="13" font-weight="bold" text-anchor="middle">${p_names}</text>`;
+            let rashi = ((asc + i - 2) % 12) + 1;
+            svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" fill="red" font-weight="bold" font-size="16">${rashi}</text>`;
+            
+            // ग्रहों की सही प्लेसमेंट (Filtering by House)
+            let pList = planets.filter(p => p.house === i).map(p => p.name).join(' ');
+            svg += `<text x="${pos[i][0]}" y="${pos[i][1]+25}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${pList}</text>`;
         }
-        document.getElementById(id).innerHTML = svg + `</svg>`;
+        document.getElementById(containerId).innerHTML = svg + `</svg>`;
     }
 
-    async function downloadPDF() {
-        const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-        const element = document.getElementById('report-area');
-        
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdfWidth = doc.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        doc.save(`${document.getElementById('uname').value}_Kundli_V60.pdf`);
+    function generatePDF() {
+        const element = document.getElementById('capture-area');
+        const opt = {
+            margin: 5,
+            filename: 'Astro_Kundli_Professional.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 </body>
