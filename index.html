@@ -86,7 +86,7 @@
 
 <script>
     async function calculate() {
-        const url = `/api/quantum_astro_v30?name=${document.getElementById('name').value}&date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/quantum_astro_v30?name=${document.getElementById('name').value}&date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         
         try {
             const r = await fetch(url);
