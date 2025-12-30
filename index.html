@@ -160,4 +160,31 @@
             9: [255, 225], 10: [205, 150], 11: [255, 75], 12: [225, 45]
         };
 
-        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#00
+        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#000" fill="none" stroke-width="2"/><rect width="300" height="300" fill="none" stroke="#000" stroke-width="3"/>`;
+
+        // राशि नंबर (Red Color)
+        for (let house = 1; house <= 12; house++) {
+            let rashi = ((lagnaSign + house - 2) % 12) + 1;
+            svg += `<text x="${positions[house][0]}" y="${positions[house][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${rashi}</text>`;
+        }
+
+        // ग्रहों की प्लेसमेंट (Blue Color)
+        let houseStacks = {};
+        for (let name in planets) {
+            let p = planets[name];
+            let pSign = p[signKey];
+            let houseNum = ((pSign - lagnaSign + 12) % 12) + 1;
+            
+            if (!houseStacks[houseNum]) houseStacks[houseNum] = 0;
+            let offset = houseStacks[houseNum] * 18;
+            
+            svg += `<text x="${positions[houseNum][0]}" y="${positions[houseNum][1] + 25 + offset}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${name.substring(0,2)}</text>`;
+            houseStacks[houseNum]++;
+        }
+
+        return svg + "</svg>";
+    }
+</script>
+
+</body>
+</html>
