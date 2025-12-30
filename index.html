@@ -2,98 +2,113 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>KP Astro Gold v19.0</title>
+    <title>Siddhanta Jyotish Professional v20.0</title>
     <style>
-        :root { --gold: #ffcc00; --panel: #1a1a2e; }
-        body { background: #0f0f1b; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .input-header { background: var(--panel); padding: 20px; border-radius: 12px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; border-bottom: 4px solid var(--gold); }
-        input, button { padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; }
-        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; border: none; }
-        .main-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-top: 25px; }
-        .chart-card { background: white; padding: 20px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; }
-        table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 14px; }
-        th, td { padding: 12px; border: 1px solid #2d2d44; text-align: left; }
-        th { color: var(--gold); background: #16213e; }
-        .highlight { color: var(--gold); font-weight: bold; }
+        :root { --gold: #f39c12; --dark: #1a1a2e; --white: #ffffff; }
+        body { background: #0f0f1b; color: var(--white); font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; }
+        .input-box { background: var(--dark); padding: 25px; border-radius: 15px; border: 2px solid var(--gold); display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        input, button { padding: 12px; border-radius: 8px; border: none; font-size: 15px; }
+        button { background: var(--gold); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { transform: scale(1.05); }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--white); color: #000; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .panchang-bar { background: var(--gold); color: black; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-around; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #f8f9fa; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; border: 1px solid #dee2e6; text-align: center; }
+        th { background: #2c3e50; color: white; }
+        .prediction-box { background: #16213e; padding: 20px; border-radius: 15px; margin-top: 20px; border-left: 5px solid var(--gold); }
     </style>
 </head>
 <body>
 
-    <h2 align="center">KP SIDDHANTA PROFESSIONAL ENGINE 🕉️</h2>
+    <h1 align="center" style="color:var(--gold)">🕉️ HORA ASTRO SUPREME V20.0</h1>
 
-    <div class="input-header">
+    <div class="input-box">
+        <input type="text" id="name" placeholder="जातक का नाम" value="Hemant Purohit">
+        <input type="text" id="place" placeholder="जन्म स्थान" value="Banswara">
         <input type="date" id="date" value="2006-11-06">
         <input type="time" id="time" value="11:28">
         <input type="text" id="lat" value="24.58" placeholder="Lat">
         <input type="text" id="lng" value="73.71" placeholder="Lng">
-        <button onclick="fetchKPData()">पूर्ण KP विश्लेषण प्राप्त करें</button>
+        <button onclick="generateKundli()">पूर्ण विश्लेषण प्राप्त करें</button>
     </div>
 
-    <div class="main-layout" id="output" style="display:none">
-        <div class="chart-card" id="chart_container">
-            <h3 style="color:black; margin-top:0;">KP भाव चलित (Cusp Chart)</h3>
-            <div id="svg_box" style="width: 100%;"></div>
+    <div id="result_area" style="display:none">
+        <div class="panchang-bar">
+            <span>नाम: <span id="out_name"></span></span>
+            <span>स्थान: <span id="out_place"></span></span>
+            <span>पक्ष: <span id="out_paksha"></span></span>
+            <span>तिथि: <span id="out_tithi"></span></span>
         </div>
 
-        <div>
-            <h3>ग्रह एवं भाव स्पष्ट (KP Table)</h3>
+        <div class="dashboard">
+            <div class="card">
+                <h3 align="center">D1 लग्न कुंडली</h3>
+                <div id="d1_chart"></div>
+            </div>
+            <div class="card">
+                <h3 align="center">D9 नवांश कुंडली</h3>
+                <div id="d9_chart"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px;">
+            <h3>ग्रह स्पष्ट तालिका</h3>
             <table>
-                <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव (KP)</th></tr></thead>
-                <tbody id="p_table"></tbody>
+                <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr></thead>
+                <tbody id="planet_rows"></tbody>
             </table>
-            
-            <h3 style="margin-top:20px;">भाव संधि (Cuspal Degrees)</h3>
-            <table>
-                <thead><tr><th>भाव</th><th>राशि</th><th>सटीक अंश</th></tr></thead>
-                <tbody id="c_table"></tbody>
-            </table>
+        </div>
+
+        <div class="prediction-box">
+            <h3 style="color:var(--gold)">📜 विस्तृत फलादेश (Predictions)</h3>
+            <ul id="prediction_list" style="line-height: 1.8;"></ul>
         </div>
     </div>
 
 <script>
-    async function fetchKPData() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/kp_final?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+    async function generateKundli() {
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/calculate_master?name=${document.getElementById('name').value}&place=${document.getElementById('place').value}&date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
         const res = await fetch(url);
         const data = await res.json();
 
-        document.getElementById('output').style.display = 'grid';
+        document.getElementById('result_area').style.display = 'block';
+        document.getElementById('out_name').innerText = data.name;
+        document.getElementById('out_place').innerText = data.place;
+        document.getElementById('out_tithi').innerText = data.panchang.tithi;
+        document.getElementById('out_paksha').innerText = data.panchang.paksha;
 
-        // Table Rendering
-        let pHtml = "";
+        // Draw Charts
+        document.getElementById('d1_chart').innerHTML = drawNorthChart(data.asc_sign, data.planets, 'sign');
+        document.getElementById('d9_chart').innerHTML = drawNorthChart(data.d9_asc, data.planets, 'd9'); 
+
+        // Planet Table
+        let rows = "";
         data.planets.forEach(p => {
-            pHtml += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.degree}</td><td class="highlight">${p.house}</td></tr>`;
+            rows += `<tr><td>${p.name}</td><td>${p.sign_name}</td><td>${p.deg}</td><td>${p.house}</td></tr>`;
         });
-        document.getElementById('p_table').innerHTML = pHtml;
+        document.getElementById('planet_rows').innerHTML = rows;
 
-        let cHtml = "";
-        data.cusps.forEach(c => {
-            cHtml += `<tr><td>भाव ${c.no}</td><td>${c.sign}</td><td>${c.deg}</td></tr>`;
-        });
-        document.getElementById('c_table').innerHTML = cHtml;
-
-        // SVG Rendering
-        document.getElementById('svg_box').innerHTML = drawKPSVG(data.ascendant_sign, data.planets);
+        // Predictions
+        document.getElementById('prediction_list').innerHTML = data.predictions.map(p => `<li>${p}</li>`).join('');
     }
 
-    function drawKPSVG(asc, planets) {
+    function drawNorthChart(lagna, planets, type) {
         const h = {1:[150,90], 2:[75,45], 3:[45,75], 4:[100,150], 5:[45,225], 6:[75,255], 7:[150,210], 8:[225,255], 9:[255,225], 10:[200,150], 11:[255,75], 12:[225,45]};
         let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="black" fill="none" stroke-width="2"/><rect width="300" height="300" fill="none" stroke="black" stroke-width="3"/>`;
         
-        // भाव नंबर (लाल रंग)
         for(let i=1; i<=12; i++) {
-            let r = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${r}</text>`;
+            let rNum = ((lagna + i - 2) % 12) + 1;
+            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${rNum}</text>`;
         }
 
-        // ग्रहों की सटीक स्थिति (नीला रंग)
-        let stack = {};
+        let tracker = {};
         planets.forEach(p => {
-            if(!stack[p.house]) stack[p.house] = 0;
-            let offset = stack[p.house] * 16;
-            svg += `<text x="${h[p.house][0]}" y="${h[p.house][1] + 22 + offset}" fill="blue" font-weight="bold" font-size="13" text-anchor="middle">${p.name}</text>`;
-            stack[p.house]++;
+            let targetHouse = ((p.sign - lagna + 12) % 12) + 1;
+            if(!tracker[targetHouse]) tracker[targetHouse] = 0;
+            svg += `<text x="${h[targetHouse][0]}" y="${h[targetHouse][1] + 20 + (tracker[targetHouse]*15)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name.substring(0,2)}</text>`;
+            tracker[targetHouse]++;
         });
-
         return svg + "</svg>";
     }
 </script>
