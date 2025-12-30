@@ -2,156 +2,91 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AstroPro Enterprise v15.0</title>
+    <title>Siddhanta Professional Astrology</title>
     <style>
-        :root { --accent: #FFD700; --bg: #090e1a; --card: #151b2b; --text: #f0f0f0; --border: #2d3748; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; }
-        .app-container { max-width: 1200px; margin: auto; }
-        
-        /* Header & Inputs */
-        .header-panel { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.4); margin-bottom: 25px; }
-        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        input { width: 100%; padding: 10px; background: #1a2233; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
-        .calc-btn { grid-column: 1 / -1; margin-top: 15px; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-
-        /* Panchang Bar */
-        .panchang-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 25px; }
-        .p-card { background: var(--card); border-left: 4px solid var(--accent); padding: 10px; text-align: center; border-radius: 4px; }
-        .p-card span { display: block; font-size: 11px; opacity: 0.7; }
-        .p-card b { font-size: 14px; }
-
-        /* Charts Layout */
-        .charts-flex { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .chart-holder { background: #ffffff; padding: 15px; border-radius: 12px; width: 450px; border: 3px solid var(--accent); position: relative; }
-        .chart-title { color: #000; text-align: center; margin-top: 0; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-
-        /* Tables */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 30px; background: var(--card); border-radius: 8px; overflow: hidden; }
-        .data-table th { background: #1a2233; color: var(--accent); padding: 12px; text-align: left; font-size: 13px; }
-        .data-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        
-        .dasha-box { background: #1e293b; color: var(--accent); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; font-size: 18px; font-weight: bold; border: 1px dashed var(--accent); }
+        :root { --gold: #FFD700; --dark: #0f172a; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .input-card { background: #1e293b; padding: 20px; border-radius: 12px; border: 2px solid var(--gold); display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        input, button { padding: 12px; border-radius: 6px; border: none; font-weight: bold; }
+        button { background: var(--gold); cursor: pointer; color: black; }
+        .chart-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px; }
+        .chart-box { background: white; padding: 10px; border-radius: 8px; width: 450px; color: black; }
+        .dasha-bar { background: var(--gold); color: black; padding: 15px; margin-top: 20px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 1.2em; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { padding: 12px; border: 1px solid #334155; text-align: left; }
+        th { color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header-panel">
-        <h2 style="text-align:center; color:var(--accent); margin-top:0;">OMNI-ASTRO PRO V15.0</h2>
-        <div class="input-grid">
-            <div><label>नाम</label><input type="text" id="name" value="Hemant Purohit"></div>
-            <div><label>जन्म तिथि</label><input type="date" id="date" value="2006-11-06"></div>
-            <div><label>जन्म समय</label><input type="time" id="time" value="11:28"></div>
-            <div><label>अक्षांश (Lat)</label><input type="text" id="lat" value="24.58"></div>
-            <div><label>देशांतर (Lng)</label><input type="text" id="lng" value="73.71"></div>
+<h1 align="center" style="color:var(--gold)">SIDDHANTA JYOTISH ENGINE 🕉️</h1>
+
+<div class="input-card">
+    <input type="date" id="date" value="2006-11-06">
+    <input type="time" id="time" value="11:28">
+    <input type="text" id="lat" value="24.58" placeholder="Latitude">
+    <input type="text" id="lng" value="73.71" placeholder="Longitude">
+    <button onclick="calculate()">सटीक कुंडली देखें</button>
+</div>
+
+<div id="results" style="display:none">
+    <div class="dasha-bar" id="dasha_info"></div>
+    
+    <div class="chart-container">
+        <div class="chart-box">
+            <h3 align="center">D1 - लग्न कुंडली</h3>
+            <div id="d1_chart"></div>
         </div>
-        <button class="calc-btn" onclick="calculateProfessional()">कुंडली विश्लेषण प्राप्त करें</button>
+        <div class="chart-box">
+            <h3 align="center">D9 - नवांश कुंडली</h3>
+            <div id="d9_chart"></div>
+        </div>
     </div>
 
-    <div id="outputArea" style="display:none;">
-        <div class="panchang-bar">
-            <div class="p-card"><span>तिथि</span><b id="pan_tithi">-</b></div>
-            <div class="p-card"><span>नक्षत्र</span><b id="pan_nak">-</b></div>
-            <div class="p-card"><span>योग</span><b id="pan_yog">-</b></div>
-            <div class="p-card"><span>करण</span><b id="pan_kar">-</b></div>
-        </div>
-
-        <div class="charts-flex">
-            <div class="chart-holder">
-                <h3 class="chart-title">Lagna Chart (D1)</h3>
-                <div id="d1_svg"></div>
-            </div>
-            <div class="chart-holder">
-                <h3 class="chart-title">Navamsa Chart (D9)</h3>
-                <div id="d9_svg"></div>
-            </div>
-        </div>
-
-        <div class="dasha-box" id="dasha_display">जन्म महादशा: लोड हो रहा है...</div>
-
-        <table class="data-table">
-            <thead>
-                <tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>भाव</th></tr>
-            </thead>
-            <tbody id="planet_rows"></tbody>
-        </table>
-    </div>
+    <table>
+        <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश-कला</th><th>भाव</th></tr></thead>
+        <tbody id="planet_table"></tbody>
+    </table>
 </div>
 
 <script>
-    async function calculateProfessional() {
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        const lat = document.getElementById('lat').value;
-        const lng = document.getElementById('lng').value;
+    async function calculate() {
+        const url = `https://your-username.pythonanywhere.com/calculate_perfect_kundli?date=${document.getElementById('date').value}&time=${document.getElementById('time').value}&lat=${document.getElementById('lat').value}&lng=${document.getElementById('lng').value}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if(data.error) return alert(data.error);
 
-        // आपका एंडपॉइंट URL
-        const apiBase = "https://hemantpurohit27.pythonanywhere.com/calculate_pro"; 
-        const url = `${apiBase}?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('dasha_info').innerText = `जन्मकालीन विंशोत्तरी महादशा: ${data.dasha.current} (शेष: ${data.dasha.balance} वर्ष)`;
 
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
+        document.getElementById('d1_chart').innerHTML = drawChart(data.ascendant, data.planets, 'd1_sign');
+        document.getElementById('d9_chart').innerHTML = drawChart(data.d9_asc, data.planets, 'd9_sign');
 
-            if(data.error) { alert("Error: " + data.error); return; }
-
-            document.getElementById('outputArea').style.display = 'block';
-            
-            // 1. दशा और पंचांग अपडेट
-            document.getElementById('dasha_display').innerText = `जन्म महादशा: ${data.dasha.current_dasha} (शेष: ${data.dasha.balance})`;
-            // नोट: अगर बैकएंड पंचांग भेज रहा है तो यहाँ मैप करें
-            
-            // 2. चार्ट्स रेंडरिंग
-            document.getElementById('d1_svg').innerHTML = drawNorthIndianChart(data.ascendant, data.planets, 'd1_sign');
-            document.getElementById('d9_svg').innerHTML = drawNorthIndianChart(data.d9_asc || data.ascendant, data.planets, 'd9_sign');
-
-            // 3. प्लेनेट टेबल
-            let tableHTML = "";
-            for (let name in data.planets) {
-                let p = data.planets[name];
-                tableHTML += `<tr><td>${name}</td><td>${p.d1_sign}</td><td>${p.degree}</td><td>${calculateHouse(data.ascendant, p.d1_sign)}</td></tr>`;
-            }
-            document.getElementById('planet_rows').innerHTML = tableHTML;
-
-        } catch (e) {
-            console.error(e);
-            alert("सर्वर से डेटा प्राप्त करने में त्रुटि।");
-        }
+        let tableHtml = "";
+        data.planets.forEach(p => {
+            tableHtml += `<tr><td>${p.name}</td><td>${p.d1_sign}</td><td>${p.degree}</td><td>${p.house}</td></tr>`;
+        });
+        document.getElementById('planet_table').innerHTML = tableHtml;
     }
 
-    function calculateHouse(ascSign, planetSign) {
-        return ((planetSign - ascSign + 12) % 12) + 1;
-    }
-
-    function drawNorthIndianChart(lagnaSign, planets, signKey) {
-        const hPos = {
-            1: [150, 95], 2: [75, 50], 3: [50, 75], 4: [100, 150],
-            5: [50, 225], 6: [75, 250], 7: [150, 205], 8: [225, 250],
-            9: [250, 225], 10: [200, 150], 11: [250, 75], 12: [225, 50]
-        };
-
-        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#000" fill="none" stroke-width="2"/><rect width="300" height="300" fill="none" stroke="#000" stroke-width="3"/>`;
-
-        // भावों में राशि नंबर
+    function drawChart(lagnaSign, planets, signKey) {
+        const hPos = { 1:[150,90], 2:[75,45], 3:[45,75], 4:[100,150], 5:[45,225], 6:[75,255], 7:[150,210], 8:[225,255], 9:[255,225], 10:[200,150], 11:[255,75], 12:[225,45] };
+        let svg = `<svg viewBox="0 0 300 300" style="width:100%"><path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" stroke="#000" fill="none" stroke-width="2.5"/><rect width="300" height="300" fill="none" stroke="#000" stroke-width="3"/>`;
+        
         for (let i = 1; i <= 12; i++) {
-            let rashi = ((lagnaSign + i - 2) % 12) + 1;
-            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" fill="#d32f2f" font-weight="bold" font-size="18" text-anchor="middle">${rashi}</text>`;
+            let rNum = ((lagnaSign + i - 2) % 12) + 1;
+            svg += `<text x="${hPos[i][0]}" y="${hPos[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${rNum}</text>`;
         }
 
-        // ग्रहों की स्मार्ट स्टैकिंग (ओवरलैप रोकने के लिए)
         let tracker = {};
-        for (let name in planets) {
-            let p = planets[name];
-            let houseNum = calculateHouse(lagnaSign, p[signKey]);
-            
-            if(!tracker[houseNum]) tracker[houseNum] = 0;
-            let offset = tracker[houseNum] * 16;
-            
-            svg += `<text x="${hPos[houseNum][0]}" y="${hPos[houseNum][1] + 20 + offset}" fill="#1a237e" font-size="11" font-weight="bold" text-anchor="middle">${name.substring(0,2)}</text>`;
-            tracker[houseNum]++;
-        }
+        planets.forEach(p => {
+            let house = ((p[signKey] - lagnaSign + 12) % 12) + 1;
+            if(!tracker[house]) tracker[house] = 0;
+            let offset = tracker[house] * 18;
+            svg += `<text x="${hPos[house][0]}" y="${hPos[house][1] + 25 + offset}" fill="blue" font-size="14" font-weight="bold" text-anchor="middle">${p.name.substring(0,2)}</text>`;
+            tracker[house]++;
+        });
         return svg + "</svg>";
     }
 </script>
