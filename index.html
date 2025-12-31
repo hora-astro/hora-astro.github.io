@@ -2,84 +2,117 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>KP Astro Professional V20.0</title>
+    <title>KP Astro V21.0 - Location Search</title>
     <style>
-        :root { --maroon: #7c2d12; --gold: #fdf6e3; }
-        body { background: #111827; color: #111827; font-family: 'Arial', sans-serif; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border: 12px double var(--maroon); border-radius: 10px; }
-        .header-box { background: var(--gold); border: 2px solid #b45309; padding: 15px; display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: var(--maroon); }
-        .chart-area { display: flex; justify-content: center; margin-bottom: 30px; }
-        .chart-container { width: 500px; border: 3px solid var(--maroon); padding: 10px; background: #fffcf8; }
+        :root { --maroon: #7c2d12; --bg: #0f172a; }
+        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
+        .main-card { max-width: 950px; margin: auto; background: white; color: black; padding: 25px; border: 10px double var(--maroon); border-radius: 8px; }
+        
+        /* Input Panel */
+        .controls { background: #1e293b; padding: 20px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; position: relative; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 4px; border: 1px solid #ccc; }
+        .btn { padding: 10px 25px; background: #ea580c; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        
+        /* Location Results */
+        #locResults { position: absolute; background: white; width: 250px; top: 65px; z-index: 100; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .loc-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; color: #333; font-size: 13px; }
+        .loc-item:hover { background: #f0f9ff; }
+
+        .chart-ui { border: 2px solid var(--maroon); background: #fffcf8; padding: 15px; width: 450px; margin: 20px auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--maroon); color: white; padding: 12px; }
+        th { background: var(--maroon); color: white; padding: 10px; }
         td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        .btn-calc { padding: 10px 25px; background: #ea580c; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div style="text-align:center; margin-bottom:20px; background:#1e293b; padding:20px; border-radius:8px;">
-        <input type="date" id="date" value="1980-03-27" style="padding:10px;">
-        <input type="time" id="time" value="08:10" style="padding:10px;">
-        <button class="btn-calc" onclick="loadKP()">KP कुंडली जनरेट करें</button>
+<div class="controls">
+    <input type="text" id="uName" placeholder="नाम लिखें" value="Hemant Purohit">
+    <div style="position:relative;">
+        <input type="text" id="cityInput" placeholder="शहर सर्च करें (जैसे: Banswara)" oninput="searchCity()" style="width:250px;">
+        <div id="locResults"></div>
+    </div>
+    <input type="date" id="uDate" value="1980-03-27">
+    <input type="time" id="uTime" value="08:10">
+    <button class="btn" onclick="generateV21()">कुंडली जनरेट करें</button>
+</div>
+
+<div id="report" class="main-card" style="display:none;">
+    <h2 align="center" style="color:var(--maroon); margin-top:0;">॥ KP Sidereal जन्म कुंडली ॥</h2>
+    <div align="center" id="panchangInfo" style="font-weight:bold; margin-bottom:15px; color:var(--maroon);"></div>
+
+    <div class="chart-ui">
+        <h3 align="center" style="margin-top:0;">लग्न कुंडली (KP)</h3>
+        <div id="kp-chart-svg"></div>
     </div>
 
-    <div id="results" style="display:none;">
-        <div class="header-box" id="info"></div>
-        <div class="chart-area">
-            <div class="chart-container">
-                <h3 align="center" style="margin-top:0; color:var(--maroon);">KP लग्न कुंडली (D1)</h3>
-                <div id="kp-chart"></div>
-            </div>
-        </div>
-        <table>
-            <thead>
-                <tr><th>ग्रह</th><th>राशि (Sign)</th><th>डिग्री (KP)</th></tr>
-            </thead>
-            <tbody id="planetData"></tbody>
-        </table>
-    </div>
+    <table>
+        <thead>
+            <tr><th>ग्रह (Planet)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr>
+        </thead>
+        <tbody id="pTable"></tbody>
+    </table>
 </div>
 
 <script>
-    async function loadKP() {
-        const d = document.getElementById('date').value;
-        const t = document.getElementById('time').value;
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/v20?date=${d}&time=${t}`;
+    let lat = 24.58, lng = 73.71;
+
+    async function searchCity() {
+        const val = document.getElementById('cityInput').value;
+        if(val.length < 3) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}`);
+        const data = await res.json();
+        const box = document.getElementById('locResults');
+        box.innerHTML = ""; box.style.display = "block";
+        data.forEach(item => {
+            const d = document.createElement('div');
+            d.className = 'loc-item';
+            d.innerText = item.display_name;
+            d.onclick = () => {
+                lat = item.lat; lng = item.lon;
+                document.getElementById('cityInput').value = item.display_name;
+                box.style.display = "none";
+            };
+            box.appendChild(d);
+        });
+    }
+
+    async function generateV21() {
+        const d = document.getElementById('uDate').value;
+        const t = document.getElementById('uTime').value;
+        const name = document.getElementById('uName').value;
+        const city = document.getElementById('cityInput').value;
+
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v21?date=${d}&time=${t}&lat=${lat}&lng=${lng}`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
+            document.getElementById('report').style.display = 'block';
+            document.getElementById('panchangInfo').innerText = `नाम: ${name} | स्थान: ${city.split(',')[0]} | लग्न: ${data.asc}`;
 
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('info').innerHTML = `<span>गणना: KP Sidereal</span> | <span>लग्न: ${data.asc}</span>`;
-
-            let tableRows = "";
+            let rows = "";
             data.planets.forEach(p => {
-                tableRows += `<tr><td style="font-weight:bold; color:blue;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
+                rows += `<tr><td style="font-weight:bold; color:blue;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
             });
-            document.getElementById('planetData').innerHTML = tableRows;
+            document.getElementById('pTable').innerHTML = rows;
 
-            drawKPChart("kp-chart", data.asc, data.planets);
-        } catch(e) { alert("सर्वर त्रुटि! v20 बैकएंड चेक करें।"); }
+            drawChart("kp-chart-svg", data.asc, data.planets);
+        } catch(e) { alert("त्रुटि: बैकएंड v21 चेक करें।"); }
     }
 
-    function drawKPChart(divId, asc, planets) {
-        const hPos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
+    function drawChart(id, asc, planets) {
+        const pos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
         let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
-        
         for (let h = 1; h <= 12; h++) {
-            let signAtHouse = ((asc + h - 2) % 12) + 1;
-            svg += `<text x="${hPos[h][0]}" y="${hPos[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${signAtHouse}</text>`;
-            
-            // KP Sign Matching: ग्रह को उसकी राशि के खाने में ही रखें
-            let matched = planets.filter(p => p.sign === signAtHouse);
+            let sNum = ((asc + h - 2) % 12) + 1;
+            svg += `<text x="${pos[h][0]}" y="${pos[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
+            let matched = planets.filter(p => p.sign === sNum);
             matched.forEach((p, i) => {
-                svg += `<text x="${hPos[h][0]}" y="${hPos[h][1] + 25 + (i*18)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+                svg += `<text x="${pos[h][0]}" y="${pos[h][1] + 25 + (i*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
             });
         }
-        document.getElementById(divId).innerHTML = svg + `</svg>`;
+        document.getElementById(id).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
