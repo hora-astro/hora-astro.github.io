@@ -2,118 +2,72 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>HORA ASTRO PRECISION V80.0</title>
+    <title>HORA ASTRO FINAL PRECISION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --crimson: #8b0000; --gold: #b45309; }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', Arial; padding: 20px; }
-        .setup-box { background: #1e293b; padding: 25px; border-radius: 12px; max-width: 800px; margin: auto; border: 1px solid var(--gold); text-align: center; }
-        .input-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-        input { padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; width: 180px; }
-        
-        .report-paper { background: white; color: black; padding: 30px; width: 750px; margin: 20px auto; border: 8px double var(--crimson); display: none; }
-        .chart-flex { display: flex; justify-content: space-around; margin: 20px 0; }
-        .svg-container { border: 2px solid #000; width: 340px; height: 340px; background: #fff; }
-        
+        body { background: #1a202c; color: white; font-family: sans-serif; text-align: center; }
+        .report-card { background: white; color: black; width: 700px; margin: 20px auto; padding: 25px; border: 4px solid #8b0000; display: none; }
+        .chart-box { width: 320px; height: 320px; border: 1px solid #000; display: inline-block; background: #fff; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-        th { background: #f8fafc; color: var(--crimson); }
-        
-        .btn-calc { background: var(--gold); color: white; padding: 15px 40px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; }
-        .btn-pdf { background: #16a34a; color: white; padding: 15px; width: 750px; margin: 10px auto; display: none; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
+        .btn { background: #c05621; color: white; padding: 12px 30px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="setup-box">
-    <h2 style="color:var(--gold);">🕉️ HORA ASTRO PRECISION V80.0</h2>
-    <div class="input-group">
-        <input type="text" id="uname" placeholder="नाम" value="Hemant Purohit">
-        <input type="date" id="udate" value="1980-03-27">
-        <input type="time" id="utime" value="08:10">
-        <input type="text" id="ucity" placeholder="शहर" value="Banswara">
-    </div>
-    <button class="btn-calc" onclick="generateReport()">कुंडली प्राप्त करें</button>
-</div>
-
-<div id="report-area" class="report-paper">
-    <h1 align="center" style="color:var(--crimson); margin-bottom:10px;">॥ जन्म कुंडली ॥</h1>
-    <p align="center" id="user-info" style="font-weight:bold;"></p>
-    
-    <div class="chart-flex">
-        <div class="svg-container" id="d1-chart"></div>
-        <div class="svg-container" id="d9-chart"></div>
+    <h2>🕉️ परफेक्ट कुंडली इंजन V90.0</h2>
+    <div style="margin-bottom: 20px;">
+        <input type="date" id="d" value="1980-03-27">
+        <input type="time" id="t" value="08:10">
+        <button class="btn" onclick="build()">कुंडली बनाएँ</button>
     </div>
 
-    <table id="planet-table"></table>
-</div>
-
-<button id="pdf-trigger" class="btn-pdf" onclick="downloadPDF()">📥 कुंडली रिपोर्ट PDF डाउनलोड करें</button>
+    <div id="capture" class="report-card">
+        <h2 style="color:#8b0000;">॥ जन्म कुंडली ॥</h2>
+        <div class="chart-box" id="d1"></div>
+        <table id="p-table"></table>
+    </div>
 
 <script>
-    async function generateReport() {
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/v80_precision?date=${document.getElementById('udate').value}&time=${document.getElementById('utime').value}&lat=24.58&lng=73.71`;
+    async function build() {
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/v90_perfect?date=${document.getElementById('d').value}&time=${document.getElementById('t').value}&lat=24.58&lng=73.71`);
+        const data = await res.json();
         
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
+        document.getElementById('capture').style.display = 'block';
+        
+        // चार्ट ड्राइंग
+        drawChart("d1", data.asc, data.planets);
 
-            document.getElementById('report-area').style.display = 'block';
-            document.getElementById('pdf-trigger').style.display = 'block';
-            document.getElementById('user-info').innerText = `नाम: ${document.getElementById('uname').value} | तिथि: ${document.getElementById('udate').value} | समय: ${document.getElementById('utime').value}`;
-
-            // D1 लग्न और ग्रहों की सही रेंडरिंग
-            drawNorthChart("d1-chart", data.asc, data.planets, "लग्न कुंडली (D1)");
-            drawNorthChart("d9-chart", 9, data.planets, "नवांश कुंडली (D9)");
-
-            // तालिका अपडेट
-            let tableHtml = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr>`;
-            data.planets.forEach(p => {
-                tableHtml += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
-            });
-            document.getElementById('planet-table').innerHTML = tableHtml;
-
-        } catch (e) {
-            alert("API त्रुटि! कृपया सुनिश्चित करें कि app.py चल रहा है।");
-        }
+        // टेबल अपडेट
+        let html = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव (House)</th></tr>`;
+        data.planets.forEach(p => {
+            html += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td><b>${p.house}</b></td></tr>`;
+        });
+        document.getElementById('p-table').innerHTML = html;
     }
 
-    function drawNorthChart(containerId, asc, planets, title) {
-        // स्थिर भावों के केंद्र बिंदु (House Coordinates)
-        const coords = {
-            1: [170, 140], 2: [85, 70], 3: [45, 140], 4: [120, 220], 
-            5: [45, 300], 6: [85, 370], 7: [170, 300], 8: [255, 370], 
-            9: [340, 300], 10: [225, 220], 11: [340, 140], 12: [255, 70]
+    function drawChart(divId, asc, planets) {
+        // भावों के केंद्र (Coordinates)
+        const pos = {
+            1:[160,130], 2:[80,60], 3:[40,130], 4:[110,210], 5:[40,280], 6:[80,350],
+            7:[160,280], 8:[240,350], 9:[300,280], 10:[210,210], 11:[300,130], 12:[240,60]
         };
 
-        let svg = `<svg viewBox="0 0 400 400" style="width:100%; height:100%;">
-            <text x="200" y="30" text-anchor="middle" font-weight="bold" font-size="20">${title}</text>
-            <path d="M0 40 L400 400 M400 40 L0 400 M200 40 L0 220 L200 400 L400 220 Z" fill="none" stroke="black" stroke-width="2"/>`;
-        
-        for (let i = 1; i <= 12; i++) {
-            // राशि (Red)
-            let r_num = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${r_num}</text>`;
-            
-            // ग्रह (Blue) - राशि के ठीक नीचे
-            let p_names = planets.filter(p => p.house === i).map(p => p.name).join(' ');
+        let svg = `<svg viewBox="0 0 350 350" style="width:100%; height:100%;">
+            <path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="black" stroke-width="1.5"/>`;
+
+        for (let h = 1; h <= 12; h++) {
+            // राशि संख्या (Red) - लग्न के आधार पर
+            let r_val = ((asc + h - 2) % 12) + 1;
+            svg += `<text x="${pos[h][0]}" y="${pos[h][1]}" fill="red" font-weight="bold" font-size="16">${r_val}</text>`;
+
+            // ग्रह (Blue) - केवल उस भाव (h) के ग्रह
+            let p_names = planets.filter(p => p.house === h).map(p => p.name).join(' ');
             if(p_names) {
-                svg += `<text x="${coords[i][0]}" y="${coords[i][1]+25}" fill="blue" font-size="13" font-weight="bold" text-anchor="middle">${p_names}</text>`;
+                svg += `<text x="${pos[h][0]}" y="${pos[h][1]+22}" fill="blue" font-size="11" font-weight="bold" text-anchor="middle">${p_names}</text>`;
             }
         }
-        document.getElementById(containerId).innerHTML = svg + `</svg>`;
-    }
-
-    function downloadPDF() {
-        const element = document.getElementById('report-area');
-        const opt = {
-            margin: 10,
-            filename: 'Kundli_Precision_Report.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        document.getElementById(divId).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
