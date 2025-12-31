@@ -2,94 +2,84 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Quantum Astro V18.0 - Precision</title>
+    <title>KP Astro Professional V20.0</title>
     <style>
-        :root { --maroon: #7c2d12; --gold: #fffbeb; }
-        body { background: #020617; color: #333; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .main-card { max-width: 900px; margin: auto; background: white; padding: 30px; border: 12px double var(--maroon); box-shadow: 0 0 40px rgba(0,0,0,0.7); }
-        .panchang { background: var(--gold); border: 2px solid #b45309; padding: 15px; display: flex; justify-content: space-around; font-weight: bold; color: var(--maroon); margin-bottom: 20px; border-radius: 4px; }
-        .chart-box { display: flex; gap: 20px; }
-        .chart-ui { flex: 1; border: 2px solid var(--maroon); padding: 10px; background: #fffcf8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        :root { --maroon: #7c2d12; --gold: #fdf6e3; }
+        body { background: #111827; color: #111827; font-family: 'Arial', sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border: 12px double var(--maroon); border-radius: 10px; }
+        .header-box { background: var(--gold); border: 2px solid #b45309; padding: 15px; display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; color: var(--maroon); }
+        .chart-area { display: flex; justify-content: center; margin-bottom: 30px; }
+        .chart-container { width: 500px; border: 3px solid var(--maroon); padding: 10px; background: #fffcf8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: var(--maroon); color: white; padding: 12px; }
         td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        .p-name { color: #1e40af; font-weight: bold; }
-        .controls { background: #1e293b; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
-        input { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        button { padding: 10px 25px; background: #ea580c; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .btn-calc { padding: 10px 25px; background: #ea580c; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div class="controls">
-    <input type="text" id="uName" placeholder="नाम" value="Hemant Purohit">
-    <input type="date" id="uDate" value="1980-03-27">
-    <input type="time" id="uTime" value="08:10">
-    <button onclick="calculateV18()">सटीक कुंडली बनाएँ</button>
-</div>
-
-<div id="appBody" class="main-card" style="display:none;">
-    <div class="panchang" id="headerInfo"></div>
-    <div class="chart-box">
-        <div class="chart-ui">
-            <h3 align="center">लग्न कुंडली (D1)</h3>
-            <div id="d1-svg"></div>
-        </div>
-        <div class="chart-ui">
-            <h3 align="center">नवांश कुंडली (D9)</h3>
-            <div id="d9-svg"></div>
-        </div>
+<div class="container">
+    <div style="text-align:center; margin-bottom:20px; background:#1e293b; padding:20px; border-radius:8px;">
+        <input type="date" id="date" value="1980-03-27" style="padding:10px;">
+        <input type="time" id="time" value="08:10" style="padding:10px;">
+        <button class="btn-calc" onclick="loadKP()">KP कुंडली जनरेट करें</button>
     </div>
-    <table>
-        <thead>
-            <tr><th>ग्रह (Planet)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr>
-        </thead>
-        <tbody id="dataTable"></tbody>
-    </table>
+
+    <div id="results" style="display:none;">
+        <div class="header-box" id="info"></div>
+        <div class="chart-area">
+            <div class="chart-container">
+                <h3 align="center" style="margin-top:0; color:var(--maroon);">KP लग्न कुंडली (D1)</h3>
+                <div id="kp-chart"></div>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr><th>ग्रह</th><th>राशि (Sign)</th><th>डिग्री (KP)</th></tr>
+            </thead>
+            <tbody id="planetData"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    async function calculateV18() {
-        const d = document.getElementById('uDate').value;
-        const t = document.getElementById('uTime').value;
-        const name = document.getElementById('uName').value;
-        
-        // URL with your pythonanywhere username
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/v18?date=${d}&time=${t}&lat=24.58&lng=73.71`;
+    async function loadKP() {
+        const d = document.getElementById('date').value;
+        const t = document.getElementById('time').value;
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v20?date=${d}&time=${t}`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
-            
-            document.getElementById('appBody').style.display = 'block';
-            document.getElementById('headerInfo').innerHTML = `<span>नाम: ${name}</span> | <span>लग्न राशि: ${data.asc}</span>`;
-            
-            let rows = "";
-            data.planets.forEach(p => {
-                rows += `<tr><td class="p-name">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
-            });
-            document.getElementById('dataTable').innerHTML = rows;
 
-            drawKundli("d1-svg", data.asc, data.planets, 'd1');
-            drawKundli("d9-svg", data.d9_asc, data.planets, 'd9');
-        } catch(e) { alert("सर्वर त्रुटि: कोड अपडेट करें।"); }
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('info').innerHTML = `<span>गणना: KP Sidereal</span> | <span>लग्न: ${data.asc}</span>`;
+
+            let tableRows = "";
+            data.planets.forEach(p => {
+                tableRows += `<tr><td style="font-weight:bold; color:blue;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
+            });
+            document.getElementById('planetData').innerHTML = tableRows;
+
+            drawKPChart("kp-chart", data.asc, data.planets);
+        } catch(e) { alert("सर्वर त्रुटि! v20 बैकएंड चेक करें।"); }
     }
 
-    function drawKundli(id, asc, planets, mode) {
+    function drawKPChart(divId, asc, planets) {
         const hPos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
         let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
         
         for (let h = 1; h <= 12; h++) {
-            let sNum = ((asc + h - 2) % 12) + 1;
-            svg += `<text x="${hPos[h][0]}" y="${hPos[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
+            let signAtHouse = ((asc + h - 2) % 12) + 1;
+            svg += `<text x="${hPos[h][0]}" y="${hPos[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${signAtHouse}</text>`;
             
-            // "Zodiac-Match Placement": ग्रह केवल उसी राशि के बॉक्स में जाएगा जहाँ उसका sign number लिखा है
-            let filtered = planets.filter(p => (mode === 'd1' ? p.sign : p.d9_sign) === sNum);
-            filtered.forEach((p, i) => {
-                svg += `<text x="${hPos[h][0]}" y="${hPos[h][1] + 25 + (i*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+            // KP Sign Matching: ग्रह को उसकी राशि के खाने में ही रखें
+            let matched = planets.filter(p => p.sign === signAtHouse);
+            matched.forEach((p, i) => {
+                svg += `<text x="${hPos[h][0]}" y="${hPos[h][1] + 25 + (i*18)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
             });
         }
-        document.getElementById(id).innerHTML = svg + `</svg>`;
+        document.getElementById(divId).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
