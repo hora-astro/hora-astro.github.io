@@ -2,99 +2,109 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro Pro V170</title>
+    <title>Saty-Vani Astro Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Arial'; text-align: center; padding: 20px; }
-        .card { background: white; color: black; width: 800px; margin: auto; padding: 30px; border: 5px double #8b0000; display: none; }
-        .chart-svg { border: 2px solid #000; width: 400px; height: 400px; background: white; margin: 20px auto; }
+        :root { --maroon: #8b0000; --gold: #b45309; }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', Arial; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+        .controls { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid var(--gold); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 5px; border: none; flex: 1; min-width: 150px; }
+        .btn { background: var(--gold); color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        #report { background: white; color: black; padding: 40px; border: 8px double var(--maroon); display: none; }
+        .charts { display: flex; gap: 20px; margin: 20px 0; }
+        .chart-box { border: 2px solid var(--maroon); padding: 10px; flex: 1; background: #fffaf0; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-        .input-group { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #fbbf24; }
-        input { padding: 10px; margin: 5px; border-radius: 5px; border: none; }
-        .btn { background: #b45309; color: white; padding: 12px 25px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        th { background: var(--maroon); color: white; padding: 10px; }
+        td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        .kundli-svg { width: 100%; height: auto; }
     </style>
 </head>
 <body>
 
-<div class="input-group">
-    <input type="text" id="name" placeholder="नाम" value="Hemant Purohit">
-    <input type="date" id="date" value="1980-03-27">
-    <input type="time" id="time" value="08:10">
-    <button class="btn" onclick="buildKundli()">कुंडली बनाएँ</button>
-</div>
-
-<div id="report" class="card">
-    <h2 style="color:#8b0000; margin:0;">॥ जन्म कुंडली ॥</h2>
-    <p id="details"></p>
-    
-    <div class="chart-svg" id="chart-d1"></div>
-
-    <table>
-        <thead><tr style="background:#eee;"><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr></thead>
-        <tbody id="p-body"></tbody>
-    </table>
-
-    <div style="margin-top:20px; padding:15px; background:#fffbeb; text-align:left; border-left:5px solid #b45309;">
-        <b>फलादेश:</b> <span id="fala"></span>
+<div class="container">
+    <div class="controls">
+        <input type="text" id="name" placeholder="नाम" value="Hemant Purohit">
+        <input type="date" id="date" value="1980-03-27">
+        <input type="time" id="time" value="08:10">
+        <button class="btn" onclick="getKundli()">कुंडली जनरेट करें</button>
     </div>
-    <button onclick="savePDF()" style="margin-top:20px; background:green; color:white; border:none; padding:10px 20px; cursor:pointer;">PDF डाउनलोड करें</button>
+
+    <div id="report">
+        <h1 align="center" style="color: var(--maroon); margin: 0;">॥ सटीक जन्म कुंडली ॥</h1>
+        <p align="center" id="user-info" style="font-weight: bold;"></p>
+
+        <div class="charts">
+            <div class="chart-box">
+                <h3 align="center">लग्न कुंडली (D1)</h3>
+                <div id="d1-svg"></div>
+            </div>
+            <div class="chart-box">
+                <h3 align="center">नवांश कुंडली (D9)</h3>
+                <div id="d9-svg"></div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+
+        <button class="btn" onclick="savePDF()" style="margin-top:20px; width:100%; background: green;">PDF डाउनलोड करें</button>
+    </div>
 </div>
 
 <script>
-async function buildKundli() {
-    const d = document.getElementById('date').value;
-    const t = document.getElementById('time').value;
-    const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/v170_precision?date=${d}&time=${t}`);
-    const data = await res.json();
+    async function getKundli() {
+        const d = document.getElementById('date').value;
+        const t = document.getElementById('time').value;
+        const res = await fetch(`http://127.0.0.1:5000/api/perfect_kundli?date=${d}&time=${t}`);
+        const data = await res.json();
 
-    document.getElementById('report').style.display = 'block';
-    document.getElementById('details').innerText = `नाम: ${document.getElementById('name').value} | तिथि: ${d} | समय: ${t}`;
+        document.getElementById('report').style.display = 'block';
+        document.getElementById('user-info').innerText = `${document.getElementById('name').value} | तिथि: ${d} | समय: ${t}`;
 
-    // चार्ट ड्रॉइंग - यह पार्ट अब 'house' डेटा का उपयोग करेगा जो बैकएंड से आता है
-    drawChart("chart-d1", data.asc, data.planets);
+        // Draw D1 (Based on Houses)
+        drawChart("d1-svg", data.asc, data.planets, 'd1');
+        // Draw D9 (Based on Signs)
+        drawChart("d9-svg", data.asc_d9, data.planets, 'd9');
 
-    // टेबल भरना
-    let html = "";
-    data.planets.forEach(p => {
-        html += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td><b>${p.house}</b></td></tr>`;
-    });
-    document.getElementById('p-body').innerHTML = html;
-
-    // डायनामिक फलादेश
-    const sun = data.planets.find(p => p.name === 'सूर्य').house;
-    document.getElementById('fala').innerText = `आपका लग्न ${data.asc} है। सूर्य आपके ${sun}वें भाव में है, जो आपके करियर और सामाजिक मान-सम्मान को प्रभावित करता है।`;
-}
-
-function drawChart(divId, asc, planets) {
-    // भावों के केंद्र बिंदु (House Coordinates)
-    const pos = {
-        1: [200, 150], 2: [100, 75], 3: [50, 150], 4: [140, 250],
-        5: [50, 325], 6: [100, 400], 7: [200, 325], 8: [300, 400],
-        9: [350, 325], 10: [260, 250], 11: [350, 150], 12: [300, 75]
-    };
-
-    let svg = `<svg viewBox="0 0 400 400" width="100%" height="100%">
-        <path d="M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="red" stroke-width="2"/>`;
-
-    for (let h = 1; h <= 12; h++) {
-        // राशि नंबर (लाल)
-        let r_num = ((asc + h - 2) % 12) + 1;
-        svg += `<text x="${pos[h][0]}" y="${pos[h][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r_num}</text>`;
-
-        // उस भाव (h) के ग्रह (नीले)
-        let pList = planets.filter(p => p.house === h).map(p => p.name).join(' ');
-        if(pList) {
-            svg += `<text x="${pos[h][0]}" y="${pos[h][1] + 25}" fill="blue" font-size="13" font-weight="bold" text-anchor="middle">${pList}</text>`;
-        }
+        let html = "";
+        data.planets.forEach(p => {
+            html += `<tr><td>${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.naks}</td><td>${p.charan}</td><td><b>${p.house}</b></td></tr>`;
+        });
+        document.getElementById('table-body').innerHTML = html;
     }
-    document.getElementById(divId).innerHTML = svg + `</svg>`;
-}
 
-function savePDF() {
-    const element = document.getElementById('report');
-    html2pdf().from(element).save('My_Kundli_V170.pdf');
-}
+    function drawChart(divId, asc, planets, type) {
+        const centers = { 
+            1:[200,150], 2:[100,75], 3:[50,150], 4:[150,250], 5:[50,325], 6:[100,400], 
+            7:[200,325], 8:[300,400], 9:[350,325], 10:[250,250], 11:[350,150], 12:[300,75] 
+        };
+
+        let svg = `<svg viewBox="0 0 400 400" class="kundli-svg"><path d="M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="red" stroke-width="2"/>`;
+        
+        for (let h = 1; h <= 12; h++) {
+            let r_num = ((asc + h - 2) % 12) + 1;
+            svg += `<text x="${centers[h][0]}" y="${centers[h][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r_num}</text>`;
+            
+            let filtered;
+            if(type === 'd1') filtered = planets.filter(p => p.house === h);
+            else filtered = planets.filter(p => p.d9_sign === r_num);
+
+            let names = filtered.map(p => p.name).join(' ');
+            if(names) svg += `<text x="${centers[h][0]}" y="${centers[h][1]+25}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${names}</text>`;
+        }
+        document.getElementById(divId).innerHTML = svg + `</svg>`;
+    }
+
+    function savePDF() {
+        const element = document.getElementById('report');
+        html2pdf().from(element).save('Kundli_Report.pdf');
+    }
 </script>
 </body>
 </html>
