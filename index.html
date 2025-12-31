@@ -61,7 +61,7 @@
     async function getKundli() {
         const d = document.getElementById('date').value;
         const t = document.getElementById('time').value;
-        const res = await fetch(`http://127.0.0.1:5000/api/perfect_kundli?date=${d}&time=${t}`);
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/perfect_kundli?date=${d}&time=${t}`);
         const data = await res.json();
 
         document.getElementById('report').style.display = 'block';
