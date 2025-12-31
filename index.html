@@ -95,7 +95,7 @@
         const time = document.getElementById('bTime').value;
         const name = document.getElementById('personName').value;
 
-        const response = await fetch(`http://hemantpurohit27.pythonanywhere.com:5000/api/v12?date=${date}&time=${time}&lat=${lat}&lng=${lng}`);
+        const response = await fetch(`http://hemantpurohit27.pythonanywhere.com/api/v12?date=${date}&time=${time}&lat=${lat}&lng=${lng}`);
         const data = await response.json();
 
         document.getElementById('finalReport').style.display = 'block';
