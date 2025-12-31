@@ -2,91 +2,100 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Saty-Vani Master Kundli</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Saty-Vani Astro Ultimate</title>
     <style>
-        :root { --main: #8b0000; --gold: #b45309; }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .input-panel { max-width: 900px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; border: 2px solid var(--gold); }
-        .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: none; }
-        .report { background: white; color: black; max-width: 850px; margin: 30px auto; padding: 40px; border: 10px double var(--main); display: none; }
-        .panchang-strip { background: #fffbeb; padding: 10px; border: 1px solid #fde68a; display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 20px; }
-        .charts { display: flex; gap: 20px; }
-        .chart-box { border: 2px solid var(--main); flex: 1; padding: 10px; background: #fffaf0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--main); color: white; padding: 8px; }
-        td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        :root { --maroon: #8b0000; --bg: #0f172a; }
+        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
+        .search-box { position: relative; max-width: 600px; margin: auto; }
+        #city-input { width: 100%; padding: 12px; border-radius: 5px; border: none; font-size: 16px; }
+        .suggestions { 
+            position: absolute; background: white; color: black; width: 100%; 
+            border-radius: 0 0 5px 5px; max-height: 200px; overflow-y: auto; z-index: 100;
+        }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggest-item:hover { background: #f0f0f0; }
+        
+        #report { background: white; color: black; padding: 30px; margin-top: 20px; border: 5px double var(--maroon); display: none; }
+        .panchang { background: #fff8e1; padding: 10px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ffe082; }
+        .chart-grid { display: flex; gap: 20px; }
+        .chart { border: 2px solid var(--maroon); flex: 1; padding: 10px; background: #fff; }
     </style>
 </head>
 <body>
 
-<div class="input-panel">
-    <div class="row">
-        <input type="text" id="name" placeholder="नाम">
-        <input type="text" id="location" placeholder="शहर खोजें (उदा: Banswara)">
-    </div>
-    <div class="row">
-        <input type="date" id="date" value="1980-03-27">
-        <input type="time" id="time" value="08:10">
-        <button onclick="generate()" style="background:var(--gold); color:white; border:none; padding:10px 30px; border-radius:8px; cursor:pointer; font-weight:bold;">कुंडली प्राप्त करें</button>
+<div class="search-box">
+    <h2 align="center" style="color: #fbbf24;">🕉️ कुंडली इंजन v2.0</h2>
+    <input type="text" id="city-input" placeholder="शहर का नाम लिखें (उदा: Banswara)..." oninput="searchCity()">
+    <div id="suggest-box" class="suggestions"></div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="date" id="date" value="1980-03-27" style="flex:1; padding:10px;">
+        <input type="time" id="time" value="08:10" style="flex:1; padding:10px;">
+        <button onclick="fetchKundli()" style="background:#b45309; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
     </div>
 </div>
 
-<div id="report" class="report">
-    <h1 align="center" style="color:var(--main); margin:0;">॥ जन्म कुंडली एवं पंचांग ॥</h1>
-    <p align="center" id="meta-head"></p>
-
-    <div class="panchang-strip" id="panchang"></div>
-
-    <div class="charts">
-        <div class="chart-box">
-            <h3 align="center">लग्न कुंडली (D1)</h3>
-            <div id="d1"></div>
-        </div>
-        <div class="chart-box">
-            <h3 align="center">नवांश कुंडली (D9)</h3>
-            <div id="d9"></div>
-        </div>
+<div id="report">
+    <div class="panchang" id="panchang-info"></div>
+    <div class="chart-grid">
+        <div class="chart"><h3 align="center">D1 लग्न</h3><div id="d1-svg"></div></div>
+        <div class="chart"><h3 align="center">D9 नवांश</h3><div id="d9-svg"></div></div>
     </div>
-
-    <table>
-        <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th></tr></thead>
-        <tbody id="p-table"></tbody>
-    </table>
-
-    <div style="margin-top:20px; background:#fdf2f2; padding:15px; border-left:5px solid var(--main);">
-        <b>फलादेश:</b> <span id="prediction"></span>
-    </div>
+    <div id="fala-box" style="margin-top:20px; padding:15px; background:#fef2f2; border-left:5px solid var(--maroon);"></div>
 </div>
 
 <script>
-    let lat = 24.58, lng = 73.71; // Default Banswara
+    let selectedLat = 24.58, selectedLng = 73.71;
 
-    // Initialize Location Search
-    const autocomplete = new google.maps.places.Autocomplete(document.getElementById('location'));
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        lat = place.geometry.location.lat();
-        lng = place.geometry.location.lng();
-    });
+    // मुफ़्त लोकेशन सर्च फंक्शन
+    async function searchCity() {
+        const query = document.getElementById('city-input').value;
+        if(query.length < 3) return;
+        
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+        const data = await res.json();
+        
+        let html = "";
+        data.forEach(item => {
+            html += `<div class="suggest-item" onclick="selectCity(${item.lat}, ${item.lon}, '${item.display_name}')">${item.display_name}</div>`;
+        });
+        document.getElementById('suggest-box').innerHTML = html;
+    }
 
-    async function generate() {
+    function selectCity(lat, lon, name) {
+        selectedLat = lat; selectedLng = lon;
+        document.getElementById('city-input').value = name;
+        document.getElementById('suggest-box').innerHTML = "";
+    }
+
+    async function fetchKundli() {
         const d = document.getElementById('date').value;
         const t = document.getElementById('time').value;
-        const res = await fetch(`https://heman.pythonanywhere.com/api/master_kundli?date=${d}&time=${t}&lat=${lat}&lng=${lng}`);
+        
+        // अपने पाइथन सर्वर का URL यहाँ डालें
+        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/final_v2?date=${d}&time=${t}&lat=${selectedLat}&lng=${selectedLng}`);
         const data = await res.json();
 
         document.getElementById('report').style.display = 'block';
-        document.getElementById('panchang').innerHTML = `तिथि: ${data.panchang.tithi} (${data.panchang.paksha}) | नक्षत्र: ${data.panchang.nakshtra}`;
+        document.getElementById('panchang-info').innerHTML = `तिथि: ${data.panchang.tithi} (${data.panchang.paksha}) | नक्षत्र: ${data.panchang.naks}`;
         
-        draw("d1", data.asc, data.planets);
-        // ... (Table and D9 rendering logic)
+        drawKundli("d1-svg", data.asc, data.planets);
+        
+        // फलादेश लॉजिक
+        const sun = data.planets.find(p => p.name === 'सूर्य');
+        document.getElementById('fala-box').innerHTML = `<b>फलादेश:</b> आपका लग्न ${data.asc} है। सूर्य ${sun.house}वें भाव में है, जो करियर में स्थिरता प्रदान करता है।`;
     }
 
-    function draw(container, asc, planets) {
-        // ... (SVG Drawing logic as per previous versions)
+    function drawKundli(id, asc, planets) {
+        const pos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
+        let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2"/>`;
+        for (let h = 1; h <= 12; h++) {
+            let sign = ((asc + h - 2) % 12) + 1;
+            svg += `<text x="${pos[h][0]}" y="${pos[h][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${sign}</text>`;
+            let pNames = planets.filter(p => p.house === h).map(p => p.name).join(' ');
+            if(pNames) svg += `<text x="${pos[h][0]}" y="${pos[h][1]+30}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${pNames}</text>`;
+        }
+        document.getElementById(id).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
