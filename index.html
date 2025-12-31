@@ -2,176 +2,98 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro-Vision Professional V12.0</title>
+    <title>Astro-Vision Ultra-Fix V14.0</title>
     <style>
-        :root { --maroon: #7c2d12; --gold: #fef3c7; --blue: #1e40af; }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
-        
-        .main-card { max-width: 1000px; margin: auto; background: white; color: black; padding: 25px; border: 12px double var(--maroon); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        
-        /* Input Area Styles */
-        .input-group { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; position: relative; }
-        input { padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; outline: none; }
-        .btn-fetch { background: #ea580c; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-fetch:hover { background: #c2410c; }
-
-        /* Location Dropdown */
-        #locResults { position: absolute; background: white; width: 280px; z-index: 100; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none; top: 65px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .loc-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; color: #333; }
-        .loc-item:hover { background: #f0f9ff; }
-
-        /* Report Styles */
-        .panchang-bar { background: var(--gold); border: 2px solid #d97706; padding: 15px; display: flex; justify-content: space-around; margin: 15px 0; font-weight: bold; color: var(--maroon); border-radius: 5px; }
-        .charts-flex { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .chart-wrap { flex: 1; min-width: 320px; border: 2px solid var(--maroon); padding: 10px; background: #fffcf8; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th { background: var(--maroon); color: white; padding: 12px; font-size: 15px; }
-        td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 14px; }
-        .p-name { font-weight: bold; color: var(--blue); }
-        
-        .loader { display: none; color: white; margin: 10px; font-style: italic; }
+        :root { --maroon: #7c2d12; --gold: #fefce8; }
+        body { background: #0f172a; color: #333; font-family: 'Arial', sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border: 10px double var(--maroon); }
+        .panchang { background: var(--gold); border: 2px solid #d97706; padding: 15px; display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 25px; }
+        .chart-row { display: flex; gap: 20px; margin-bottom: 30px; }
+        .chart-box { flex: 1; border: 2px solid var(--maroon); background: #fffcf9; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--maroon); color: white; padding: 10px; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .planet-name { color: #1e40af; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="input-group">
-    <input type="text" id="uName" placeholder="व्यक्ति का नाम" value="Hemant Purohit">
-    
-    <div style="position:relative;">
-        <input type="text" id="citySearch" placeholder="शहर सर्च करें..." oninput="getLocations()" style="width:250px;">
-        <div id="locResults"></div>
+<div class="container">
+    <div align="center" style="margin-bottom: 25px; background: #1e293b; padding: 20px; border-radius: 8px;">
+        <input type="text" id="pName" placeholder="नाम" value="Hemant Purohit" style="padding:10px; width:150px;">
+        <input type="text" id="pCity" placeholder="शहर" value="Banswara" style="padding:10px; width:150px;">
+        <input type="date" id="pDate" value="1980-03-27" style="padding:10px;">
+        <input type="time" id="pTime" value="08:10" style="padding:10px;">
+        <button onclick="buildKundli()" style="padding:10px 20px; background:#ea580c; color:white; border:none; font-weight:bold; cursor:pointer;">कुंडली बनाएँ</button>
     </div>
 
-    <input type="date" id="uDate" value="1980-03-27">
-    <input type="time" id="uTime" value="08:10">
-    <button class="btn-fetch" onclick="processKundli()">कुंडली प्राप्त करें</button>
-</div>
-
-<div id="loading" class="loader" align="center">गणना की जा रही है, कृपया प्रतीक्षा करें...</div>
-
-<div id="reportArea" class="main-card" style="display:none;">
-    <h1 align="center" style="color:var(--maroon); margin-top:0;">॥ प्रोफेशनल जन्म कुंडली ॥</h1>
-    
-    <div class="panchang-bar" id="panData"></div>
-
-    <div class="charts-flex">
-        <div class="chart-wrap">
-            <h3 align="center" style="color:var(--maroon);">लग्न कुंडली (D1)</h3>
-            <div id="d1-svg"></div>
+    <div id="results" style="display:none;">
+        <div class="panchang" id="panDisplay"></div>
+        <div class="chart-row">
+            <div class="chart-box">
+                <h3 align="center">लग्न कुंडली (D1)</h3>
+                <div id="d1-svg"></div>
+            </div>
+            <div class="chart-box">
+                <h3 align="center">नवांश कुंडली (D9)</h3>
+                <div id="d9-svg"></div>
+            </div>
         </div>
-        <div class="chart-wrap">
-            <h3 align="center" style="color:var(--maroon);">नवांश कुंडली (D9)</h3>
-            <div id="d9-svg"></div>
-        </div>
+        <table>
+            <thead>
+                <tr><th>ग्रह (Name)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr>
+            </thead>
+            <tbody id="pTableBody"></tbody>
+        </table>
     </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ग्रह (Name)</th>
-                <th>राशि (Sign)</th>
-                <th>अंश (Degree)</th>
-                <th>नक्षत्र</th>
-            </tr>
-        </thead>
-        <tbody id="planetRows"></tbody>
-    </table>
 </div>
 
 <script>
-    let lat = 24.58, lng = 73.71; // Default: Banswara
+    async function buildKundli() {
+        const name = document.getElementById('pName').value;
+        const date = document.getElementById('pDate').value;
+        const time = document.getElementById('pTime').value;
+        const lat = 24.58, lng = 73.71; // Default Banswara
 
-    // 1. Location Search Logic
-    async function getLocations() {
-        const val = document.getElementById('citySearch').value;
-        if(val.length < 3) return;
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v14?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
         
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}`);
-        const data = await res.json();
-        const box = document.getElementById('locResults');
-        box.innerHTML = "";
-        box.style.display = "block";
-        
-        data.forEach(item => {
-            const d = document.createElement('div');
-            d.className = 'loc-item';
-            d.innerText = item.display_name;
-            d.onclick = () => {
-                lat = item.lat; lng = item.lon;
-                document.getElementById('citySearch').value = item.display_name;
-                box.style.display = "none";
-            };
-            box.appendChild(d);
-        });
-    }
-
-    // 2. Fetch and Render Logic
-    async function processKundli() {
-        const name = document.getElementById('uName').value;
-        const date = document.getElementById('uDate').value;
-        const time = document.getElementById('uTime').value;
-        const loader = document.getElementById('loading');
-        
-        loader.style.display = "block";
-        document.getElementById('reportArea').style.display = "none";
-
         try {
-            // आपकी PythonAnywhere URL (HTTPS के साथ)
-            const apiUrl = `https://hemantpurohit27.pythonanywhere.com/api/v12?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
-            
-            const response = await fetch(apiUrl);
-            const data = await response.json();
+            const res = await fetch(url);
+            const data = await res.json();
 
-            if(data.error) throw new Error(data.error);
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('panDisplay').innerHTML = `<span>नाम: ${name}</span> | <span>लग्न: ${data.asc}</span>`;
 
-            // Display Report
-            document.getElementById('reportArea').style.display = "block";
-            document.getElementById('panData').innerHTML = `
-                <span>नाम: ${name}</span> | 
-                <span>स्थान: ${document.getElementById('citySearch').value.split(',')[0]}</span> | 
-                <span>लग्न राशि: ${data.asc}</span>
-            `;
-
-            // Table Data
-            let html = "";
+            let rows = "";
             data.planets.forEach(p => {
-                html += `<tr><td class="p-name">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.naks || '---'}</td></tr>`;
+                rows += `<tr><td class="planet-name">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
             });
-            document.getElementById('planetRows').innerHTML = html;
+            document.getElementById('pTableBody').innerHTML = rows;
 
-            // Draw Charts
-            drawVedicChart("d1-svg", data.asc, data.planets, 'd1');
-            drawVedicChart("d9-svg", data.d9_asc, data.planets, 'd9');
+            // ड्रा चार्ट: (D1 के लिए लग्न राशि, D9 के लिए नवांश लग्न राशि)
+            drawUltraChart("d1-svg", data.asc, data.planets, 'd1');
+            drawUltraChart("d9-svg", data.d9_asc, data.planets, 'd9');
 
-        } catch (err) {
-            alert("सर्वर से कनेक्ट नहीं हो सका। सुनिश्चित करें कि PythonAnywhere पर आपकी वेब ऐप 'Running' मोड में है।");
-            console.error(err);
-        } finally {
-            loader.style.display = "none";
-        }
+        } catch (e) { alert("सर्वर त्रुटि! PythonAnywhere चेक करें।"); }
     }
 
-    // 3. Precision Chart Drawing Logic
-    function drawVedicChart(divId, lagna, planets, type) {
-        const hCoords = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
-        
+    function drawUltraChart(id, ascSign, planets, type) {
+        const hPos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
         let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
         
         for (let house = 1; house <= 12; house++) {
-            // राशि जो इस भाव में आएगी
-            let currentSign = ((lagna + house - 2) % 12) + 1;
-            svg += `<text x="${hCoords[house][0]}" y="${hCoords[house][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${currentSign}</text>`;
+            // उस भाव में कौन सी राशि आएगी (जैसे लग्न 1 है तो भाव 1 में 1, भाव 2 में 2...)
+            let signAtHouse = ((ascSign + house - 2) % 12) + 1;
+            svg += `<text x="${hPos[house][0]}" y="${hPos[house][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${signAtHouse}</text>`;
             
-            // ग्रह फ़िल्टरिंग: केवल वही ग्रह दिखाएँ जिनकी राशि 'currentSign' से मैच करती है
-            let matched = planets.filter(p => (type === 'd1' ? p.sign : p.d9_sign) === currentSign);
+            // "The Ultimate Fix": ग्रह को केवल उसकी राशि (Sign) के आधार पर ही उस खाने में बैठाएं
+            let matchingPlanets = planets.filter(p => (type === 'd1' ? p.sign : p.d9_sign) === signAtHouse);
             
-            matched.forEach((p, idx) => {
-                svg += `<text x="${hCoords[house][0]}" y="${hCoords[house][1] + 25 + (idx*18)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+            matchingPlanets.forEach((p, idx) => {
+                svg += `<text x="${hPos[house][0]}" y="${hPos[house][1] + 25 + (idx*18)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
             });
         }
-        document.getElementById(divId).innerHTML = svg + `</svg>`;
+        document.getElementById(id).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
