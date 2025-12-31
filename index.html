@@ -2,77 +2,80 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Astro V90.0</title>
+    <title>Master Astro Engine V100</title>
     <style>
         :root { --main: #7c2d12; --bg: #0f172a; }
         body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
-        .card { max-width: 900px; margin: auto; background: white; color: black; padding: 25px; border: 10px double var(--main); border-radius: 8px; }
-        .inputs { background: #1e293b; padding: 15px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; color: black; padding: 20px; border: 10px double var(--main); border-radius: 8px; }
+        .input-bar { background: #1e293b; padding: 15px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
         input { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
         .btn { background: #ea580c; color: white; border: none; padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: var(--main); color: white; padding: 10px; }
-        td { border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold; }
-        .chart-svg { max-width: 450px; margin: 20px auto; border: 2px solid var(--main); background: #fffcf8; }
+        td { border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold; }
+        .kundli-box { max-width: 450px; margin: 20px auto; border: 2px solid var(--main); background: #fffcf8; }
     </style>
 </head>
 <body>
 
-<div class="inputs">
-    <input type="text" id="pName" placeholder="नाम" value="Hemant Purohit">
-    <input type="text" id="pCity" placeholder="शहर" value="Banswara">
-    <input type="date" id="pDate" value="1980-03-27">
-    <input type="time" id="pTime" value="08:10">
-    <button class="btn" onclick="runV90()">कुंडली प्राप्त करें</button>
-</div>
+<div class="container">
+    <div class="input-bar">
+        <input type="text" id="userName" placeholder="नाम" value="Hemant Purohit">
+        <input type="text" id="userCity" placeholder="शहर" value="Banswara">
+        <input type="date" id="userDate" value="1980-03-27">
+        <input type="time" id="userTime" value="08:10">
+        <button class="btn" onclick="fetchV100()">कुंडली बनाएँ</button>
+    </div>
 
-<div id="finalOutput" class="card" style="display:none;">
-    <h2 align="center" style="color:var(--main); margin:0;">॥ सटीक जन्म विवरण ॥</h2>
-    <div id="chartContainer" class="chart-svg"></div>
-    <table>
-        <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr></thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div id="results" style="display:none;">
+        <h2 align="center" style="color:var(--main); margin:0;">॥ सटीक जन्म कुंडली (KP Master) ॥</h2>
+        <div id="v100Chart" class="kundli-box"></div>
+        <table>
+            <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr></thead>
+            <tbody id="v100Table"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    async function runV90() {
-        const d = document.getElementById('pDate').value;
-        const t = document.getElementById('pTime').value;
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/v90?date=${d}&time=${t}&lat=24.58&lng=73.71`;
+    async function fetchV100() {
+        const d = document.getElementById('userDate').value;
+        const t = document.getElementById('userTime').value;
+        // URL को अपने PythonAnywhere API के साथ सिंक करें
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v100?date=${d}&time=${t}&lat=24.58&lng=73.71`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
             if(data.error) throw new Error(data.error);
 
-            document.getElementById('finalOutput').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
             
-            // तालिका (Table) - बुध-11, शुक्र-1 और मंगल-5 यहाँ फिक्स होंगे
+            // तालिका (Table) - यहाँ बुध-11, शुक्र-1 और मंगल-5 दिखाई देंगे
             let rows = "";
             data.planets.forEach(p => {
                 rows += `<tr><td style="color:blue;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
             });
-            document.getElementById('tableBody').innerHTML = rows;
+            document.getElementById('v100Table').innerHTML = rows;
 
             // चार्ट (Chart) - तालिका के आधार पर मैपिंग
-            drawKundliV90(data.asc, data.planets);
-        } catch(e) { alert("Error: " + e.message); }
+            renderMasterChart(data.asc, data.planets);
+        } catch(e) { alert("सर्वर एरर: रिलोड करें और फिर प्रयास करें।"); }
     }
 
-    function drawKundliV90(asc, planets) {
-        const h = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
+    function renderMasterChart(asc, planets) {
+        const coords = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
         let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
         
         for (let i = 1; i <= 12; i++) {
             let sNum = ((asc + i - 2) % 12) + 1;
-            svg += `<text x="${h[i][0]}" y="${h[i][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
             let matched = planets.filter(p => p.sign === sNum);
             matched.forEach((p, idx) => {
-                svg += `<text x="${h[i][0]}" y="${h[i][1] + 25 + (idx*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+                svg += `<text x="${coords[i][0]}" y="${coords[i][1] + 25 + (idx*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
             });
         }
-        document.getElementById('chartContainer').innerHTML = svg + `</svg>`;
+        document.getElementById('v100Chart').innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
