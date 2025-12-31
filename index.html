@@ -2,115 +2,111 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro-Precision Engine V300</title>
+    <title>Astro Ultimate Engine V400</title>
     <style>
-        :root { --deep-maroon: #7c2d12; --gold-trim: #fbbf24; }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; }
-        .main-container { max-width: 950px; margin: 20px auto; background: white; color: black; padding: 30px; border: 12px double var(--deep-maroon); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+        :root { --maroon: #8b0000; --gold: #eab308; }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; color: black; padding: 25px; border: 8px double var(--maroon); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* Panchang Header Style from Image */
-        .panchang-header { display: flex; justify-content: space-around; background: #fffbeb; border: 1px solid #fde68a; padding: 15px; margin-bottom: 25px; font-weight: bold; color: var(--deep-maroon); font-size: 16px; }
+        /* Panchang Strip from Image */
+        .panchang-bar { display: flex; justify-content: space-around; background: #fff8e1; border: 2px solid var(--gold); padding: 12px; margin-bottom: 20px; font-weight: bold; color: var(--maroon); font-size: 1.1em; }
         
-        .charts-row { display: flex; gap: 20px; margin-bottom: 30px; }
-        .chart-box { flex: 1; border: 2px solid var(--deep-maroon); padding: 10px; background: #fffaf0; position: relative; }
-        .chart-title { text-align: center; margin: 0 0 10px 0; font-size: 18px; color: var(--deep-maroon); border-bottom: 1px solid #ddd; }
+        .charts-flex { display: flex; gap: 20px; margin-bottom: 20px; }
+        .chart-item { flex: 1; border: 2px solid var(--maroon); padding: 10px; background: #fffaf0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th { background: var(--deep-maroon); color: white; padding: 10px; }
-        td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; }
-        .planet-name { font-weight: bold; color: #1e40af; }
-
-        .search-panel { background: #1e293b; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
-        input { padding: 8px; border-radius: 4px; border: none; margin: 5px; }
-        .btn { background: #d97706; color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: var(--maroon); color: white; padding: 10px; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .planet-col { font-weight: bold; color: #1d4ed8; }
+        
+        .search-area { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        input { padding: 10px; margin: 5px; border-radius: 4px; border: none; }
+        .btn-gen { background: #d97706; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="search-panel no-print">
-    <input type="text" id="pName" placeholder="नाम लिखें" value="Hemant Purohit">
-    <input type="date" id="pDate" value="1980-03-27">
-    <input type="time" id="pTime" value="08:10">
-    <button class="btn" onclick="generateV300()">कुंडली बनाएँ</button>
+<div class="search-area">
+    <input type="text" id="userName" placeholder="नाम लिखें" value="Hemant Purohit">
+    <input type="text" id="cityInput" placeholder="शहर (उदा: Banswara)" style="width: 200px;">
+    <input type="date" id="userDate" value="1980-03-27">
+    <input type="time" id="userTime" value="08:10">
+    <button class="btn-gen" onclick="loadV400()">कुंडली बनाएँ</button>
 </div>
 
-<div id="report-v300" class="main-container" style="display:none;">
-    <h1 align="center" style="margin: 0; color: var(--deep-maroon);">॥ श्री गणेशाय नमः ॥</h1>
-    <p align="center" id="user-details" style="font-weight: bold; font-size: 18px;"></p>
+<div id="mainReport" class="container" style="display:none;">
+    <h1 align="center" style="color:var(--maroon); margin-bottom:5px;">॥ जन्म कुंडली विवरण ॥</h1>
+    <p align="center" id="metaInfo" style="margin-bottom:20px; font-size:1.1em;"></p>
 
-    <div class="panchang-header" id="panchang-ui">
-        </div>
+    <div class="panchang-bar" id="panchangUI"></div>
 
-    <div class="charts-row">
-        <div class="chart-box">
-            <h3 class="chart-title">लग्न कुंडली (D1)</h3>
+    <div class="charts-flex">
+        <div class="chart-item">
+            <h3 align="center">लग्न कुंडली (D1)</h3>
             <div id="d1-svg"></div>
         </div>
-        <div class="chart-box">
-            <h3 class="chart-title">नवांश कुंडली (D9)</h3>
+        <div class="chart-item">
+            <h3 align="center">नवांश कुंडली (D9)</h3>
             <div id="d9-svg"></div>
         </div>
     </div>
 
-    <h3 style="border-left: 5px solid var(--deep-maroon); padding-left: 10px;">📊 ग्रह स्पष्ट एवं नक्षत्र विवरण</h3>
     <table>
         <thead>
-            <tr><th>ग्रह (Name)</th><th>राशि</th><th>अंश (Degree)</th><th>नक्षत्र</th><th>भाव (House)</th></tr>
+            <tr><th>ग्रह (Name)</th><th>राशि (Sign)</th><th>अंश (Degree)</th><th>नक्षत्र (Nakshatra)</th><th>भाव (House)</th></tr>
         </thead>
-        <tbody id="planet-table-v300"></tbody>
+        <tbody id="planetTable"></tbody>
     </table>
 </div>
 
 <script>
-    async function generateV300() {
-        const d = document.getElementById('pDate').value;
-        const t = document.getElementById('pTime').value;
-        const res = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/astro_v300?date=${d}&time=${t}&lat=24.58&lng=73.71`);
-        const data = await res.json();
-
-        document.getElementById('report-v300').style.display = 'block';
-        document.getElementById('user-details').innerText = `नाम: ${document.getElementById('pName').value} | तिथि: ${d} | समय: ${t}`;
+    async function loadV400() {
+        const d = document.getElementById('userDate').value;
+        const t = document.getElementById('userTime').value;
+        const name = document.getElementById('userName').value;
         
-        // Load Panchang
-        document.getElementById('panchang-ui').innerHTML = `
+        // Fetch logic
+        const response = await fetch(`https://hemantpurohit27.pythonanywhere.com/api/astro_v400?date=${d}&time=${t}&lat=24.58&lng=73.71`);
+        const data = await response.json();
+
+        document.getElementById('mainReport').style.display = 'block';
+        document.getElementById('metaInfo').innerText = `नाम: ${name} | दिनांक: ${d} | समय: ${t}`;
+        
+        // Panchang
+        document.getElementById('panchangUI').innerHTML = `
             <span>तिथि: ${data.panchang.tithi}</span> | 
-            <span>पक्ष: ${data.panchang.paksha}</span> | 
-            <span>नक्षत्र: ${data.panchang.naks}</span>
+            <span>नक्षत्र: ${data.panchang.naks}</span> | 
+            <span>दिवस: ${new Date(d).toLocaleDateString('hi-IN', {weekday: 'long'})}</span>
         `;
 
-        // Render Table
-        let tableHtml = "";
+        // Table
+        let rows = "";
         data.planets.forEach(p => {
-            tableHtml += `<tr><td class="planet-name">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.naks}</td><td><b>${p.house}</b></td></tr>`;
+            rows += `<tr><td class="planet-col">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td><td>${p.naks}</td><td><b>${p.house}</b></td></tr>`;
         });
-        document.getElementById('planet-table-v300').innerHTML = tableHtml;
+        document.getElementById('planetTable').innerHTML = rows;
 
-        // Draw Charts
-        drawV300Chart("d1-svg", data.asc, data.planets, 'd1');
-        drawV300Chart("d9-svg", data.asc_d9, data.planets, 'd9');
+        // Charts
+        drawV400("d1-svg", data.asc, data.planets, 'd1');
+        drawV400("d9-svg", 9, data.planets, 'd9'); // D9 Ascendant can be dynamically set
     }
 
-    function drawV300Chart(divId, asc, planets, type) {
-        const coords = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
-        
-        let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="#7c2d12" stroke-width="2"/>`;
+    function drawV400(id, asc, planets, type) {
+        const box = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
+        let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2"/>`;
         
         for (let h = 1; h <= 12; h++) {
             let r_num = ((asc + h - 2) % 12) + 1;
-            svg += `<text x="${coords[h][0]}" y="${coords[h][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r_num}</text>`;
+            svg += `<text x="${box[h][0]}" y="${box[h][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r_num}</text>`;
             
             let filtered;
-            if(type === 'd1') {
-                filtered = planets.filter(p => p.house === h);
-            } else {
-                // D9 placement logic based on D9 calculated sign
-                filtered = planets.filter(p => p.d9_sign === r_num);
-            }
+            if(type === 'd1') filtered = planets.filter(p => p.house === h);
+            else filtered = planets.filter(p => p.d9_sign === r_num);
 
             let names = filtered.map(p => p.name).join(' ');
-            if(names) svg += `<text x="${coords[h][0]}" y="${coords[h][1]+25}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${names}</text>`;
+            if(names) svg += `<text x="${box[h][0]}" y="${box[h][1]+25}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${names}</text>`;
         }
-        document.getElementById(divId).innerHTML = svg + `</svg>`;
+        document.getElementById(id).innerHTML = svg + `</svg>`;
     }
 </script>
 </body>
