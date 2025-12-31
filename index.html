@@ -1,61 +1,101 @@
-<div class="controls" style="background:#1e293b; padding:15px; border-radius:8px; display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
-    <input type="text" id="uName" placeholder="नाम" value="Hemant Purohit" style="width:150px;">
-    <input type="text" id="uCity" placeholder="शहर" value="Banswara" style="width:150px;">
-    <input type="date" id="uDate" value="1980-03-27">
-    <input type="time" id="uTime" value="08:10">
-    <button onclick="runV80()" style="background:#ea580c; color:white; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">कुंडली जनरेट करें</button>
-</div>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Universal V81.0</title>
+    <style>
+        :root { --main: #7c2d12; --bg: #0f172a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; padding: 15px; }
+        .app-container { max-width: 800px; margin: auto; background: white; color: black; padding: 20px; border: 10px double var(--main); border-radius: 12px; }
+        .input-group { background: #1e293b; padding: 15px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+        .btn-run { background: #ea580c; color: white; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .chart-svg { border: 2px solid var(--main); background: #fffcf8; width: 100%; max-width: 450px; margin: 20px auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: var(--main); color: white; padding: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-<div id="reportCard" style="display:none; background:white; color:black; padding:20px; border:8px double #7c2d12;">
-    <h3 align="center" id="metaTitle" style="color:#7c2d12;"></h3>
-    <div id="v80Chart" style="max-width:400px; margin:auto;"></div>
-    <table border="1" style="width:100%; border-collapse:collapse; margin-top:20px; text-align:center;">
-        <thead style="background:#7c2d12; color:white;">
-            <tr><th>ग्रह (Planet)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr>
-        </thead>
-        <tbody id="v80Table"></tbody>
-    </table>
+<div class="app-container">
+    <div class="input-group">
+        <input type="text" id="name" placeholder="नाम" value="Hemant Purohit" style="width:140px;">
+        <input type="text" id="city" placeholder="शहर" value="Banswara" style="width:140px;">
+        <input type="date" id="date" value="1980-03-27">
+        <input type="time" id="time" value="08:10">
+        <button class="btn-run" onclick="generateV81()">कुंडली बनाएँ</button>
+    </div>
+
+    <div id="output" style="display:none;">
+        <h2 align="center" style="color:var(--main); margin-bottom:5px;">॥ सटीक जन्म कुंडली ॥</h2>
+        <div id="infoBar" align="center" style="font-weight:bold; color:var(--main); margin-bottom:15px;"></div>
+
+        <div id="chartDisplay" class="chart-svg"></div>
+
+        <table>
+            <thead>
+                <tr><th>ग्रह (Planet)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    async function runV80() {
-        const d = document.getElementById('uDate').value;
-        const t = document.getElementById('uTime').value;
-        const url = `https://hemantpurohit27.pythonanywhere.com/api/v80?date=${d}&time=${t}&lat=24.58&lng=73.71`;
+    async function generateV81() {
+        const d = document.getElementById('date').value;
+        const t = document.getElementById('time').value;
+        const n = document.getElementById('name').value;
+        const c = document.getElementById('city').value;
+        
+        // अपने PythonAnywhere URL के साथ सिंक करें
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v81?date=${d}&time=${t}&lat=24.58&lng=73.71`;
 
         try {
             const res = await fetch(url);
             const data = await res.json();
-            if(data.error) throw new Error(data.error);
+            
+            if(data.error) {
+                alert("सर्वर एरर: " + data.error);
+                return;
+            }
 
-            document.getElementById('reportCard').style.display = 'block';
-            document.getElementById('metaTitle').innerText = `॥ ${document.getElementById('uName').value} - सटीक KP विवरण ॥`;
+            document.getElementById('output').style.display = 'block';
+            document.getElementById('infoBar').innerText = `${n} | ${c} | लग्न राशि: ${data.asc}`;
 
-            // तालिका और चार्ट दोनों के लिए एक ही लूप का उपयोग
+            // टेबल अपडेट
             let rows = "";
             data.planets.forEach(p => {
-                rows += `<tr><td style="color:blue; font-weight:bold;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
+                rows += `<tr><td style="color:blue;">${p.name}</td><td>${p.sign}</td><td>${p.deg}°</td></tr>`;
             });
-            document.getElementById('v80Table').innerHTML = rows;
+            document.getElementById('dataTable').innerHTML = rows;
 
-            drawPreciseChart("v80Chart", data.asc, data.planets);
-        } catch(e) { alert("Error: बैकएंड v80 चेक करें!"); }
+            // चार्ट अपडेट (Zodiac Logic)
+            drawV81(data.asc, data.planets);
+
+        } catch(e) {
+            alert("त्रुटि: बैकएंड v81 लोड नहीं हुआ। कृपया PythonAnywhere में 'Reload' बटन दबाएँ।");
+        }
     }
 
-    function drawPreciseChart(divId, asc, planets) {
-        const coords = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
+    function drawV81(asc, planets) {
+        const pts = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
         let svg = `<svg viewBox="0 0 350 350" width="100%"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
         
         for (let h = 1; h <= 12; h++) {
             let sNum = ((asc + h - 2) % 12) + 1;
-            svg += `<text x="${coords[h][0]}" y="${coords[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
+            svg += `<text x="${pts[h][0]}" y="${pts[h][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${sNum}</text>`;
             
-            // "Absolute Lock": ग्रह केवल उसी खाने में जाएगा जहाँ तालिका वाली राशि का नंबर लिखा है
+            // ग्रह केवल उसी बॉक्स में जाएगा जहाँ sNum उसकी राशि से मेल खाता है
             let matched = planets.filter(p => p.sign === sNum);
             matched.forEach((p, i) => {
-                svg += `<text x="${coords[h][0]}" y="${coords[h][1] + 25 + (i*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+                svg += `<text x="${pts[h][0]}" y="${pts[h][1] + 25 + (i*16)}" fill="blue" font-size="12" font-weight="bold" text-anchor="middle">${p.name}</text>`;
             });
         }
-        document.getElementById(divId).innerHTML = svg + `</svg>`;
+        document.getElementById('chartDisplay').innerHTML = svg + `</svg>`;
     }
 </script>
+</body>
+</html>
