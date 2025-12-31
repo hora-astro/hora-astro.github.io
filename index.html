@@ -94,9 +94,23 @@
         const date = document.getElementById('bDate').value;
         const time = document.getElementById('bTime').value;
         const name = document.getElementById('personName').value;
+        // यूजर द्वारा चुना गया शहर का नाम
+        const cityName = document.getElementById('cityInput').value;
 
-        const response = await fetch(`http://hemantpurohit27.pythonanywhere.com/api/v12?date=${date}&time=${time}&lat=${lat}&lng=${lng}`);
+// सुधरा हुआ Fetch URL
+        const url = `https://hemantpurohit27.pythonanywhere.com/api/v12?date=${date}&time=${time}&lat=${lat}&lng=${lng}&city=${encodeURIComponent(cityName)}`;
+
+try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("सर्वर से डेटा नहीं मिल सका");
         const data = await response.json();
+    
+    // कुंडली रेंडर करने का फंक्शन यहाँ बुलाएँ
+        renderAstroSoftware(data); 
+} catch (error) {
+    console.error("Error:", error);
+    alert("कुंडली लोड करने में समस्या आई। कृपया इंटरनेट या सर्वर चेक करें।");
+        }
 
         document.getElementById('finalReport').style.display = 'block';
         document.getElementById('panchangUI').innerHTML = `<span>नाम: ${name}</span> | <span>स्थान: ${document.getElementById('cityInput').value.split(',')[0]}</span> | <span>लग्न: ${data.asc}</span>`;
