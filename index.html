@@ -32,7 +32,7 @@ document.getElementById("kundliForm").addEventListener("submit", async(e)=>{
     tz: document.getElementById("tz").value
   };
 
-  let res = await fetch("https://yourusername.pythonanywhere.com/kundli",{
+  let res = await fetch("https://hemantpurohit27.pythonanywhere.com/kundli",{
     method:"POST",
     headers:{ "Content-Type":"application/json"},
     body:JSON.stringify(data)
