@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <title>Professional Kundli Calculator</title>
 <style>
-body{font-family:Arial;background:#0b1220;color:#fff;padding:20px}
+body{font-family:Arial;background:#0c1020;color:#fff;padding:20px}
 .container{max-width:780px;margin:auto}
-input,select{padding:6px;border-radius:6px;border:1px solid #888;width:100%}
-.box{background:#131e36;padding:18px;border-radius:14px;margin-top:15px}
-button{padding:10px 18px;border-radius:10px;border:0;background:#3fa7ff;color:#000;font-weight:bold}
-h2{color:#6fd1ff}
+label{margin-top:10px;display:block}
+input{padding:6px;width:100%;border-radius:6px;border:1px solid #777}
+.box{background:#141d33;padding:18px;border-radius:14px;margin-top:15px}
+button{padding:10px 18px;border-radius:10px;border:0;background:#5fc6ff;color:#000;font-weight:bold}
 pre{background:#000;padding:15px;border-radius:10px}
 </style>
 </head>
@@ -17,7 +17,7 @@ pre{background:#000;padding:15px;border-radius:10px}
 <body>
 <div class="container">
 
-<h1>Professional Kundli Calculator (Sidereal – Lahiri)</h1>
+<h2>Professional Kundli Calculator — Lahiri</h2>
 
 <div class="box">
 <label>DOB</label>
@@ -26,127 +26,122 @@ pre{background:#000;padding:15px;border-radius:10px}
 <label>Time</label>
 <input type="time" id="tob" step="60">
 
-<label>Latitude (°N)</label>
-<input type="number" id="lat" step="0.0001" value="24.48">
+<label>Latitude</label>
+<input id="lat" value="24.48">
 
-<label>Longitude (°E)</label>
-<input type="number" id="lon" step="0.0001" value="74.44">
+<label>Longitude</label>
+<input id="lon" value="74.44">
 
-<label>Timezone (IST = 5.5)</label>
-<input type="number" id="tz" step="0.1" value="5.5">
+<label>Timezone (IST=5.5)</label>
+<input id="tz" value="5.5">
 
-<button onclick="calculate()">Generate Kundli</button>
+<button onclick="calc()">Generate</button>
 </div>
 
 <div class="box">
-<h2>Result</h2>
 <pre id="out"></pre>
 </div>
 
 <script>
-/* ————— Utility ————— */
-function toRad(d){ return d*Math.PI/180; }
-function toDeg(r){ return r*180/Math.PI; }
+function rad(x){return x*Math.PI/180}
+function deg(x){return x*180/Math.PI}
 
-/* ————— Julian Day ————— */
-function julianDay(y,m,d,h){
+/* Julian Day */
+function JD(y,m,d,h){
  if(m<=2){y--;m+=12;}
- let A=Math.floor(y/100);
- let B=2-A+Math.floor(A/4);
- return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+h/24;
+ let A=Math.floor(y/100)
+ let B=2-A+Math.floor(A/4)
+ return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+h/24
 }
 
-/* ————— Ayanamsa (Lahiri) ————— */
-function lahiriAyanamsa(T){
- // Approx formula aligned to 285 CE = zero
- return 22.460148 + 1.396042*T + 0.000308*T*T;
+/* Lahiri Ayanamsa */
+function ayan(T){
+ return 22.460148 + 1.396042*T + 0.000308*T*T
 }
 
-/* ————— Solar longitude ————— */
-function solarLongitude(T){
- let L0=280.46646+36000.76983*T+0.0003032*T*T;
- let M=357.52911+35999.05029*T-0.0001537*T*T;
- let e=0.016708634-0.000042037*T-0.0000001267*T*T;
- let C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(toRad(M))
-     +(0.019993-0.000101*T)*Math.sin(toRad(2*M))
-     +0.000289*Math.sin(toRad(3*M));
- let trueLong=L0+C;
- return (trueLong%360+360)%360;
+/* True obliquity */
+function eps(T){
+ return 23.439291-0.0130042*T
 }
 
-/* ————— Moon longitude (Meeus short) ————— */
-function moonLongitude(T){
- let L=218.3164477+481267.88123421*T-0.0015786*T*T;
- let D=297.8501921+445267.1114034*T-0.0018819*T*T;
- let M=357.5291092+35999.0502909*T-0.0001535*T*T;
- let Mp=134.9633964+477198.8675055*T+0.0087414*T*T;
- let F=93.2720950+483202.0175233*T-0.0036539*T*T;
+/* Meeus high-accuracy Moon longitude */
+function moonLon(T){
+ let L=218.3164477+481267.88123421*T
+ let D=297.8501921+445267.1114034*T
+ let M=357.5291092+35999.0502909*T
+ let Mp=134.9633964+477198.8675055*T
+ let F=93.2720950+483202.0175233*T
 
  let lon=L
-  +6.289*Math.sin(toRad(Mp))
-  +1.274*Math.sin(toRad(2*D-Mp))
-  +0.658*Math.sin(toRad(2*D))
-  +0.214*Math.sin(toRad(2*Mp))
-  -0.186*Math.sin(toRad(M))
-  -0.114*Math.sin(toRad(2*F));
-
- return (lon%360+360)%360;
+ +6.289*Math.sin(rad(Mp))
+ +1.274*Math.sin(rad(2*D-Mp))
+ +0.658*Math.sin(rad(2*D))
+ +0.214*Math.sin(rad(2*Mp))
+ -0.186*Math.sin(rad(M))
+ -0.114*Math.sin(rad(2*F))
+ -0.059*Math.sin(rad(2*D-M- Mp))
+ -0.057*Math.sin(rad(2*D-M))
+ +0.053*Math.sin(rad(2*D+Mp))
+ +0.046*Math.sin(rad(2*D-M))
+ +0.041*Math.sin(rad(Mp-M))
+ return (lon%360+360)%360
 }
 
-/* ————— Local Sidereal Time ————— */
-function lst(jd,lon){
- let T=(jd-2451545)/36525;
- let theta=280.46061837+360.98564736629*(jd-2451545)
-   +0.000387933*T*T-(T*T*T)/38710000;
- theta=(theta+lon)%360;
- return (theta+360)%360;
+/* Sun longitude */
+function sunLon(T){
+ let L0=280.46646+36000.76983*T
+ let M=357.52911+35999.05029*T
+ let C=(1.914602-0.004817*T)*Math.sin(rad(M))
+     +(0.019993)*Math.sin(rad(2*M))
+     +0.000289*Math.sin(rad(3*M))
+ return (L0+C)%360
 }
 
-/* ————— Ascendant ————— */
-function ascendant(lst,lat,ecl){
- lat=toRad(lat);
- let eps=toRad(ecl);
- let H=toRad(lst);
- let tanA = (Math.cos(H))/(-Math.sin(H)*Math.sin(lat)+Math.cos(lat)/Math.tan(eps));
- let A=toDeg(Math.atan(tanA));
- if(Math.sin(H)>0)A+=180;
- return (A+360)%360;
+/* Local Sidereal Time */
+function LST(jd,lon){
+ let T=(jd-2451545)/36525
+ let th=280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T-(T*T*T)/38710000
+ return (th+lon)%360
 }
 
-/* ————— Zodiac name ————— */
-let rashi=["Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya","Tula","Vrishchika","Dhanu","Makara","Kumbha","Meena"];
-function zname(x){ return rashi[Math.floor(x/30)]; }
+/* Ascendant */
+function asc(lst,lat,eps){
+ lat=rad(lat); eps=rad(eps); lst=rad(lst)
+ let A=Math.atan2(
+   -Math.cos(lst),
+   Math.sin(lst)*Math.cos(eps)+Math.tan(lat)*Math.sin(eps)
+ )
+ return (deg(A)+180+360)%360
+}
 
-/* ————— Main ————— */
-function calculate(){
+let rash=["Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya","Tula","Vrishchika","Dhanu","Makara","Kumbha","Meena"]
+function rname(x){return rash[Math.floor(x/30)]}
 
- let d=new Date(document.getElementById("dob").value);
- let t=document.getElementById("tob").value.split(":");
- let hh=parseInt(t[0]), mm=parseInt(t[1]);
- let tz=parseFloat(document.getElementById("tz").value);
- let lat=parseFloat(document.getElementById("lat").value);
- let lon=parseFloat(document.getElementById("lon").value);
+function calc(){
+ let d=new Date(document.getElementById("dob").value)
+ let t=document.getElementById("tob").value.split(":")
+ let y=d.getFullYear(), m=d.getMonth()+1, dy=d.getDate()
+ let tz=parseFloat(tz.value)
+ let UT=parseInt(t[0])+parseInt(t[1])/60 - tz
 
- let y=d.getFullYear(), m=d.getMonth()+1, dd=d.getDate();
- let UT=hh+mm/60 - tz;
- let jd=julianDay(y,m,dd,UT);
- let T=(jd-2451545)/36525;
+ let jd=JD(y,m,dy,UT)
+ let T=(jd-2451545)/36525
 
- let ay=lahiriAyanamsa(T);
+ let ay=ayan(T)
+ let epsT=eps(T)
 
- let sun=(solarLongitude(T)-ay+360)%360;
- let moon=(moonLongitude(T)-ay+360)%360;
+ let sun=(sunLon(T)-ay+360)%360
+ let moon=(moonLon(T)-ay+360)%360
 
- let ecl=23.439291-0.0130042*T;
- let LST=lst(jd,lon);
- let asc=(ascendant(LST,lat,ecl)-ay+360)%360;
+ let lst=LST(jd,parseFloat(lon.value))
+ let as=(asc(lst,parseFloat(lat.value),epsT)-ay+360)%360
 
- document.getElementById("out").innerText=
- "Julian Day : "+jd.toFixed(6)+"\n\n"+
- "Ayanamsa   : "+ay.toFixed(6)+"°\n\n"+
- "Ascendant  : "+asc.toFixed(3)+"°  ("+zname(asc)+")\n"+
- "Sun        : "+sun.toFixed(3)+"°  ("+zname(sun)+")\n"+
- "Moon       : "+moon.toFixed(3)+"°  ("+zname(moon)+")\n";
+ out.innerText=
+ "JD      : "+jd.toFixed(6)+"\n\n"+
+ "Ayanamsa: "+ay.toFixed(6)+"°\n\n"+
+ "Asc     : "+as.toFixed(3)+"°  ("+rname(as)+")\n"+
+ "Sun     : "+sun.toFixed(3)+"°  ("+rname(sun)+")\n"+
+ "Moon    : "+moon.toFixed(3)+"°  ("+rname(moon)+")\n"
 }
 </script>
 
