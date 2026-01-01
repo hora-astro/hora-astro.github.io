@@ -1,91 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Universal KP + Vedic Professional Kundli</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{font-family:Arial;background:#0c1224;color:#fff;margin:0}
-.container{max-width:1100px;margin:auto;padding:20px}
-.card{background:#111c33;padding:20px;border-radius:12px;margin-bottom:20px}
-input{padding:8px;border-radius:6px;border:none;width:100%}
-label{font-size:14px}
-button{padding:10px 18px;border:none;border-radius:6px;background:#4aa3ff;color:#000;font-weight:bold}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-table{width:100%;border-collapse:collapse}
-td,th{padding:6px;border-bottom:1px solid #223}
-h2{margin:5px 0}
-</style>
-
-<script src="https://unpkg.com/sweph"></script>
-<script src="kundli-engine.js"></script>
+  <title>Kundli Generator</title>
 </head>
-
 <body>
-<div class="container">
 
-<h2>Universal Professional KP Kundli Software</h2>
+<h2>Kundli Details</h2>
 
-<div class="card">
-<div class="grid">
-<div>
-<label>Date</label>
-<input id="dob" type="date">
-</div>
-<div>
-<label>Time</label>
-<input id="tob" type="time" step="1">
-</div>
-<div>
-<label>Latitude</label>
-<input id="lat" placeholder="23.546">
-</div>
-<div>
-<label>Longitude</label>
-<input id="lon" placeholder="74.438">
-</div>
-<div>
-<label>Timezone</label>
-<input id="tz" value="5.5">
-</div>
-<div>
-<br>
-<button onclick="generateKundli()">Generate Kundli</button>
-</div>
-</div>
-</div>
+<form id="kundliForm">
+  DOB: <input type="date" id="dob"><br><br>
+  TOB: <input type="time" id="tob"><br><br>
+  Latitude: <input type="text" id="lat"><br><br>
+  Longitude: <input type="text" id="lon"><br><br>
+  Timezone: <input type="text" id="tz" value="5.5"><br><br>
 
-<div class="card">
-<h3>D-1 Rashi Chart</h3>
-<div id="d1"></div>
-</div>
+  <button type="submit">Generate Kundli</button>
+</form>
 
-<div class="card">
-<h3>D-9 Navamsa</h3>
-<div id="d9"></div>
-</div>
+<h3>Result:</h3>
+<pre id="result"></pre>
 
-<div class="card">
-<h3>Nirayana Planetary Positions</h3>
-<div id="planets"></div>
-</div>
+<script>
+document.getElementById("kundliForm").addEventListener("submit", async(e)=>{
+  e.preventDefault();
 
-<div class="card">
-<h3>KP Sub-Lord</h3>
-<div id="kp"></div>
-</div>
+  let data = {
+    dob: document.getElementById("dob").value,
+    tob: document.getElementById("tob").value,
+    lat: document.getElementById("lat").value,
+    lon: document.getElementById("lon").value,
+    tz: document.getElementById("tz").value
+  };
 
-<div class="card">
-<h3>Panchang</h3>
-<div id="panchang"></div>
-</div>
+  let res = await fetch("https://yourusername.pythonanywhere.com/kundli",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
 
-<div class="card">
-<h3>Vimshottari Dasha</h3>
-<div id="dasha"></div>
-</div>
+  let json = await res.json();
+  document.getElementById("result").innerText = JSON.stringify(json, null, 2);
+});
+</script>
 
-</div>
 </body>
 </html>
