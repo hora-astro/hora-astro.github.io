@@ -2,162 +2,89 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>KP Professional Kundli</title>
+<title>Universal KP + Vedic Professional Kundli</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body{font-family:Segoe UI,Arial;background:#0e1323;color:#fff;margin:0}
-.app{max-width:1000px;margin:auto;padding:20px}
-.card{background:#151d36;padding:18px;border-radius:14px;margin-top:14px}
-input{padding:7px;border-radius:7px;border:1px solid #777;width:100%}
-label{display:block;margin-top:6px}
-button{padding:10px 18px;border:0;border-radius:10px;background:#68c3ff;color:#000;font-weight:bold}
-h2{color:#8ed2ff}
+body{font-family:Arial;background:#0c1224;color:#fff;margin:0}
+.container{max-width:1100px;margin:auto;padding:20px}
+.card{background:#111c33;padding:20px;border-radius:12px;margin-bottom:20px}
+input{padding:8px;border-radius:6px;border:none;width:100%}
+label{font-size:14px}
+button{padding:10px 18px;border:none;border-radius:6px;background:#4aa3ff;color:#000;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 table{width:100%;border-collapse:collapse}
-td,th{padding:8px;border-bottom:1px solid #2a355c}
-pre{background:#000;padding:12px;border-radius:10px}
-.chart{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.chart div{border:1px solid #4a5fa6;border-radius:10px;min-height:60px;padding:8px}
+td,th{padding:6px;border-bottom:1px solid #223}
+h2{margin:5px 0}
 </style>
+
+<script src="https://unpkg.com/sweph"></script>
+<script src="kundli-engine.js"></script>
 </head>
 
 <body>
-<div class="app">
+<div class="container">
 
-<h2>KP Professional Kundli Software</h2>
+<h2>Universal Professional KP Kundli Software</h2>
 
 <div class="card">
-<label>DOB</label><input type="date" id="dob">
-<label>Time</label><input type="time" id="tob" step="60">
-<label>Latitude</label><input id="lat" value="24.48">
-<label>Longitude</label><input id="lon" value="74.44">
-<label>Timezone (IST=5.5)</label><input id="tz" value="5.5">
-<button onclick="run()">Generate</button>
+<div class="grid">
+<div>
+<label>Date</label>
+<input id="dob" type="date">
+</div>
+<div>
+<label>Time</label>
+<input id="tob" type="time" step="1">
+</div>
+<div>
+<label>Latitude</label>
+<input id="lat" placeholder="23.546">
+</div>
+<div>
+<label>Longitude</label>
+<input id="lon" placeholder="74.438">
+</div>
+<div>
+<label>Timezone</label>
+<input id="tz" value="5.5">
+</div>
+<div>
+<br>
+<button onclick="generateKundli()">Generate Kundli</button>
+</div>
+</div>
 </div>
 
-<div class="card"><h3>Birth Details</h3><pre id="bd"></pre></div>
-<div class="card"><h3>Panchang</h3><pre id="pan"></pre></div>
-<div class="card"><h3>KP Planetary Table (Nirayana)</h3><div id="plan"></div></div>
-<div class="card"><h3>D1 Rashi</h3><div class="chart" id="d1"></div></div>
-<div class="card"><h3>D9 Navamsa</h3><div class="chart" id="d9"></div></div>
-<div class="card"><h3>Vimshottari Dasha</h3><pre id="dash"></pre></div>
-<div class="card"><h3>Faladesh</h3><pre id="fal"></pre></div>
+<div class="card">
+<h3>D-1 Rashi Chart</h3>
+<div id="d1"></div>
+</div>
 
-<script>
-function r(x){return x*Math.PI/180}
-function d(x){return x*180/Math.PI}
-let N=["Ash","Bha","Kri","Roh","Mri","Ard","Pun","Push","Ashl","Magh","Purv","Utt","Hasta","Chit","Swat","Vish","Anu","Jyes","Mool","PurvAsh","UttAsh","Shr","Dhan","Shat","PBh","UBh","Rev"]
-let rash=["Mes","Vri","Mit","Kar","Sim","Kan","Tul","Vri","Dha","Mak","Kum","Mee"]
+<div class="card">
+<h3>D-9 Navamsa</h3>
+<div id="d9"></div>
+</div>
 
-function JD(y,m,day,h){
- if(m<=2){y--;m+=12}
- let A=Math.floor(y/100),B=2-A+Math.floor(A/4)
- return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+day+B-1524.5+h/24
-}
+<div class="card">
+<h3>Nirayana Planetary Positions</h3>
+<div id="planets"></div>
+</div>
 
-function ay(T){return 22.460148+1.396042*T+0.000308*T*T}
-function eps(T){return 23.439291-0.0130042*T}
+<div class="card">
+<h3>KP Sub-Lord</h3>
+<div id="kp"></div>
+</div>
 
-function moon(T){
- let L=218.3164477+481267.88123421*T
- let D=297.8501921+445267.1114034*T
- let M=357.5291092+35999.0502909*T
- let Mp=134.9633964+477198.8675055*T
- let F=93.2720950+483202.0175233*T
- return (L
- +6.289*Math.sin(r(Mp))
- +1.274*Math.sin(r(2*D-Mp))
- +0.658*Math.sin(r(2*D))
- +0.214*Math.sin(r(2*Mp))
- -0.186*Math.sin(r(M))
- -0.114*Math.sin(r(2*F))
- )%360
-}
+<div class="card">
+<h3>Panchang</h3>
+<div id="panchang"></div>
+</div>
 
-function sun(T){
- let L0=280.46646+36000.76983*T
- let M=357.52911+35999.05029*T
- let C=1.914602*Math.sin(r(M))+0.019993*Math.sin(r(2*M))
- return (L0+C)%360
-}
-
-function lst(jd,lon){
- let T=(jd-2451545)/36525
- let th=280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T
- return (th+lon)%360
-}
-
-function asc(L,lat,e){
- lat=r(lat);e=r(e);L=r(L)
- let A=Math.atan2(-Math.cos(L),Math.sin(L)*Math.cos(e)+Math.tan(lat)*Math.sin(e))
- return (d(A)+180+360)%360
-}
-
-function nak(x){
- let n=Math.floor(x/13.3333333)
- let pada=Math.floor((x%13.3333)/3.3333)+1
- return N[n]+"-"+pada
-}
-
-function dashStart(moon){
- let lord=["Ket","Ven","Sun","Mon","Mar","Rah","Jup","Sat","Mer"]
- let pos=(moon/13.3333)%9
- let l=Math.floor(moon/13.3333)
- return lord[l]
-}
-
-function run(){
- let d=new Date(dob.value)
- let t=tob.value.split(":")
- let UT=t[0]*1+t[1]/60 - tz.value
- let jd=JD(d.getFullYear(),d.getMonth()+1,d.getDate(),UT)
- let T=(jd-2451545)/36525
- let A=ay(T)
- let e=eps(T)
- let LST=lst(jd,lon.value*1)
- let ascS=(asc(LST,lat.value*1,e)-A+360)%360
- let sunS=(sun(T)-A+360)%360
- let moonS=(moon(T)-A+360)%360
-
- bd.innerText=`JD : ${jd.toFixed(5)}
-Ayanamsa : ${A.toFixed(6)}°
-Ascendant : ${ascS.toFixed(3)}° (${rash[Math.floor(ascS/30)]})
-Sun : ${sunS.toFixed(3)}° (${rash[Math.floor(sunS/30)]})
-Moon : ${moonS.toFixed(3)}° (${rash[Math.floor(moonS/30)]})
-Nakshatra : ${nak(moonS)}`
-
- pan.innerText=`Vaar : Calculated
-Tithi : Calculated
-Yoga : Calculated
-Karana : Calculated
-Nakshatra : ${nak(moonS)}`
-
- plan.innerHTML=`<table>
-<tr><th>Planet</th><th>Long</th><th>Rashi</th><th>Nakshatra</th></tr>
-<tr><td>Sun</td><td>${sunS.toFixed(3)}</td><td>${rash[Math.floor(sunS/30)]}</td><td>${nak(sunS)}</td></tr>
-<tr><td>Moon</td><td>${moonS.toFixed(3)}</td><td>${rash[Math.floor(moonS/30)]}</td><td>${nak(moonS)}</td></tr>
-</table>`
-
- let D1=new Array(12).fill("")
- D1[Math.floor(ascS/30)]="Asc"
- D1[Math.floor(sunS/30)]+=" ☉"
- D1[Math.floor(moonS/30)]+=" ☽"
-
- d1.innerHTML=D1.map((x,i)=>`<div>${rash[i]}<br>${x}</div>`).join("")
-
- let D9Moon=(Math.floor(moonS/3.3333))%12
- let D9=new Array(12).fill("")
- D9[D9Moon]="☽"
- d9.innerHTML=D9.map((x,i)=>`<div>${rash[i]}<br>${x}</div>`).join("")
-
- dash.innerText=`Vimshottari Dasha (Start) :
-${dashStart(moonS)}`
-
- fal.innerText=`Ascendant: ${rash[Math.floor(ascS/30)]}
-Personality, health, mindset विवरण…
-
-Moon in ${rash[Math.floor(moonS/30)]}
-मन, भावनाएँ, माता, पानी, यात्रा…`
-}
-</script>
+<div class="card">
+<h3>Vimshottari Dasha</h3>
+<div id="dasha"></div>
+</div>
 
 </div>
 </body>
