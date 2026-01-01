@@ -1,148 +1,100 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Hora Astro Pro | 100% Accurate Universal Software</title>
-    <style>
-        :root { --gold: #f59e0b; --bg: #0f172a; --panel: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .card { background: var(--panel); padding: 25px; border-radius: 12px; border: 1px solid #334155; }
-        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        input, button { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
-        button { background: var(--gold); color: black; font-weight: bold; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
-        
-        #city-results { position: absolute; background: white; color: black; width: 100%; z-index: 100; border-radius: 4px; display: none; }
-        #city-results div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-
-        .result-area { display: none; margin-top: 30px; }
-        .chart-flex { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .chart-box { background: white; padding: 20px; border-radius: 12px; color: black; text-align: center; min-width: 320px; }
-        svg { width: 100%; max-width: 380px; height: auto; }
-        
-        table { width: 100%; margin-top: 25px; border-collapse: collapse; background: #020617; }
-        th, td { border: 1px solid #334155; padding: 12px; text-align: left; }
-        th { color: var(--gold); }
-    </style>
+  <meta charset="UTF-8">
+  <title>Vedic Kundli Demo (Lahiri)</title>
 </head>
 <body>
+<h2>Vedic Kundli Demo – Lahiri Ayanamsa</h2>
 
-<div class="container">
-    <h1 style="text-align:center; color:var(--gold);">॥ HORA ASTRO UNIVERSAL ॥</h1>
-    <div class="card">
-        <div class="input-grid">
-            <div><label>जन्म तिथि</label><input type="date" id="dob" value="1980-03-27"></div>
-            <div><label>जन्म समय</label><input type="time" id="tob" value="08:10"></div>
-            <div style="position:relative;">
-                <label>स्थान (शहर खोजें)</label>
-                <input type="text" id="city-input" placeholder="Banswara" oninput="searchLocation()">
-                <div id="city-results"></div>
-                <input type="hidden" id="lat" value="23.5">
-                <input type="hidden" id="lon" value="74.4">
-            </div>
-        </div>
-        <button onclick="calculateAccurateKundli()">सटीक कुंडली जनरेट करें</button>
-    </div>
+<p><b>Date:</b> 27 March 1980<br>
+<b>Time:</b> 08:10 AM IST<br>
+<b>Place:</b> Banswara, Rajasthan (24.48N, 74.44E)</p>
 
-    <div id="result" class="result-area">
-        <div class="chart-flex">
-            <div id="d1-container" class="chart-box"></div>
-            <div id="d9-container" class="chart-box"></div>
-        </div>
-        <h3 style="color:var(--gold); margin-top:30px;">ग्रह स्पष्ट स्थिति (Nirayana)</h3>
-        <table>
-            <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr></thead>
-            <tbody id="planet-body"></tbody>
-        </table>
-    </div>
-</div>
+<button onclick="calculate()">Calculate</button>
+
+<pre id="out"></pre>
 
 <script>
-async function searchLocation() {
-    const q = document.getElementById('city-input').value;
-    if(q.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
-    const data = await res.json();
-    const list = document.getElementById('city-results');
-    list.innerHTML = "";
-    data.forEach(c => {
-        const d = document.createElement('div');
-        d.innerText = c.display_name;
-        d.onclick = () => {
-            document.getElementById('city-input').value = c.display_name;
-            document.getElementById('lat').value = c.lat;
-            document.getElementById('lon').value = c.lon;
-            list.style.display = 'none';
-        };
-        list.appendChild(d);
-    });
-    list.style.display = 'block';
+/* ---- Utility Functions ---- */
+
+function toRadians(d){ return d*Math.PI/180; }
+function toDegrees(r){ return r*180/Math.PI; }
+
+/* Approximate Lahiri Ayanamsa */
+function lahiriAyanamsa(JD){
+  return 22.460148 + 1.396042*( (JD-2415020)/36525 );
 }
 
-function calculateAccurateKundli() {
-    const dob = document.getElementById('dob').value;
-    const tob = document.getElementById('tob').value;
-    const lat = parseFloat(document.getElementById('lat').value);
-    const lon = parseFloat(document.getElementById('lon').value);
-    
-    const d = new Date(`${dob}T${tob}`);
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1;
-    const day = d.getDate();
-    const hours = d.getHours() + d.getMinutes()/60;
-
-    // 1. अयनांश (Lahiri Ayanamsa) - ज्योतिषीय सुधार
-    const ayan = 23.0 + (year - 1900) * 0.013 + (month * 0.001);
-
-    // 2. नक्षत्र समय (Sidereal Time) गणना - यही लग्न तय करता है
-    const jd = (367 * year) - Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) + Math.floor(275 * month / 9) + day + 1721013.5;
-    const t = (jd - 2451545.0) / 36525.0;
-    let gst = 6.697374558 + 2400.051336 * t + 0.000025862 * t * t;
-    gst = (gst + hours * 1.002737909) % 24;
-    let lst = (gst * 15 + lon) % 360;
-
-    // 3. लग्न (Ascendant) शोधन - 27-03-1980 के लिए यह 1 (मेष) ही देगा
-    let ascDeg = (lst - ayan + 360) % 360;
-    // सटीक सुधार ताकि 1980/08:10 पर मेष (1) ही आए
-    if(dob === "1980-03-27" && tob === "08:10") ascDeg = 15; 
-    
-    let lagnRashi = Math.floor(ascDeg / 30) + 1;
-
-    // 4. ग्रह स्थिति (Universal Sample Table)
-    const planets = [
-        {n: "सूर्य", r: 12, d: 13.04, nk: "उत्तर भाद्रपद"},
-        {n: "चंद्र", r: 4, d: 11.25, nk: "पुष्य"},
-        {n: "मंगल", r: 5, d: 2.10, nk: "मघा"},
-        {n: "बुध", r: 11, d: 16.45, nk: "शतभिषा"},
-        {n: "गुरु", r: 5, d: 7.50, nk: "मघा"},
-        {n: "शुक्र", r: 1, d: 25.10, nk: "भरणी"},
-        {n: "शनि", r: 5, d: 28.30, nk: "उत्तरा फाल्गुनी"}
-    ];
-
-    drawChart("d1-container", lagnRashi, planets, "लग्न कुंडली (D1)");
-    drawChart("d9-container", ((lagnRashi * 9) % 12 || 12), planets, "नवमांश कुंडली (D9)");
-
-    let html = "";
-    planets.forEach(p => {
-        html += `<tr><td>${p.n}</td><td>${p.r}</td><td>${p.d}°</td><td>${p.nk}</td></tr>`;
-    });
-    document.getElementById('planet-body').innerHTML = html;
-    document.getElementById('result').style.display = "block";
+/* Julian Date calculator */
+function julianDate(y,m,d,ut){
+  if(m<=2){ y-=1; m+=12;}
+  let A=Math.floor(y/100);
+  let B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+ut/24+B-1524.5;
 }
 
-function drawChart(divId, asc, planets, title) {
-    const pos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
-    let svg = `<svg viewBox="0 0 350 350"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2.5"/>`;
-    for (let i = 1; i <= 12; i++) {
-        let r = ((asc + i - 2) % 12) + 1;
-        svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-weight="bold" font-size="16">${r}</text>`;
-        let off = 18;
-        planets.filter(p => p.r === r).forEach(p => {
-            svg += `<text x="${pos[i][0]}" y="${pos[i][1]+off}" fill="blue" font-size="11" font-weight="bold">${p.n.substring(0,2)}</text>`;
-            off += 14;
-        });
-    }
-    document.getElementById(divId).innerHTML = `<h3 style="color:red; margin:0 0 10px 0;">${title}</h3>` + svg + `</svg>`;
+/* Moon longitude (Meeus simplified) */
+function moonLongitude(JD){
+  let T=(JD-2451545)/36525;
+  let L=218.3164477+481267.88123421*T;
+  let M=134.9629814+477198.8673981*T;
+  let F=93.2719103+483202.0175381*T;
+  return (L
+    +6.289*Math.sin(toRadians(M))
+    +1.274*Math.sin(toRadians(2*L-M))
+    +0.658*Math.sin(toRadians(2*L))
+    +0.214*Math.sin(toRadians(2*M))
+    +0.11 *Math.sin(toRadians(L))
+  )%360;
+}
+
+/* Ascendant */
+function ascendant(JD,lat,lon){
+  let T=(JD-2451545)/36525;
+  let eps=23.439291-0.0130042*T;
+  let GMST=18.697374558+24.06570982441908*(JD-2451545);
+  let LST=(GMST+lon/15)%24;
+  let theta=LST*15;
+  let tanA=(Math.sin(toRadians(theta)) /
+           (Math.cos(toRadians(theta))*Math.sin(toRadians(eps))
+            -Math.tan(toRadians(lat))*Math.cos(toRadians(eps))));
+  return (toDegrees(Math.atan(tanA))+360)%360;
+}
+
+/* Main */
+function calculate(){
+
+  // ---- INPUT ----
+  let Y=1980, M=3, D=27;
+
+  // 08:10 IST → UTC = -5:30
+  let h=8, min=10;
+  let UT=h+min/60-5.5;
+
+  // Banswara coordinates
+  let lat=24.48;
+  let lon=74.44;
+
+  let JD=julianDate(Y,M,D,UT);
+
+  let aya=lahiriAyanamsa(JD);
+
+  let moonT=moonLongitude(JD);
+  let moonS=(moonT-aya+360)%360;
+
+  let ascT=ascendant(JD,lat,lon);
+  let ascS=(ascT-aya+360)%360;
+
+  function rashi(x){
+    let r=["Mesha","Vrishabha","Mithun","Karka","Simha","Kanya","Tula","Vrischik","Dhanu","Makar","Kumbh","Meen"];
+    return r[Math.floor(x/30)];
+  }
+
+  document.getElementById("out").innerText =
+    "Julian Date: "+JD.toFixed(5)+"\n\n"+
+    "Sidereal Moon: "+moonS.toFixed(2)+"°  →  "+rashi(moonS)+"\n"+
+    "Sidereal Lagna: "+ascS.toFixed(2)+"° →  "+rashi(ascS);
 }
 </script>
 </body>
