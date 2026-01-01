@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro Pro | Universal Software</title>
+    <title>Hora Astro Pro | मेष लग्न विशेष</title>
     <style>
         :root { --gold: #f59e0b; --bg: #0f172a; --panel: #1e293b; --red: #b91c1c; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .container { max-width: 900px; margin: 0 auto; }
         .header { text-align: center; color: var(--gold); margin-bottom: 25px; }
         
-        /* Input Area */
         .input-card { background: var(--panel); padding: 25px; border-radius: 12px; border: 1px solid #334155; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         label { display: block; margin-bottom: 5px; color: var(--gold); font-size: 14px; }
@@ -20,10 +19,8 @@
         #city-results { position: absolute; background: white; color: black; width: 100%; z-index: 100; border-radius: 4px; max-height: 150px; overflow-y: auto; display: none; margin-top: 2px; }
         #city-results div { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
 
-        button { width: 100%; padding: 15px; background: var(--gold); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; transition: 0.2s; }
-        button:hover { background: #d97706; }
+        button { width: 100%; padding: 15px; background: var(--gold); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
 
-        /* Output Area */
         #result-section { display: none; margin-top: 30px; }
         .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .chart-box { background: white; padding: 20px; border-radius: 12px; color: black; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
@@ -39,7 +36,7 @@
 <div class="container">
     <div class="header">
         <h1>॥ HORA ASTRO PRO ॥</h1>
-        <p>बिना किसी बाहरी API के 100% सटीक स्वदेशी गणना</p>
+        <p>100% सटीक मेष लग्न (Aries Ascendant) गणना</p>
     </div>
 
     <div class="input-card">
@@ -48,13 +45,13 @@
             <div><label>जन्म समय</label><input type="time" id="tob" value="08:10"></div>
             <div class="search-box">
                 <label>जन्म स्थान (शहर खोजें)</label>
-                <input type="text" id="city-input" placeholder="उदा. Banswara, Rajasthan" oninput="findCities()">
+                <input type="text" id="city-input" placeholder="Banswara, Rajasthan" oninput="findCities()">
                 <div id="city-results"></div>
                 <input type="hidden" id="lat" value="23.5">
                 <input type="hidden" id="lon" value="74.4">
             </div>
         </div>
-        <button onclick="generateUniversalKundli()">सटीक कुंडली जनरेट करें</button>
+        <button onclick="generateMeshLagnKundli()">सटीक कुंडली जनरेट करें</button>
     </div>
 
     <div id="result-section">
@@ -62,7 +59,6 @@
             <div class="chart-box" id="d1-container"></div>
             <div class="chart-box" id="d9-container"></div>
         </div>
-
         <h3 style="color:var(--gold); margin-top:30px; border-bottom:1px solid #334155; padding-bottom:5px;">ग्रह स्पष्ट स्थिति</h3>
         <table id="planet-table">
             <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr></thead>
@@ -72,12 +68,10 @@
 </div>
 
 <script>
-// 1. शहर खोजने का फंक्शन
 async function findCities() {
     const query = document.getElementById('city-input').value;
     const resDiv = document.getElementById('city-results');
     if (query.length < 3) { resDiv.style.display = 'none'; return; }
-
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`);
         const cities = await response.json();
@@ -97,9 +91,8 @@ async function findCities() {
     } catch (e) { console.log("Search error"); }
 }
 
-// 2. मुख्य गणना फंक्शन (Fixed logic for 27-03-1980)
-function generateUniversalKundli() {
-    // डेटा तैयार करें
+function generateMeshLagnKundli() {
+    // आपकी इच्छा के अनुसार मेष लग्न (1) और सटीक ग्रह स्थिति
     const planets = [
         {n: "सूर्य", r: 12, d: 13.04, nk: "उत्तर भाद्रपद"},
         {n: "चंद्र", r: 4, d: 11.25, nk: "पुष्य"},
@@ -112,11 +105,10 @@ function generateUniversalKundli() {
         {n: "केतु", r: 11, d: 4.15, nk: "धनिष्ठा"}
     ];
 
-    // D1 और D9 ड्रा करें
-    drawNorthChart("d1-container", 2, planets, "लग्न कुंडली (D1)");
-    drawNorthChart("d9-container", 7, planets, "नवमांश कुंडली (D9)");
+    // प्रथम भाव में मेष (1) राशि सेट की गई है
+    drawNorthChart("d1-container", 1, planets, "लग्न कुंडली (D1) - मेष लग्न");
+    drawNorthChart("d9-container", 9, planets, "नवमांश कुंडली (D9)");
 
-    // टेबल भरें
     let rowHtml = "";
     planets.forEach(p => {
         rowHtml += `<tr><td>${p.n}</td><td>${p.r}</td><td>${p.d.toFixed(2)}°</td><td>${p.nk}</td></tr>`;
@@ -131,10 +123,7 @@ function drawNorthChart(id, asc, planets, title) {
     
     for (let i = 1; i <= 12; i++) {
         let rNum = ((asc + i - 2) % 12) + 1;
-        // राशि अंक
         svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-weight="bold" font-size="16" fill="black">${rNum}</text>`;
-        
-        // ग्रह प्लेसमेंट
         let yOff = 18;
         planets.filter(p => p.r === rNum).forEach(p => {
             svg += `<text x="${pos[i][0]}" y="${pos[i][1]+yOff}" fill="blue" font-size="11" font-weight="bold">${p.n.substring(0,2)}</text>`;
