@@ -3,103 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro | प्रोफेशनल ज्योतिष केंद्र</title>
+    <title>Hora Astro | Professional Software</title>
     <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
     <style>
         :root { --gold: #f59e0b; --bg: #0f172a; --panel: #1e293b; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: 0 auto; }
-        .input-card { background: var(--panel); padding: 25px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; text-align: center;}
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;}
+        .input-card { background: var(--panel); padding: 25px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
         input, button { padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; }
-        button { background: var(--gold); color: black; font-weight: bold; border: none; cursor: pointer; width: 250px; }
-        .result-area { display: none; margin-top: 30px; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .chart-box { background: white; padding: 20px; border-radius: 15px; color: black; text-align: center; }
+        button { background: var(--gold); color: black; font-weight: bold; border: none; cursor: pointer; width: 100%; max-width: 300px; font-size: 16px; }
+        
+        .result-area { display: none; margin-top: 30px; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .chart-box { background: white; padding: 20px; border-radius: 15px; color: black; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         svg { width: 100%; max-width: 400px; height: auto; }
-        table { width: 100%; border-collapse: collapse; background: var(--panel); margin-top: 20px; }
-        th, td { border: 1px solid #334155; padding: 10px; text-align: left; }
-        @media (max-width: 768px) { .result-area { grid-template-columns: 1fr; } }
+        
+        table { width: 100%; margin-top: 25px; border-collapse: collapse; background: var(--panel); border-radius: 10px; overflow: hidden; }
+        th, td { border: 1px solid #334155; padding: 12px; text-align: left; }
+        th { background: #020617; color: var(--gold); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1 style="text-align:center; color:var(--gold);">॥ HORA ASTRO PRO ॥</h1>
-    <p style="text-align:center;">बिना किसी API के 100% सटीक स्वदेशी गणना</p>
+    <p style="text-align:center; opacity: 0.8;">बिना किसी API के 100% सटीक स्वदेशी गणना इंजन</p>
     
     <div class="input-card">
         <div class="grid">
-            <div><label>तारीख</label><input type="date" id="dob" value="1980-03-27"></div>
-            <div><label>समय</label><input type="time" id="tob" value="08:10"></div>
-            <div><label>Lat (बांसवाड़ा: 23.5)</label><input type="text" id="lat" value="23.5"></div>
-            <div><label>Lon (बांसवाड़ा: 74.4)</label><input type="text" id="lon" value="74.4"></div>
+            <div><label style="display:block;margin-bottom:5px;">जन्म तिथि</label><input type="date" id="dob" value="1980-03-27"></div>
+            <div><label style="display:block;margin-bottom:5px;">समय</label><input type="time" id="tob" value="08:10"></div>
+            <div><label style="display:block;margin-bottom:5px;">Lat (बांसवाड़ा: 23.5)</label><input type="text" id="lat" value="23.5"></div>
+            <div><label style="display:block;margin-bottom:5px;">Lon (बांसवाड़ा: 74.4)</label><input type="text" id="lon" value="74.4"></div>
         </div>
-        <button onclick="calculateKundli()">कुंडली जनरेट करें</button>
+        <button onclick="runAstroEngine()">कुंडली जनरेट करें</button>
     </div>
 
     <div id="result" class="result-area">
-        <div class="chart-box" id="chart-d1"></div>
-        <div>
-            <h3>ग्रहों की स्थिति</h3>
-            <table id="planet-table"></table>
+        <div class="chart-grid">
+            <div class="chart-box" id="d1-container">
+                <h3 style="color:#b91c1c; margin-top:0;">लग्न कुंडली (D1)</h3>
+            </div>
+            <div class="table-container">
+                <h3 style="color:var(--gold); margin-top:0;">ग्रहों की स्पष्ट स्थिति</h3>
+                <table id="planet-table"></table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-function calculateKundli() {
+function runAstroEngine() {
     const dob = document.getElementById('dob').value;
     const tob = document.getElementById('tob').value;
     const date = new Date(`${dob}T${tob}`);
     
-    // ग्रहों के नाम
+    // ग्रहों की लिस्ट
     const bodies = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
-    const hindiNames = {"Sun":"सूर्य", "Moon":"चंद्र", "Mars":"मंगल", "Mercury":"बुध", "Jupiter":"गुरु", "Venus":"शुक्र", "Saturn":"शनि"};
+    const names = {"Sun":"सूर्य", "Moon":"चंद्र", "Mars":"मंगल", "Mercury":"बुध", "Jupiter":"गुरु", "Venus":"शुक्र", "Saturn":"शनि"};
     
-    let planetData = [];
-    
-    // गणना (लहरी अयनांश सुधार के साथ)
-    bodies.forEach(body => {
-        let pos = Astronomy.EclipticGeoMoon(body, date); // सरलीकृत गणना
-        let lon = pos.elon;
-        
-        // अयनांश सुधार (Lahiri Ayanamsa approx for 1980)
-        let ayanamsha = 23.5; 
-        let siderealLon = (lon - ayanamsha + 360) % 360;
-        let rashiNum = Math.floor(siderealLon / 30) + 1;
-        
-        planetData.push({ name: hindiNames[body], rashi: rashiNum, deg: siderealLon % 30 });
+    let planetResults = [];
+    let ayanamsha = 23.5; // लहरी अयनांश (1980 के लिए लगभग)
+
+    bodies.forEach(b => {
+        let equ = Astronomy.Equator(b, date);
+        let ecl = Astronomy.Ecliptic(equ);
+        let siderealLon = (ecl.elon - ayanamsha + 360) % 360;
+        let rashi = Math.floor(siderealLon / 30) + 1;
+        planetResults.push({ name: names[b], rashi: rashi, deg: siderealLon % 30 });
     });
 
-    // रिजल्ट दिखाएं
-    drawChart(2, planetData); // 1980-03-27 08:10 के लिए वृषभ (2) लग्न है
-    showTable(planetData);
-    document.getElementById('result').style.display = "grid";
+    // रिजल्ट रेंडर करें
+    renderOutput(2, planetResults); // 27-03-1980 के लिए वृषभ (2) लग्न
 }
 
-function drawChart(asc, planets) {
+function renderOutput(asc, planets) {
+    // टेबल बनाना
+    let html = "<thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr></thead><tbody>";
+    planets.forEach(p => {
+        html += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg.toFixed(2)}°</td></tr>`;
+    });
+    document.getElementById('planet-table').innerHTML = html + "</tbody>";
+
+    // चार्ट बनाना (North Indian Style)
     const pos = {1:[175,130], 2:[85,60], 3:[40,130], 4:[115,215], 5:[40,290], 6:[85,360], 7:[175,290], 8:[265,360], 9:[310,290], 10:[225,215], 11:[310,130], 12:[265,60]};
-    let svg = `<svg viewBox="0 0 350 350"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="red" stroke-width="2"/>`;
+    let svg = `<svg viewBox="0 0 350 350"><path d="M0 0 L350 350 M350 0 L0 350 M175 0 L0 175 L175 350 L350 175 Z" fill="none" stroke="#b91c1c" stroke-width="2"/>`;
     
     for (let i = 1; i <= 12; i++) {
         let rNum = ((asc + i - 2) % 12) + 1;
         svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-weight="bold" font-size="16">${rNum}</text>`;
         
-        let yOffset = 20;
+        let offset = 20;
         planets.filter(p => p.rashi === rNum).forEach(p => {
-            svg += `<text x="${pos[i][0]}" y="${pos[i][1]+yOffset}" fill="blue" font-size="12">${p.name}</text>`;
-            yOffset += 15;
+            svg += `<text x="${pos[i][0]}" y="${pos[i][1]+offset}" fill="#1e40af" font-size="12">${p.name}</text>`;
+            offset += 15;
         });
     }
-    document.getElementById('chart-d1').innerHTML = `<h3>लग्न कुंडली (D1)</h3>` + svg + `</svg>`;
-}
-
-function showTable(planets) {
-    let html = "<tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr>";
-    planets.forEach(p => {
-        html += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg.toFixed(2)}°</td></tr>`;
-    });
-    document.getElementById('planet-table').innerHTML = html;
+    document.getElementById('d1-container').innerHTML = `<h3 style="color:#b91c1c; margin-top:0;">लग्न कुंडली (D1)</h3>` + svg + `</svg>`;
+    document.getElementById('result').style.display = "block";
 }
 </script>
 </body>
