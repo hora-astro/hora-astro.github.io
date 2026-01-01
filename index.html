@@ -3,122 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro - प्रोफेशनल ज्योतिष केंद्र</title>
+    <title>Hora Astro | प्रोफेशनल वैदिक कुंडली</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Yantra+manav:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Yantramanav:wght@400;700&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #ff9800;
-            --dark: #0f172a;
-            --card: #1e293b;
+            --gold: #f59e0b;
+            --bg: #0f172a;
+            --sidebar-bg: #020617;
+            --accent: #2563eb;
         }
 
         body {
-            background-color: var(--dark);
-            color: #f8fafc;
-            font-family: 'Poppins', sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: #e2e8f0;
+            font-family: 'Poppins', sans-serif;
             display: flex;
         }
 
-        /* Sidebar Design */
+        /* Sidebar Styling */
         .sidebar {
-            width: 260px;
-            background: #020617;
+            width: 250px;
+            background-color: var(--sidebar-bg);
             height: 100vh;
-            border-right: 1px solid #334155;
-            padding: 20px;
+            border-right: 1px solid #1e293b;
             position: fixed;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .sidebar h2 {
-            color: var(--primary);
-            font-family: 'Yantra manav', sans-serif;
-            border-bottom: 2px solid var(--primary);
+        .logo {
+            color: var(--gold);
+            font-family: 'Yantramanav', sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 2px solid var(--gold);
             padding-bottom: 10px;
-        }
-
-        .nav-link {
-            padding: 15px;
-            color: #94a3b8;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: 0.3s;
-            display: block;
-            text-decoration: none;
-            margin-bottom: 5px;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: var(--card);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* Main Content Area */
-        .main-content {
-            margin-left: 300px;
-            padding: 40px;
-            width: calc(100% - 300px);
-        }
-
-        .hero-banner {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #334155;
             margin-bottom: 30px;
             text-align: center;
         }
 
-        /* The Professional Widget Container */
-        .widget-container {
-            background: white; /* कुंडली हमेशा सफ़ेद बैकग्राउंड पर अच्छी दिखती है */
-            padding: 20px;
-            border-radius: 12px;
-            min-height: 800px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        .menu-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s;
+            color: #94a3b8;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: #1e293b;
+            color: var(--gold);
+            border-left: 4px solid var(--gold);
+        }
+
+        /* Main Content Styling */
+        .content {
+            margin-left: 250px;
+            padding: 30px;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .top-banner {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Widget Container */
+        .software-window {
+            background: #ffffff; /* कुंडली डेटा के लिए व्हाइट बैकग्राउंड बेस्ट है */
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            min-height: 1100px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 1100px;
+            border: none;
         }
 
         footer {
-            margin-top: 50px;
+            margin-top: 40px;
             text-align: center;
             color: #64748b;
-            font-size: 14px;
+            font-size: 13px;
+            padding-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>Hora Astro</h2>
-        <a class="nav-link active">🏠 डैशबोर्ड</a>
-        <a class="nav-link">📊 जन्म कुंडली (D1)</a>
-        <a class="nav-link">📍 नवमांश कुंडली (D9)</a>
-        <a class="nav-link">⏳ विंशोत्तरी दशा</a>
-        <a class="nav-link">📜 पंचांग</a>
-        <a class="nav-link">📞 संपर्क करें</a>
+        <div class="logo">॥ HORA ASTRO ॥</div>
+        <div class="menu-item active">🏠 डैशबोर्ड</div>
+        <div class="menu-item">📊 जन्म कुंडली (D1)</div>
+        <div class="menu-item">📍 नवमांश कुंडली (D9)</div>
+        <div class="menu-item">⏳ विंशोत्तरी दशा</div>
+        <div class="menu-item">📜 पंचांग</div>
+        <div class="menu-item">💰 रत्न परामर्श</div>
+        <div class="menu-item">📞 संपर्क</div>
     </div>
 
-    <div class="main-content">
-        <div class="hero-banner">
-            <h1 style="color: var(--primary); margin: 0;">प्रोफेशनल ज्योतिष समाधान</h1>
-            <p>सटीक गणना और प्राचीन वैदिक विज्ञान का संगम</p>
+    <div class="content">
+        <div class="top-banner">
+            <h1 style="margin: 0; color: var(--gold); font-family: 'Yantramanav', sans-serif;">प्रोफेशनल वैदिक कुंडली सॉफ्टवेयर</h1>
+            <p style="margin: 5px 0 0; color: #94a3b8;">शुद्ध गणना, सटीक फलादेश और प्राचीन ज्ञान</p>
         </div>
 
-        <div class="widget-container">
+        <div class="software-window">
             <iframe 
-                src="https://www.prokerala.com/astrology/kundli/widget/?theme=classic&header=1&footer=1" 
-                frameborder="0" 
-                width="100%" 
-                height="1000" 
-                style="border:none; border-radius: 8px;">
+                src="https://www.prokerala.com/astrology/kundli/widget/?theme=classic&header=1&footer=0" 
+                title="Astro Software">
             </iframe>
-            </div>
+        </div>
 
         <footer>
-            &copy; 2024 hora-astro.github.io | ज्योतिष विद्या और तकनीक का संगम
+            &copy; 2024 Hora-Astro | Designed for Professional Astrology
         </footer>
     </div>
 
