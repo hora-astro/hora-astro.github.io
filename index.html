@@ -2,51 +2,48 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Professional Astrology</title>
+    <title>Professional Kundli App</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: #e67e22; color: white; border: none; padding: 10px 20px; cursor: pointer; font-size: 16px; width: 100%; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #333; color: white; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2e9; text-align: center; }
+        .app-container { max-width: 600px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        input { padding: 12px; border: 1.5px solid #e67e22; border-radius: 6px; outline: none; }
+        button { background: #e67e22; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        button:hover { background: #d35400; }
+        .result-table { width: 100%; margin-top: 25px; border-collapse: collapse; }
+        .result-table th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        .result-table th { background: #e67e22; color: white; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>प्रोफेशनल ज्योतिष सॉफ्टवेयर (Universal)</h2>
-    <div class="grid-inputs">
-        <input type="number" id="day" value="27">
-        <input type="number" id="month" value="3">
-        <input type="number" id="year" value="1980">
-        <input type="number" id="hour" value="10">
-        <input type="number" id="min" value="30">
-        <input type="text" id="lat" value="28.6139">
-        <input type="text" id="lon" value="77.2090">
+<div class="app-container">
+    <h2>ज्योतिष गणना (प्रोफेशनल)</h2>
+    <div class="input-grid">
+        <input type="number" id="day" value="27" placeholder="दिन">
+        <input type="number" id="month" value="3" placeholder="माह">
+        <input type="number" id="year" value="1980" placeholder="वर्ष">
+        <input type="number" id="hour" value="10" placeholder="घंटा">
+        <input type="number" id="min" value="30" placeholder="मिनट">
+        <input type="text" id="lat" value="23.33" placeholder="Latitude">
+        <input type="text" id="lon" value="74.26" placeholder="Longitude">
     </div>
-    <button onclick="calculate()">कुंडली जनरेट करें</button>
+    <button onclick="getKundli()">कुंडली देखें</button>
 
-    <div id="output" style="display:none;">
-        <table id="planetTable">
-            <thead>
-                <tr>
-                    <th>ग्रह</th>
-                    <th>राशि (Rashi)</th>
-                    <th>अंश (Degree)</th>
-                    <th>नक्षत्र</th>
-                </tr>
-            </thead>
-            <tbody id="planetBody"></tbody>
-        </table>
-    </div>
+    <div id="loader" style="display:none; color: #e67e22; margin-top: 10px;">सटीक गणना की जा रही है...</div>
+
+    <table class="result-table" id="outputTable" style="display:none;">
+        <thead>
+            <tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>नक्षत्र</th></tr>
+        </thead>
+        <tbody id="planetData"></tbody>
+    </table>
 </div>
 
 <script>
-async function calculate() {
-    const bodyData = {
+async function getKundli() {
+    document.getElementById('loader').style.display = 'block';
+    const payload = {
         day: parseInt(document.getElementById('day').value),
         month: parseInt(document.getElementById('month').value),
         year: parseInt(document.getElementById('year').value),
@@ -58,33 +55,33 @@ async function calculate() {
     };
 
     try {
-        const response = await fetch('http://localhost:3000/get-kundli', {
+        const response = await fetch('http://localhost:3000/generate-kundli', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyData)
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
         });
-        
         const data = await response.json();
-        if(data) displayData(data);
+        renderResults(data.planets);
     } catch (err) {
-        alert("सर्वर से कनेक्ट नहीं हो सका!");
+        alert("सर्वर से डेटा नहीं मिला!");
+    } finally {
+        document.getElementById('loader').style.display = 'none';
     }
 }
 
-function displayData(data) {
-    document.getElementById('output').style.display = 'block';
-    const tbody = document.getElementById('planetBody');
+function renderResults(planets) {
+    const table = document.getElementById('outputTable');
+    const tbody = document.getElementById('planetData');
+    table.style.display = 'table';
     tbody.innerHTML = '';
 
-    // नोट: API के रिस्पॉन्स फॉर्मेट के अनुसार यहाँ की को बदलें
-    data.planets.forEach(p => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${p.name}</td>
-                <td>${p.sign}</td>
-                <td>${p.degree.toFixed(2)}°</td>
-                <td>${p.nakshatra || '-'}</td>
-            </tr>`;
+    planets.forEach(p => {
+        tbody.innerHTML += `<tr>
+            <td><strong>${p.name}</strong></td>
+            <td>${p.sign}</td>
+            <td>${p.fullDegree.toFixed(2)}°</td>
+            <td>${p.nakshatra}</td>
+        </tr>`;
     });
 }
 </script>
