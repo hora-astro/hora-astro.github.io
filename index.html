@@ -2,86 +2,90 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>प्रोफेशनल KP कुंडली</title>
+    <title>Universal Professional Astrology</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-        .kundli-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .house { border: 1px solid #e67e22; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-weight: bold; background: #fffaf0; }
-        .house-num { position: absolute; top: 2px; left: 5px; font-size: 12px; color: #7f8c8d; }
-        .planet-list { font-size: 14px; color: #c0392b; }
-        button { background: #e67e22; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #e67e22; color: white; border: none; padding: 10px 20px; cursor: pointer; font-size: 16px; width: 100%; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #333; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>प्रोफेशनल ज्योतिष सॉफ्टवेयर</h2>
-    <input type="number" id="day" placeholder="दिन" value="27">
-    <input type="number" id="month" placeholder="महीना" value="3">
-    <input type="number" id="year" placeholder="वर्ष" value="1980">
-    <input type="number" id="hour" placeholder="घंटा" value="10">
-    <input type="number" id="min" placeholder="मिनट" value="30">
-    <br><br>
-    <input type="text" id="lat" placeholder="Latitude" value="28.6139">
-    <input type="text" id="lon" placeholder="Longitude" value="77.2090">
-    <br><br>
-    <button onclick="getKundli()">कुंडली जनरेट करें</button>
+<div class="card">
+    <h2>प्रोफेशनल ज्योतिष सॉफ्टवेयर (Universal)</h2>
+    <div class="grid-inputs">
+        <input type="number" id="day" value="27">
+        <input type="number" id="month" value="3">
+        <input type="number" id="year" value="1980">
+        <input type="number" id="hour" value="10">
+        <input type="number" id="min" value="30">
+        <input type="text" id="lat" value="28.6139">
+        <input type="text" id="lon" value="77.2090">
+    </div>
+    <button onclick="calculate()">कुंडली जनरेट करें</button>
 
-    <div id="result" class="kundli-grid">
-        </div>
+    <div id="output" style="display:none;">
+        <table id="planetTable">
+            <thead>
+                <tr>
+                    <th>ग्रह</th>
+                    <th>राशि (Rashi)</th>
+                    <th>अंश (Degree)</th>
+                    <th>नक्षत्र</th>
+                </tr>
+            </thead>
+            <tbody id="planetBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-async function getKundli() {
-    const apiKey = 'e7b14b21femsh6ee1327b27e7508p108379jsnf36df2f55b20'; // अपनी Key यहाँ डालें
-    const apiHost = 'vedic-jyotish.p.rapidapi.com'; // API होस्ट का नाम
-
-    const options = {
-        method: 'POST',
-        headers: {
-            'content-type': 'application/json',
-            'X-RapidAPI-Key': e7b14b21femsh6ee1327b27e7508p108379jsnf36df2f55b20,
-            'X-RapidAPI-Host': vedic-jyotish.p.rapidapi.com
-        },
-        body: JSON.stringify({
-            day: document.getElementById('day').value,
-            month: document.getElementById('month').value,
-            year: document.getElementById('year').value,
-            hour: document.getElementById('hour').value,
-            min: document.getElementById('min').value,
-            lat: document.getElementById('lat').value,
-            lon: document.getElementById('lon').value,
-            tzone: 5.5
-        })
+async function calculate() {
+    const bodyData = {
+        day: parseInt(document.getElementById('day').value),
+        month: parseInt(document.getElementById('month').value),
+        year: parseInt(document.getElementById('year').value),
+        hour: parseInt(document.getElementById('hour').value),
+        min: parseInt(document.getElementById('min').value),
+        lat: parseFloat(document.getElementById('lat').value),
+        lon: parseFloat(document.getElementById('lon').value),
+        tzone: 5.5
     };
 
     try {
-        const response = await fetch('https://'vedic-jyotish.p.rapidapi.comvedic-jyotish.p.rapidapi.com'/vedic_horoscope', options);
+        const response = await fetch('http://localhost:3000/get-kundli', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+        });
+        
         const data = await response.json();
-        renderChart(data.planets, data.ascendant);
+        if(data) displayData(data);
     } catch (err) {
-        alert("API Error: " + err);
+        alert("सर्वर से कनेक्ट नहीं हो सका!");
     }
 }
 
-function renderChart(planets, asc) {
-    const grid = document.getElementById('result');
-    grid.innerHTML = '';
-    
-    // 12 घरों का प्रोफेशनल लूप
-    for (let i = 1; i <= 12; i++) {
-        let rashi = (asc + i - 1) % 12 || 12;
-        let housePlanets = planets.filter(p => Math.floor(p.longitude / 30) + 1 === rashi);
-        
-        let pNames = housePlanets.map(p => p.name.substring(0, 2)).join(', ');
-        
-        grid.innerHTML += `
-            <div class="house">
-                <span class="house-num">${rashi}</span>
-                <div class="planet-list">${pNames}</div>
-            </div>`;
-    }
+function displayData(data) {
+    document.getElementById('output').style.display = 'block';
+    const tbody = document.getElementById('planetBody');
+    tbody.innerHTML = '';
+
+    // नोट: API के रिस्पॉन्स फॉर्मेट के अनुसार यहाँ की को बदलें
+    data.planets.forEach(p => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.sign}</td>
+                <td>${p.degree.toFixed(2)}°</td>
+                <td>${p.nakshatra || '-'}</td>
+            </tr>`;
+    });
 }
 </script>
 </body>
