@@ -2,113 +2,119 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Astrology Software</title>
+    <title>Perfect Professional Astrology</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf2e9; text-align: center; padding: 10px; }
-        .container { background: white; max-width: 800px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #e67e22; }
-        .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
-        button { background: #e67e22; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
-        
-        /* प्रोफेशनल डायमंड चार्ट (North Indian Style) */
-        .kundli-chart { position: relative; width: 350px; height: 350px; border: 2px solid #333; margin: 20px auto; background: #fff; }
-        .line-v { position: absolute; width: 1px; height: 100%; background: #333; left: 50%; }
-        .line-h { position: absolute; height: 1px; width: 100%; background: #333; top: 50%; }
-        .diag1 { position: absolute; width: 141%; height: 1px; background: #333; top: 50%; left: -20.5%; transform: rotate(45deg); }
-        .diag2 { position: absolute; width: 141%; height: 1px; background: #333; top: 50%; left: -20.5%; transform: rotate(-45deg); }
-        
-        .house { position: absolute; width: 50px; height: 50px; text-align: center; font-size: 12px; font-weight: bold; }
-        .rashi-no { color: #7f8c8d; display: block; font-size: 10px; }
-        .planets { color: #c0392b; font-size: 11px; margin-top: 5px; line-height: 1.2; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2e9; text-align: center; padding: 20px; }
+        .main-container { background: white; max-width: 850px; margin: auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 6px solid #e67e22; }
+        .input-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100px; text-align: center; font-size: 16px; font-weight: bold; }
+        button { background: #e67e22; color: white; border: none; padding: 15px 50px; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; box-shadow: 0 4px 10px rgba(230,126,34,0.3); transition: 0.3s; }
+        button:hover { background: #d35400; transform: scale(1.02); }
 
-        /* घरों की सटीक पोजीशन */
-        .h1 { top: 130px; left: 150px; } .h2 { top: 60px; left: 75px; } .h3 { top: 60px; left: 225px; }
-        .h4 { top: 130px; left: 75px; } .h5 { top: 215px; left: 75px; } .h6 { top: 280px; left: 75px; }
-        .h7 { top: 205px; left: 150px; } .h8 { top: 280px; left: 225px; } .h9 { top: 215px; left: 225px; }
-        .h10 { top: 130px; left: 225px; } .h11 { top: 20px; left: 225px; } .h12 { top: 20px; left: 75px; }
+        /* प्रोफेशनल डायमंड चार्ट (उत्तर भारतीय) */
+        .kundli-svg { width: 400px; height: 400px; margin: 30px auto; background: white; border: 3px solid #333; display: block; }
+        .house-text { font-size: 14px; font-weight: bold; fill: #7f8c8d; }
+        .planet-text { font-size: 12px; font-weight: bold; fill: #c0392b; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 10px; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; border-radius: 10px; overflow: hidden; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
         th { background: #e67e22; color: white; }
+        tr:nth-child(even) { background: #fff5eb; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2 style="color: #d35400;">प्रोफेशनल ज्योतिष (Universal)</h2>
-    <div class="inputs">
-        <input type="number" id="d" value="27"> <input type="number" id="m" value="3">
-        <input type="number" id="y" value="1980"> <input type="number" id="h" value="10">
-        <input type="number" id="min" value="30">
+<div class="main-container">
+    <h1 style="color: #d35400;">परफेक्ट प्रोफेशनल कुंडली</h1>
+    <div class="input-box">
+        <input type="number" id="day" value="27" placeholder="Day">
+        <input type="number" id="month" value="3" placeholder="Month">
+        <input type="number" id="year" value="1980" placeholder="Year">
+        <input type="number" id="hour" value="10" placeholder="Hour">
+        <input type="number" id="min" value="30" placeholder="Min">
     </div>
-    <button onclick="runCalculation()">कुंडली तैयार करें</button>
+    <button onclick="calculatePerfect()">कुंडली तैयार करें</button>
 
-    <div id="chart-area" class="kundli-chart">
-        <div class="line-v"></div><div class="line-h"></div>
-        <div class="diag1"></div><div class="diag2"></div>
-        <div class="house h1" id="house1"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h2" id="house2"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h3" id="house3"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h4" id="house4"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h5" id="house5"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h6" id="house6"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h7" id="house7"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h8" id="house8"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h9" id="house9"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h10" id="house10"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h11" id="house11"><span class="rashi-no"></span><div class="planets"></div></div>
-        <div class="house h12" id="house12"><span class="rashi-no"></span><div class="planets"></div></div>
-    </div>
+    <svg id="kundliChart" class="kundli-svg" viewBox="0 0 400 400">
+        <line x1="0" y1="0" x2="400" y2="400" stroke="black" stroke-width="2"/>
+        <line x1="400" y1="0" x2="0" y2="400" stroke="black" stroke-width="2"/>
+        <rect x="0" y="0" width="400" height="400" fill="none" stroke="black" stroke-width="3"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="black" stroke-width="2"/>
+        <line x1="200" y1="0" x2="400" y2="200" stroke="black" stroke-width="2"/>
+        <line x1="200" y1="400" x2="0" y2="200" stroke="black" stroke-width="2"/>
+        <line x1="200" y1="400" x2="400" y2="200" stroke="black" stroke-width="2"/>
+        
+        <g id="houseMarkers"></g>
+        <g id="planetMarkers"></g>
+    </svg>
 
-    <table id="p-table">
-        <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th></tr></thead>
-        <tbody id="p-body"></tbody>
+    <table>
+        <thead><tr><th>ग्रह (Planet)</th><th>राशि (Sign)</th><th>अंश (Degree)</th></tr></thead>
+        <tbody id="dataTable"></tbody>
     </table>
 </div>
 
 <script>
-function runCalculation() {
-    const d = parseInt(document.getElementById('d').value);
-    const m = parseInt(document.getElementById('m').value);
-    const y = parseInt(document.getElementById('y').value);
+function calculatePerfect() {
+    const d = parseInt(document.getElementById('day').value);
+    const m = parseInt(document.getElementById('month').value);
+    const y = parseInt(document.getElementById('year').value);
+    const h = parseInt(document.getElementById('hour').value);
 
-    // Dynamic Logic: तारीख के हिसाब से ग्रहों को खिसकाना (Universal Calculation)
-    let totalDays = (y - 1900) * 365 + (m * 30) + d;
+    // तारीख के अनुसार 'Julian Day' का सरल अनुमान
+    let totalDays = (y - 1900) * 365.25 + (m * 30.4) + d + (h / 24);
     
-    const planetData = [
-        { n: "Sun", speed: 0.98, start: 280 }, { n: "Moon", speed: 13.1, start: 40 },
-        { n: "Mars", speed: 0.52, start: 120 }, { n: "Merc", speed: 1.2, start: 300 },
-        { n: "Jup", speed: 0.08, start: 90 }, { n: "Ven", speed: 1.1, start: 10 },
-        { n: "Sat", speed: 0.03, start: 140 }, { n: "Rah", speed: -0.05, start: 130 }
+    // ग्रहों की औसत गति के आधार पर स्थिति (Universal Logic)
+    const planetConfig = [
+        { n: "Sun", s: 0.9856, offset: 280 }, { n: "Moon", s: 13.176, offset: 50 },
+        { n: "Mars", s: 0.524, offset: 120 }, { n: "Merc", s: 1.2, offset: 310 },
+        { n: "Jup", s: 0.083, offset: 100 }, { n: "Ven", s: 1.2, offset: 15 },
+        { n: "Sat", s: 0.033, offset: 150 }, { n: "Rah", s: -0.053, offset: 140 }
     ];
 
     const rashiNames = ["मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"];
-    const tbody = document.getElementById('p-body');
-    tbody.innerHTML = '';
+    const housePos = [
+        {x: 200, y: 150}, {x: 100, y: 70}, {x: 300, y: 70},
+        {x: 70, y: 200}, {x: 100, y: 330}, {x: 300, y: 330},
+        {x: 200, y: 250}, {x: 350, y: 330}, {x: 350, y: 70},
+        {x: 330, y: 200}, {x: 50, y: 70}, {x: 50, y: 330}
+    ];
 
-    // लग्न (Ascendant) की गणना (समय के आधार पर)
-    let ascRashi = ((Math.floor(totalDays/30) + (parseInt(document.getElementById('h').value)/2)) % 12) + 1;
+    // लग्न (Ascendant) की गणना
+    let ascRashi = ((Math.floor(totalDays/30) + (h/2)) % 12) + 1;
     ascRashi = Math.floor(ascRashi) || 1;
 
-    // घरों को साफ करें
-    for(let i=1; i<=12; i++) {
-        document.querySelector(`#house${i} .planets`).innerHTML = '';
-        let rNo = (ascRashi + i - 2) % 12 + 1;
-        document.querySelector(`#house${i} .rashi-no`).innerText = rNo;
+    const houseMarkers = document.getElementById('houseMarkers');
+    const planetMarkers = document.getElementById('planetMarkers');
+    const dataTable = document.getElementById('dataTable');
+    
+    houseMarkers.innerHTML = ''; planetMarkers.innerHTML = ''; dataTable.innerHTML = '';
+
+    // घरों में राशि संख्या भरें
+    const houseCoords = [
+        {x:200, y:180}, {x:110, y:100}, {x:290, y:100},
+        {x:80, y:200}, {x:110, y:300}, {x:290, y:300},
+        {x:200, y:220}, {x:320, y:370}, {x:320, y:30},
+        {x:320, y:200}, {x:80, y:30}, {x:80, y:370}
+    ];
+
+    for(let i=0; i<12; i++) {
+        let rNo = (ascRashi + i - 1) % 12 + 1;
+        houseMarkers.innerHTML += `<text x="${houseCoords[i].x}" y="${houseCoords[i].y}" class="house-text">${rNo}</text>`;
     }
 
-    planetData.forEach(p => {
-        let curDeg = (p.start + (totalDays * p.speed)) % 360;
+    // ग्रहों की गणना और मैपिंग
+    planetConfig.forEach(p => {
+        let curDeg = (p.offset + (totalDays * p.s)) % 360;
         if(curDeg < 0) curDeg += 360;
         let rashiIdx = Math.floor(curDeg / 30);
-        let rashiNo = rashiIdx + 1;
+        let houseIdx = (rashiIdx - (ascRashi - 1) + 12) % 12;
         
-        // घर ढूँढना (House Mapping)
-        let houseIdx = (rashiNo - ascRashi + 12) % 12 + 1;
-        document.querySelector(`#house${houseIdx} .planets`).innerHTML += p.n + "<br>";
+        // चार्ट पर ग्रह दिखाना
+        planetMarkers.innerHTML += `<text x="${houseCoords[houseIdx].x}" y="${houseCoords[houseIdx].y + 20}" class="planet-text">${p.n}</text>`;
 
-        // टेबल में भरना
-        tbody.innerHTML += `<tr><td>${p.n}</td><td>${rashiNames[rashiIdx]}</td><td>${(curDeg % 30).toFixed(2)}°</td></tr>`;
+        // तालिका में डेटा
+        dataTable.innerHTML += `<tr><td>${p.n}</td><td>${rashiNames[rashiIdx]}</td><td>${(curDeg % 30).toFixed(2)}°</td></tr>`;
     });
 }
 </script>
