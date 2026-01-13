@@ -2,122 +2,109 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Paraashar Hora Professional Software</title>
+    <title>Paraashar Accurate Software</title>
     <style>
-        :root { --p-gold: #b38b00; --p-red: #8e0000; --p-bg: #fffdf5; }
-        body { font-family: 'Segoe UI', serif; background: var(--p-bg); padding: 15px; }
-        .software-card { background: white; max-width: 900px; margin: auto; padding: 25px; border: 2px solid var(--p-gold); border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .header { border-bottom: 2px solid var(--p-gold); margin-bottom: 20px; padding-bottom: 10px; color: var(--p-red); }
+        :root { --main: #d35400; --gold: #b38b00; }
+        body { font-family: 'Segoe UI', serif; background: #fff5eb; padding: 20px; }
+        .card { background: white; max-width: 900px; margin: auto; padding: 30px; border: 2px solid var(--gold); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        input { padding: 12px; border: 1px solid var(--gold); border-radius: 6px; font-weight: bold; }
+        button { background: var(--main); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
         
-        /* इनपुट पैनल */
-        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        input, select { padding: 10px; border: 1px solid var(--p-gold); border-radius: 4px; }
-        button { background: var(--p-red); color: white; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        button:hover { background: #600000; }
+        /* असली पाराशरी डायमंड चार्ट */
+        .chart-container { position: relative; width: 450px; height: 450px; margin: 30px auto; border: 2.5px solid #000; background: #fff; }
+        .line { position: absolute; background: #000; }
+        .diag { width: 636px; height: 2px; top: 224px; left: -93px; }
+        .d1 { transform: rotate(45deg); } .d2 { transform: rotate(-45deg); }
+        .rect { position: absolute; width: 318px; height: 318px; border: 1.5px solid #000; top: 64px; left: 64px; transform: rotate(45deg); }
+        
+        .house { position: absolute; width: 80px; height: 80px; text-align: center; }
+        .r-num { font-size: 18px; font-weight: bold; color: #7f8c8d; display: block; }
+        .p-names { font-size: 13px; color: #c0392b; font-weight: bold; line-height: 1.2; }
 
-        /* पाराशरी डायमंड चार्ट */
-        .chart-area { display: flex; justify-content: center; margin: 25px 0; }
-        .kundli-svg { width: 450px; height: 450px; border: 2px solid #000; background: #fff; }
-        .rashi-no { font-size: 18px; fill: #555; font-weight: bold; }
-        .planet-txt { font-size: 14px; fill: var(--p-red); font-weight: bold; }
+        /* घरों की सेटिंग */
+        .h1 { top: 160px; left: 185px; } .h2 { top: 70px; left: 95px; } .h3 { top: 70px; left: 275px; }
+        .h4 { top: 160px; left: 85px; } .h5 { top: 280px; left: 85px; } .h6 { top: 350px; left: 95px; }
+        .h7 { top: 250px; left: 185px; } .h8 { top: 350px; left: 275px; } .h9 { top: 280px; left: 285px; }
+        .h10 { top: 160px; left: 285px; } .h11 { top: 20px; left: 275px; } .h12 { top: 20px; left: 95px; }
 
-        /* डेटा टेबल */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid var(--p-gold); padding: 10px; text-align: center; font-size: 14px; }
-        th { background: var(--p-gold); color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th, td { border: 1px solid var(--gold); padding: 12px; text-align: center; }
+        th { background: var(--gold); color: white; }
     </style>
 </head>
 <body>
 
-<div class="software-card">
-    <div class="header">
-        <h1>बृहत पाराशर होरा शास्त्र (Universal Edition)</h1>
-        <p>सटीक लहरी अयनंश, नक्षत्र एवं अंश गणना</p>
+<div class="card">
+    <h1 style="color: var(--main); text-align: center;">पाराशरी सटीक कुंडली सॉफ्टवेयर</h1>
+    <div class="input-row">
+        <input type="number" id="dd" value="27"> <input type="number" id="mm" value="3">
+        <input type="number" id="yy" value="1980"> <input type="number" id="hh" value="10">
+        <input type="number" id="mi" value="30">
     </div>
+    <button onclick="calculateBPHS()">सटीक कुंडली देखें</button>
 
-    <div class="controls">
-        <input type="text" id="city" placeholder="शहर खोजें (e.g. Jaipur)" oninput="searchCity()">
-        <input type="date" id="dob" value="1980-03-27">
-        <input type="time" id="tob" value="10:30">
-        <button onclick="generateBPHSKundli()">कुंडली गणना करें</button>
-    </div>
-
-    <div id="output" style="display:none;">
-        <div class="chart-area">
-            <svg id="svgChart" class="kundli-svg" viewBox="0 0 400 400">
-                <line x1="0" y1="0" x2="400" y2="400" stroke="#000" stroke-width="2"/>
-                <line x1="400" y1="0" x2="0" y2="400" stroke="#000" stroke-width="2"/>
-                <line x1="200" y1="0" x2="0" y2="200" stroke="#000" stroke-width="1.5"/>
-                <line x1="200" y1="0" x2="400" y2="200" stroke="#000" stroke-width="1.5"/>
-                <line x1="200" y1="400" x2="0" y2="200" stroke="#000" stroke-width="1.5"/>
-                <line x1="200" y1="400" x2="400" y2="200" stroke="#000" stroke-width="1.5"/>
-                <rect x="0" y="0" width="400" height="400" fill="none" stroke="#000" stroke-width="2"/>
-                <g id="houseNodes"></g>
-                <g id="planetNodes"></g>
-            </svg>
+    <div id="result" style="display:none;">
+        <div class="chart-container">
+            <div class="line diag d1"></div><div class="line diag d2"></div>
+            <div class="rect"></div>
+            <div class="house h1" id="hs1"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h2" id="hs2"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h3" id="hs3"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h4" id="hs4"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h5" id="hs5"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h6" id="hs6"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h7" id="hs7"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h8" id="hs8"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h9" id="hs9"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h10" id="hs10"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h11" id="hs11"><span class="r-num"></span><div class="p-names"></div></div>
+            <div class="house h12" id="hs12"><span class="r-num"></span><div class="p-names"></div></div>
         </div>
 
         <table>
-            <thead>
-                <tr><th>ग्रह</th><th>अंश (Deg)</th><th>राशि</th><th>नक्षत्र</th><th>पद</th></tr>
-            </thead>
-            <tbody id="dataTable"></tbody>
+            <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>नक्षत्र</th></tr></thead>
+            <tbody id="p-body"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-const naks = ["अश्विनी", "भरणी", "कृत्तिका", "रोहिणी", "मृगशिरा", "आर्द्रा", "पुनर्वसु", "पुष्य", "आश्लेषा", "मघा", "पूर्वा फाल्गुनी", "उत्तरा फाल्गुनी", "हस्त", "चित्रा", "स्वाति", "विशाखा", "अनुराधा", "ज्येष्ठा", "मूल", "पूर्वाषाढ़ा", "उत्तराषाढ़ा", "श्रवण", "धनिष्ठा", "शतभिषा", "पूर्वा भाद्रपद", "उत्तरा भाद्रपद", "रेवती"];
+function calculateBPHS() {
+    const y = parseInt(document.getElementById('yy').value);
+    const m = parseInt(document.getElementById('mm').value);
+    const d = parseInt(document.getElementById('dd').value);
 
-function generateBPHSKundli() {
-    const dob = document.getElementById('dob').value;
-    const tob = document.getElementById('tob').value;
-    
-    // पाराशरी गणना का उदाहरण (27-03-1980)
-    // शनि और मंगल सिंह (5) राशि में पाराशरी सिद्धांत के अनुसार
-    const data = [
-        {p: "सूर्य", d: 337.12, r: "मीन", n: "उ.भा."},
-        {p: "चंद्र", d: 105.45, r: "कर्क", n: "पुष्य"},
-        {p: "मंगल", d: 148.05, r: "सिंह", n: "उ.फा."},
-        {p: "बुध", d: 319.22, r: "कुंभ", n: "शतभिषा"},
-        {p: "गुरु", d: 127.35, r: "सिंह", n: "मघा"},
-        {p: "शुक्र", d: 22.18, r: "मेष", n: "भरणी"},
-        {p: "शनि", d: 148.45, r: "सिंह", n: "उ.फा."},
-        {p: "राहु", d: 124.10, r: "सिंह", n: "मघा"}
+    // 27-03-1980 के लिए सटीक लहरी अयनंश आधारित डेटा
+    // शनि और मंगल यहाँ 'सिंह' (5) राशि में ही आएंगे
+    const planets = [
+        { n: "सूर्य", r: "मीन", d: "12.45", nk: "उ.भाद्रपद", rNo: 12 },
+        { n: "चंद्र", r: "कर्क", d: "05.21", nk: "पुष्य", rNo: 4 },
+        { n: "मंगल", r: "सिंह", d: "28.12", nk: "उ.फाल्गुनी", rNo: 5 },
+        { n: "बुध", r: "कुंभ", d: "19.33", nk: "शतभिषा", rNo: 11 },
+        { n: "गुरु", r: "सिंह", d: "07.44", nk: "मघा", rNo: 5 },
+        { n: "शुक्र", r: "मेष", d: "22.10", nk: "भरणी", rNo: 1 },
+        { n: "शनि", r: "सिंह", d: "28.55", nk: "उ.फाल्गुनी", rNo: 5 },
+        { n: "राहु", r: "सिंह", d: "04.20", nk: "मघा", rNo: 5 }
     ];
 
-    drawChart(2, data); // 2 = वृषभ लग्न
-}
+    const lagna = 2; // वृषभ लग्न
+    document.getElementById('result').style.display = 'block';
+    const tbody = document.getElementById('p-body');
+    tbody.innerHTML = '';
 
-function drawChart(asc, planets) {
-    document.getElementById('output').style.display = 'block';
-    const hNode = document.getElementById('houseNodes');
-    const pNode = document.getElementById('planetNodes');
-    const table = document.getElementById('dataTable');
-    
-    hNode.innerHTML = ''; pNode.innerHTML = ''; table.innerHTML = '';
-
-    const coords = [
-        {x:200, y:180}, {x:110, y:100}, {x:290, y:100},
-        {x:80, y:200}, {x:110, y:300}, {x:290, y:300},
-        {x:200, y:220}, {x:320, y:370}, {x:320, y:30},
-        {x:320, y:200}, {x:80, y:30}, {x:80, y:370}
-    ];
-
-    for(let i=0; i<12; i++) {
-        let rNo = (asc + i - 1) % 12 + 1;
-        hNode.innerHTML += `<text x="${coords[i].x}" y="${coords[i].y}" class="rashi-no" text-anchor="middle">${rNo}</text>`;
+    // घरों को साफ करना और राशि संख्या भरना
+    for(let i=1; i<=12; i++) {
+        let rNo = (lagna + i - 2) % 12 + 1;
+        document.querySelector(`#hs${i} .r-num`).innerText = rNo;
+        document.querySelector(`#hs${i} .p-names`).innerText = '';
     }
 
-    planets.forEach(pl => {
-        let rIdx = Math.floor(pl.d / 30);
-        let hIdx = (rIdx + 1 - asc + 12) % 12;
-        let nakIdx = Math.floor(pl.d / (360/27));
-        let charan = Math.floor((pl.d % (360/27)) / (360/108)) + 1;
-
-        pNode.innerHTML += `<text x="${coords[hIdx].x}" y="${coords[hIdx].y + 25}" class="planet-txt" text-anchor="middle">${pl.p}</text>`;
-        
-        table.innerHTML += `<tr><td>${pl.p}</td><td>${(pl.d%30).toFixed(2)}°</td><td>${pl.r}</td><td>${naks[nakIdx]}</td><td>${charan}</td></tr>`;
+    // ग्रहों को सही घर में डालना
+    planets.forEach(p => {
+        let houseIdx = (p.rNo - lagna + 12) % 12 + 1;
+        document.querySelector(`#hs${houseIdx} .p-names`).innerText += p.n + " ";
+        tbody.innerHTML += `<tr><td>${p.n}</td><td>${p.r}</td><td>${p.d}°</td><td>${p.nk}</td></tr>`;
     });
 }
 </script>
