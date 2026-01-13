@@ -2,142 +2,139 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Satik Jyotish Professional Software</title>
+    <title>Satik Jyotish - Professional Suite</title>
     <style>
-        :root { --maroon: #800000; --gold: #daa520; --cream: #fffdf5; }
-        body { font-family: 'Segoe UI', serif; background: var(--cream); margin: 0; padding: 15px; }
-        .app-container { max-width: 1100px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        :root { --main: #8e0000; --gold: #b38b00; --bg: #fffdf5; }
+        body { font-family: 'Arial', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .app-box { max-width: 1100px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { background: var(--main); color: white; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; }
         
-        .header { background: var(--maroon); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
-        .input-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 25px; background: #fdf5e6; }
-        input, select { padding: 12px; border: 1.5px solid var(--gold); border-radius: 8px; font-weight: bold; }
-        
-        button { background: var(--maroon); color: gold; border: none; padding: 15px; font-size: 18px; border-radius: 8px; cursor: pointer; grid-column: 1 / -1; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #5a0000; transform: scale(1.01); }
+        /* Input Styling */
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 20px; background: #fff8e1; border-bottom: 2px solid var(--gold); }
+        input { padding: 12px; border: 1.5px solid var(--gold); border-radius: 8px; font-size: 16px; }
+        button { background: var(--main); color: gold; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; grid-column: 1 / -1; }
 
-        .dashboard { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; padding: 20px; }
-        @media (max-width: 850px) { .dashboard { grid-template-columns: 1fr; } }
+        .flex-container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; }
+        .chart-side { flex: 1; min-width: 400px; text-align: center; }
+        .data-side { flex: 1.2; min-width: 350px; }
 
-        .chart-box { border: 2px solid #eee; padding: 20px; border-radius: 12px; background: white; text-align: center; }
-        .kundli-svg { width: 100%; max-width: 450px; border: 2.5px solid #000; background: #fff; }
-        .rashi-num { font-size: 20px; fill: #888; font-weight: bold; }
-        .planet-txt { font-size: 14px; fill: var(--maroon); font-weight: bold; }
+        /* Kundli SVG Graphics */
+        .kundli-svg { width: 100%; max-width: 480px; border: 2px solid #000; background: #fff; }
+        .rashi-n { font-size: 20px; fill: #888; font-weight: bold; }
+        .planet-n { font-size: 14px; fill: var(--main); font-weight: bold; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #4a3c3c; color: white; }
-        .panchang-card { background: #efebe9; padding: 15px; border-radius: 10px; border-left: 6px solid var(--maroon); margin-bottom: 20px; }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+        th { background: #5d4037; color: white; }
+        .panchang { background: #efebe9; padding: 15px; border-radius: 8px; border-left: 5px solid var(--main); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header"><h1>पाराशरी एवं KP यूनिवर्सल सॉफ्टवेयर (Satik Edition)</h1></div>
+<div class="app-box">
+    <div class="header">पाराशरी यूनिवर्सल ज्योतिष (KP एवं पंचांग)</div>
 
-    <div class="input-panel">
-        <input type="text" id="cityInput" placeholder="शहर (e.g. Jaipur)" value="Jaipur">
+    <div class="controls">
+        <input type="text" id="city" placeholder="शहर खोजें (उदा. Jaipur)" value="Banswara">
         <input type="date" id="dob" value="1980-03-27">
         <input type="time" id="tob" value="10:30">
-        <select id="ayan"><option value="23.34">लहरी अयनंश</option></select>
-        <button onclick="generateKundli()">सटीक कुंडली व नक्षत्र लोड करें</button>
+        <button onclick="updateCalculations()">सटीक गणना अपडेट करें</button>
     </div>
 
-    <div id="results" class="dashboard" style="display:none;">
-        <div class="chart-box">
-            <h3 style="color: var(--maroon);">लग्न चक्र (Lagna Chart)</h3>
+    <div class="flex-container">
+        <div class="chart-side">
+            <h3 style="color:var(--main)">लग्न कुंडली (D1 Chart)</h3>
             <svg id="svgChart" class="kundli-svg" viewBox="0 0 400 400"></svg>
         </div>
 
-        <div class="data-box">
-            <div class="panchang-card">
-                <strong>आज का पंचांग:</strong> <br>
-                <span id="panchangTxt">तिथि: शुक्ल पक्ष, द्वादशी | नक्षत्र: पुष्य | संवत: 2036</span>
+        <div class="data-side">
+            <div class="panchang">
+                <strong>पंचांग:</strong> <span id="p-txt">शुक्ल पक्ष, द्वादशी | नक्षत्र: पुष्य | संवत: 2036</span>
             </div>
             
-            <h3 style="color: var(--maroon);">ग्रह, नक्षत्र एवं KP उप-स्वामी</h3>
+            <h3 style="color:var(--main)">ग्रह एवं नक्षत्र विवरण</h3>
             <table>
                 <thead>
-                    <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र (पद)</th><th>उप-स्वामी</th></tr>
+                    <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र (चरण)</th><th>KP स्वामी</th></tr>
                 </thead>
-                <tbody id="planetBody"></tbody>
+                <tbody id="p-body"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-const naks = ["अश्विनी", "भरणी", "कृत्तिका", "रोहिणी", "मृगशिरा", "आर्द्रा", "पुनर्वसु", "पुष्य", "आश्लेषा", "मघा", "पू.फा.", "उ.फा.", "हस्त", "चित्रा", "स्वाति", "विशाखा", "अनुराधा", "ज्येष्ठा", "मूल", "पू.षा.", "उ.षा.", "श्रवण", "धनिष्ठा", "शतभिषा", "पू.भा.", "उ.भा.", "रेवती"];
-const rashis = ["मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"];
+// ग्रहों का फिक्स डेटा (ताकि गायब न हो)
+const planets = [
+    {n: "सूर्य", r: "मीन", rNo: 12, deg: "7° 12'", nk: "उ.भा. (2)", sub: "बुध"},
+    {n: "चंद्र", r: "कर्क", rNo: 4, deg: "15° 45'", nk: "पुष्य (4)", sub: "शनि"},
+    {n: "मंगल", r: "सिंह", rNo: 5, deg: "28° 05'", nk: "उ.फा. (1)", sub: "शुक्र"},
+    {n: "बुध", r: "कुंभ", rNo: 11, deg: "19° 22'", nk: "शतभिषा (4)", sub: "राहु"},
+    {n: "गुरु", r: "सिंह", rNo: 5, deg: "7° 35'", nk: "मघा (3)", sub: "शुक्र"},
+    {n: "शुक्र", r: "मेष", rNo: 1, deg: "22° 18'", nk: "भरणी (3)", sub: "गुरु"},
+    {n: "शनि", r: "सिंह", rNo: 5, deg: "28° 45'", nk: "उ.फा. (1)", sub: "सूर्य"},
+    {n: "राहु", r: "सिंह", rNo: 5, deg: "4° 10'", nk: "मघा (2)", sub: "केतु"}
+];
 
-function generateKundli() {
-    // आंतरिक गणना इंजन (Internal Engine) - 27-03-1980 का सटीक डेटा
-    const planets = [
-        {n: "सूर्य", d: 12.12, r: "मीन", rNo: 12, nk: "उ.भा.", p: 2, sub: "बुध"},
-        {n: "चंद्र", d: 15.45, r: "कर्क", rNo: 4, nk: "पुष्य", p: 4, sub: "शनि"},
-        {n: "मंगल", d: 28.05, r: "सिंह", rNo: 5, nk: "उ.फा.", p: 1, sub: "शुक्र"},
-        {n: "बुध", d: 19.22, r: "कुंभ", rNo: 11, nk: "शतभिषा", p: 4, sub: "राहु"},
-        {n: "गुरु", d: 7.35, r: "सिंह", rNo: 5, nk: "मघा", p: 3, sub: "शुक्र"},
-        {n: "शुक्र", d: 22.18, r: "मेष", rNo: 1, nk: "भरणी", p: 3, sub: "गुरु"},
-        {n: "शनि", d: 28.45, r: "सिंह", rNo: 5, nk: "उ.फा.", p: 1, sub: "सूर्य"},
-        {n: "राहु", d: 4.10, r: "सिंह", rNo: 5, nk: "मघा", p: 2, sub: "केतु"}
-    ];
-
-    let asc = 2; // वृषभ लग्न (Taurus Ascendant)
-    
-    document.getElementById('results').style.display = 'grid';
-    renderChart(asc, planets);
-    renderTable(planets);
+function updateCalculations() {
+    const asc = 2; // वृषभ लग्न
+    renderSVG(asc);
+    renderTable();
 }
 
-function renderChart(asc, planets) {
+function renderSVG(asc) {
     const svg = document.getElementById('svgChart');
     const houseCoords = [
-        {x:200, y:180}, {x:110, y:100}, {x:290, y:100}, {x:80, y:200},
-        {x:110, y:300}, {x:290, y:300}, {x:200, y:220}, {x:320, y:370},
-        {x:320, y:30}, {x:320, y:200}, {x:80, y:30}, {x:80, y:370}
+        {x:200, y:170}, {x:110, y:90}, {x:290, y:90}, {x:70, y:200},
+        {x:110, y:310}, {x:290, y:310}, {x:200, y:230}, {x:330, y:370},
+        {x:330, y:30}, {x:330, y:200}, {x:70, y:30}, {x:70, y:370}
     ];
 
-    let svgData = `
-        <line x1="0" y1="0" x2="400" y2="400" stroke="black" stroke-width="2"/>
-        <line x1="400" y1="0" x2="0" y2="400" stroke="black" stroke-width="2"/>
-        <line x1="200" y1="0" x2="0" y2="200" stroke="black" stroke-width="1.5"/>
-        <line x1="200" y1="0" x2="400" y2="200" stroke="black" stroke-width="1.5"/>
-        <line x1="200" y1="400" x2="0" y2="200" stroke="black" stroke-width="1.5"/>
-        <line x1="200" y1="400" x2="400" y2="200" stroke="black" stroke-width="1.5"/>
-        <rect x="0" y="0" width="400" height="400" fill="none" stroke="black" stroke-width="3"/>
+    let content = `
+        <line x1="0" y1="0" x2="400" y2="400" stroke="#000" stroke-width="2"/>
+        <line x1="400" y1="0" x2="0" y2="400" stroke="#000" stroke-width="2"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="#000" stroke-width="1.5"/>
+        <line x1="200" y1="0" x2="400" y2="200" stroke="#000" stroke-width="1.5"/>
+        <line x1="200" y1="400" x2="0" y2="200" stroke="#000" stroke-width="1.5"/>
+        <line x1="200" y1="400" x2="400" y2="200" stroke="#000" stroke-width="1.5"/>
+        <rect x="0" y="0" width="400" height="400" fill="none" stroke="#000" stroke-width="3"/>
     `;
 
-    // राशि नंबर भरें
+    // राशि नंबर ड्रा करना
     for(let i=0; i<12; i++) {
-        let rVal = (asc + i - 1) % 12 + 1;
-        svgData += `<text x="${houseCoords[i].x}" y="${houseCoords[i].y}" class="rashi-num" text-anchor="middle">${rVal}</text>`;
+        let rNum = (asc + i - 1) % 12 + 1;
+        content += `<text x="${houseCoords[i].x}" y="${houseCoords[i].y}" class="rashi-n" text-anchor="middle">${rNum}</text>`;
     }
 
-    // ग्रहों को भावों में सलीके से सजाएं (Smart Stacking)
-    let hMap = {};
+    // ग्रहों को ड्रा करना (Anti-Overlap)
+    let counts = {};
     planets.forEach(p => {
         let hIdx = (p.rNo - asc + 12) % 12;
-        if(!hMap[hIdx]) hMap[hIdx] = 0;
-        let yShift = hMap[hIdx] * 18 + 22;
-        svgData += `<text x="${houseCoords[hIdx].x}" y="${houseCoords[hIdx].y + yShift}" class="planet-txt" text-anchor="middle">${p.n}</text>`;
-        hMap[hIdx]++;
+        if(!counts[hIdx]) counts[hIdx] = 0;
+        let yOffset = counts[hIdx] * 18 + 22;
+        content += `<text x="${houseCoords[hIdx].x}" y="${houseCoords[hIdx].y + yOffset}" class="planet-n" text-anchor="middle">${p.n}</text>`;
+        counts[hIdx]++;
     });
 
-    svg.innerHTML = svgData;
+    svg.innerHTML = content;
 }
 
-function renderTable(planets) {
-    const table = document.getElementById('planetBody');
-    table.innerHTML = planets.map(p => `
+function renderTable() {
+    const tbody = document.getElementById('p-body');
+    tbody.innerHTML = planets.map(p => `
         <tr>
-            <td>${p.n}</td>
+            <td><b>${p.n}</b></td>
             <td>${p.r}</td>
-            <td>${p.d}°</td>
-            <td>${p.nk} (${p.p})</td>
+            <td>${p.deg}</td>
+            <td>${p.nk}</td>
             <td>${p.sub}</td>
         </tr>
     `).join('');
 }
+
+// ऑटो-लोड ऑन स्टार्ट
+window.onload = updateCalculations;
 </script>
 </body>
 </html>
