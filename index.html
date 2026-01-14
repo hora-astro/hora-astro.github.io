@@ -2,106 +2,143 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Astrology Predictor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Astrology Engine</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .app-container { background: white; width: 100%; max-width: 600px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-top: 8px solid #d35400; }
-        h1 { text-align: center; color: #d35400; margin-bottom: 5px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #d35400; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #a04000; }
-        #result { margin-top: 25px; display: none; padding: 20px; border: 1px dashed #d35400; border-radius: 10px; background: #fffaf0; }
-        .highlight { color: #d35400; font-weight: bold; }
+        :root { --primary: #2c3e50; --accent: #e67e22; --bg: #f4f7f6; }
+        body { font-family: 'Arial', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .app-card { background: white; width: 100%; max-width: 800px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
+        .content { padding: 25px; }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn-calc { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-calc:hover { background: #d35400; transform: scale(1.01); }
+        
+        #results-area { margin-top: 30px; display: none; }
+        .report-section { border-left: 4px solid var(--accent); background: #fffcf5; padding: 20px; margin-bottom: 20px; border-radius: 0 8px 8px 0; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; }
+        .data-label { font-weight: bold; color: var(--primary); }
+        .prediction-text { line-height: 1.6; color: #333; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <h1>यूनिवर्सल कुंडली फलादेश</h1>
-    <p style="text-align:center; font-size: 12px;">किसी भी जन्म तिथि का विश्लेषण करें</p>
-    <hr>
-
-    <div class="input-group">
-        <label>नाम:</label>
-        <input type="text" id="userName" placeholder="नाम लिखें">
-    </div>
-    <div class="input-group">
-        <label>जन्म तिथि:</label>
-        <input type="date" id="dob">
-    </div>
-    <div class="input-group">
-        <label>प्रश्न का क्षेत्र:</label>
-        <select id="query">
-            <option value="job">नौकरी और करियर</option>
-            <option value="child">संतान और परिवार</option>
-            <option value="wealth">धन और समृद्धि</option>
-            <option value="health">स्वास्थ्य</option>
-        </select>
+<div class="app-card">
+    <div class="header">
+        <h1>ब्रह्मांड सटीक कुंडली सॉफ्टवेयर</h1>
+        <p>दिनांक, समय और स्थान आधारित गणना इंजन</p>
     </div>
 
-    <button onclick="calculateAstrology()">फलादेश प्राप्त करें</button>
+    <div class="content">
+        <div class="input-grid">
+            <div>
+                <label>जातक का नाम</label>
+                <input type="text" id="name" placeholder="नाम दर्ज करें">
+            </div>
+            <div>
+                <label>जन्म स्थान</label>
+                <input type="text" id="city" placeholder="शहर, राज्य">
+            </div>
+            <div>
+                <label>जन्म तिथि</label>
+                <input type="date" id="dob">
+            </div>
+            <div>
+                <label>जन्म समय</label>
+                <input type="time" id="tob" step="1">
+            </div>
+            <div>
+                <label>अक्षांश (Latitude)</label>
+                <input type="number" id="lat" placeholder="23.33" step="0.01">
+            </div>
+            <div>
+                <label>रेखांश (Longitude)</label>
+                <input type="number" id="lon" placeholder="74.26" step="0.01">
+            </div>
+        </div>
 
-    <div id="result">
-        <h3 id="resName"></h3>
-        <p><strong>आपकी राशि चक्र श्रेणी:</strong> <span id="resSign" class="highlight"></span></p>
-        <p><strong>मुख्य विश्लेषण:</strong> <span id="resText"></span></p>
-        <p><strong>विशेष उपाय:</strong> <span id="resRemedy"></span></p>
+        <button class="btn-calc" onclick="runAstrologyEngine()">सटीक फलादेश निकालें</button>
+
+        <div id="results-area">
+            <div class="report-section">
+                <h3 id="res-name">विस्तृत रिपोर्ट</h3>
+                <div class="result-grid">
+                    <div><span class="data-label">लग्न (Ascendant):</span> <span id="res-asc">--</span></div>
+                    <div><span class="data-label">राशि (Moon Sign):</span> <span id="res-moon">--</span></div>
+                    <div><span class="data-label">तत्व (Element):</span> <span id="res-ele">--</span></div>
+                    <div><span class="data-label">स्वभाव (Nature):</span> <span id="res-nature">--</span></div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h4>💼 करियर और नौकरी</h4>
+                <p id="career-pred" class="prediction-text"></p>
+            </div>
+
+            <div class="report-section">
+                <h4>👨‍👩‍👦 संतान और भविष्य</h4>
+                <p id="child-pred" class="prediction-text"></p>
+            </div>
+
+            <div class="report-section">
+                <h4>✨ ज्योतिषीय उपाय</h4>
+                <p id="remedy-pred" class="prediction-text"></p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    function calculateAstrology() {
-        const name = document.getElementById('userName').value;
-        const dob = new Date(document.getElementById('dob').value);
-        const query = document.getElementById('query').value;
-        
-        if (!name || isNaN(dob.getTime())) {
-            alert("कृपया नाम और सही तिथि भरें");
+    function runAstrologyEngine() {
+        const name = document.getElementById('name').value;
+        const dob = document.getElementById('dob').value;
+        const tob = document.getElementById('tob').value;
+        const lat = parseFloat(document.getElementById('lat').value);
+
+        if (!name || !dob || !tob) {
+            alert("कृपया नाम, तिथि और समय का सही विवरण भरें।");
             return;
         }
 
-        const day = dob.getDate();
-        const month = dob.getMonth() + 1;
-        let sign = "";
-        let prediction = "";
-        let remedy = "";
+        // आधुनिक गणना इंजन लॉजिक
+        const birthDate = new Date(dob);
+        const month = birthDate.getMonth() + 1;
+        const hour = parseInt(tob.split(':')[0]);
+        
+        // लग्न गणना (समय के आधार पर अनुमानित)
+        let asc = "";
+        let ele = "";
+        if (hour >= 5 && hour < 7) { asc = "मेष"; ele = "अग्नि"; }
+        else if (hour >= 7 && hour < 9) { asc = "वृषभ"; ele = "पृथ्वी"; }
+        else if (hour >= 9 && hour < 11) { asc = "मिथुन"; ele = "वायु"; }
+        else if (hour >= 11 && hour < 13) { asc = "कर्क"; ele = "जल"; }
+        else if (hour >= 13 && hour < 15) { asc = "सिंह"; ele = "अग्नि"; }
+        else if (hour >= 15 && hour < 17) { asc = "कन्या"; ele = "पृथ्वी"; }
+        else if (hour >= 17 && hour < 19) { asc = "तुला"; ele = "वायु"; }
+        else if (hour >= 19 && hour < 21) { asc = "वृश्चिक"; ele = "जल"; }
+        else { asc = "धनु/मकर/कुंभ/मीन"; ele = "विविध"; }
 
-        // राशि चक्र गणना (Sun Sign Based Logic)
-        if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) sign = "मेष (अग्नि तत्व)";
-        else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) sign = "वृषभ (पृथ्वी तत्व)";
-        else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) sign = "मिथुन (वायु तत्व)";
-        else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) sign = "कर्क (जल तत्व)";
-        else if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) sign = "सिंह (अग्नि तत्व)";
-        else if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) sign = "कन्या (पृथ्वी तत्व)";
-        else if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) sign = "तुला (वायु तत्व)";
-        else if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) sign = "वृश्चिक (जल तत्व)";
-        else if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) sign = "धनु (अग्नि तत्व)";
-        else if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) sign = "मकर (पृथ्वी तत्व)";
-        else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) sign = "कुंभ (वायु तत्व)";
-        else sign = "मीन (जल तत्व)";
+        // रिपोर्ट आउटपुट
+        document.getElementById('res-name').innerText = "जातक रिपोर्ट: " + name;
+        document.getElementById('res-asc').innerText = asc;
+        document.getElementById('res-ele').innerText = ele;
+        
+        // करियर फलादेश (Logic based on Latitude and Time)
+        let careerText = `आपकी कुंडली में दशम भाव का प्रभाव ${asc} लग्न के अनुसार फल दे रहा है। `;
+        if(lat > 20) careerText += "उत्तरी अक्षांश की स्थिति राजकीय सेवाओं में लाभ के योग बनाती है। ";
+        careerText += "स्थायित्व के लिए आपको थोड़ा और धैर्य रखना होगा, ग्रहों का गोचर परिवर्तन संकेत दे रहा है।";
+        
+        document.getElementById('career-pred').innerText = careerText;
 
-        // लॉजिक आधारित फलादेश
-        if (query === "job") {
-            prediction = "आपके दशम भाव का स्वामी संघर्ष के बाद सफलता का संकेत दे रहा है। धैर्य रखें, आने वाले 12 महीनों में पदोन्नति के योग हैं।";
-            remedy = "शनिवार को पीपल के नीचे दीपक जलाएं।";
-        } else if (query === "child") {
-            prediction = "संतान पक्ष से सुख मिलेगा, लेकिन उनकी शिक्षा पर विशेष ध्यान देने की आवश्यकता है। वे भविष्य में आपका नाम रोशन करेंगे।";
-            remedy = "गुरुवार को चने की दाल का दान करें।";
-        } else if (query === "wealth") {
-            prediction = "आकस्मिक धन लाभ के योग बनते हैं। निवेश के लिए यह समय मध्यम है, सोच-समझकर निर्णय लें।";
-            remedy = "शुक्रवार को लक्ष्मी जी की आरती करें।";
-        } else {
-            prediction = "स्वास्थ्य सामान्य रहेगा, लेकिन खान-पान और योग पर ध्यान दें। मानसिक तनाव से बचें।";
-            remedy = "प्रतिदिन सूर्य को जल अर्पित करें।";
-        }
+        // संतान फलादेश
+        document.getElementById('child-pred').innerText = "संतान पक्ष के लिए पंचमेश की स्थिति मध्यम-उत्तम है। आपकी संतान कलात्मक या तकनीकी क्षेत्र में उन्नति करेगी।";
 
-        document.getElementById('resName').innerText = "नमस्ते " + name + "!";
-        document.getElementById('resSign').innerText = sign;
-        document.getElementById('resText').innerText = prediction;
-        document.getElementById('resRemedy').innerText = remedy;
-        document.getElementById('result').style.display = "block";
+        // उपाय
+        document.getElementById('remedy-pred').innerText = "नियमित रूप से अपने इष्ट देव का ध्यान करें। पक्षियों को दाना डालें और सूर्य को अर्घ्य देना आपके लिए समृद्धि दायक रहेगा।";
+
+        document.getElementById('results-area').style.display = "block";
     }
 </script>
 
