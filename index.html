@@ -2,142 +2,108 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Astro Suite</title>
+    <title>Universal Astrology Predictor</title>
     <style>
-        :root { --main: #800000; --gold: #daa520; --bg: #fffcf5; }
-        body { font-family: 'Arial', sans-serif; background: #f0f0f0; margin: 0; padding: 10px; }
-        .wrapper { max-width: 1200px; margin: auto; background: white; border: 5px solid var(--gold); border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.3); }
-        .header { background: var(--main); color: gold; padding: 20px; text-align: center; font-size: 26px; font-weight: bold; border-bottom: 5px solid var(--gold); }
-        .input-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 25px; background: #fff8e1; }
-        input, button { padding: 15px; border: 2px solid var(--gold); border-radius: 12px; font-size: 16px; font-weight: bold; }
-        button { background: var(--main); color: white; cursor: pointer; grid-column: 1 / -1; }
-        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; padding: 30px; }
-        .chart-card { background: #fff; border: 2px solid #ddd; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .kundli-svg { width: 100%; max-width: 500px; height: auto; border: 3px solid #000; display: block; margin: auto; background: #fff; }
-        .rashi-text { font-size: 28px; fill: #a0a0a0; font-weight: 900; text-anchor: middle; dominant-baseline: middle; }
-        .planet-text { font-size: 16px; fill: var(--main); font-weight: bold; text-anchor: middle; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 15px; text-align: center; font-size: 15px; }
-        th { background: #4a3c3c; color: white; }
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .app-container { background: white; width: 100%; max-width: 600px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-top: 8px solid #d35400; }
+        h1 { text-align: center; color: #d35400; margin-bottom: 5px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #d35400; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #a04000; }
+        #result { margin-top: 25px; display: none; padding: 20px; border: 1px dashed #d35400; border-radius: 10px; background: #fffaf0; }
+        .highlight { color: #d35400; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div class="header">पाराशरी यूनिवर्सल ज्योतिष प्रो - सटीक गणना इंजन</div>
-    
-    <div class="input-bar">
-        <input type="text" id="city" value="Banswara" placeholder="स्थान">
-        <input type="date" id="dob" value="1979-12-03">
-        <input type="time" id="tob" value="02:00">
-        <button onclick="masterEngine()">सटीक कुंडली और नक्षत्र लोड करें</button>
+<div class="app-container">
+    <h1>यूनिवर्सल कुंडली फलादेश</h1>
+    <p style="text-align:center; font-size: 12px;">किसी भी जन्म तिथि का विश्लेषण करें</p>
+    <hr>
+
+    <div class="input-group">
+        <label>नाम:</label>
+        <input type="text" id="userName" placeholder="नाम लिखें">
+    </div>
+    <div class="input-group">
+        <label>जन्म तिथि:</label>
+        <input type="date" id="dob">
+    </div>
+    <div class="input-group">
+        <label>प्रश्न का क्षेत्र:</label>
+        <select id="query">
+            <option value="job">नौकरी और करियर</option>
+            <option value="child">संतान और परिवार</option>
+            <option value="wealth">धन और समृद्धि</option>
+            <option value="health">स्वास्थ्य</option>
+        </select>
     </div>
 
-    <div class="chart-grid">
-        <div class="chart-card">
-            <h3 style="color:var(--main)">लग्न कुंडली (D1 Chart)</h3>
-            <div id="d1Container"></div>
-        </div>
-        <div class="chart-card">
-            <h3 style="color:var(--main)">नवांश कुंडली (D9 Chart)</h3>
-            <div id="d9Container"></div>
-        </div>
-    </div>
+    <button onclick="calculateAstrology()">फलादेश प्राप्त करें</button>
 
-    <div style="padding: 30px; overflow-x: auto;">
-        <h3 style="color:var(--main)">ग्रहों का सटीक नक्षत्र एवं अंश विवरण</h3>
-        <table>
-            <thead>
-                <tr><th>ग्रह</th><th>D1 राशि</th><th>अंश</th><th>नक्षत्र (चरण)</th><th>D9 राशि</th></tr>
-            </thead>
-            <tbody id="dataTable"></tbody>
-        </table>
+    <div id="result">
+        <h3 id="resName"></h3>
+        <p><strong>आपकी राशि चक्र श्रेणी:</strong> <span id="resSign" class="highlight"></span></p>
+        <p><strong>मुख्य विश्लेषण:</strong> <span id="resText"></span></p>
+        <p><strong>विशेष उपाय:</strong> <span id="resRemedy"></span></p>
     </div>
 </div>
 
 <script>
-function masterEngine() {
-    const dob = document.getElementById('dob').value;
-    const [y, m, d] = dob.split('-').map(Number);
-    
-    let planets = [];
-    let asc = 6; // Default कन्या
+    function calculateAstrology() {
+        const name = document.getElementById('userName').value;
+        const dob = new Date(document.getElementById('dob').value);
+        const query = document.getElementById('query').value;
+        
+        if (!name || isNaN(dob.getTime())) {
+            alert("कृपया नाम और सही तिथि भरें");
+            return;
+        }
 
-    // CASE 1: 03.12.1979 (Archana Report Fix)
-    if(y === 1979 && m === 12 && d === 3) {
-        asc = 6; 
-        planets = [
-            {n:"सूर्य", r1:8, deg:16.29, nk:"अनुराधा (4)", r9:11},
-            {n:"चंद्र", r1:2, deg:4.57, nk:"कृत्तिका (3)", r9:12},
-            {n:"मंगल", r1:5, deg:11.53, nk:"मघा (4)", r9:1},
-            {n:"बुध", r1:7, deg:27.00, nk:"विशाखा (3)", r9:3},
-            {n:"गुरु", r1:5, deg:15.44, nk:"पू.फा. (1)", r9:1},
-            {n:"शुक्र", r1:9, deg:11.43, nk:"मूल (4)", r9:2},
-            {n:"शनि", r1:6, deg:2.21, nk:"उ.फा. (2)", r9:1},
-            {n:"राहु", r1:5, deg:9.51, nk:"मघा (3)", r9:1},
-            {n:"केतु", r1:11, deg:9.51, nk:"शतभिषा (1)", r9:10}
-        ];
+        const day = dob.getDate();
+        const month = dob.getMonth() + 1;
+        let sign = "";
+        let prediction = "";
+        let remedy = "";
+
+        // राशि चक्र गणना (Sun Sign Based Logic)
+        if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) sign = "मेष (अग्नि तत्व)";
+        else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) sign = "वृषभ (पृथ्वी तत्व)";
+        else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) sign = "मिथुन (वायु तत्व)";
+        else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) sign = "कर्क (जल तत्व)";
+        else if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) sign = "सिंह (अग्नि तत्व)";
+        else if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) sign = "कन्या (पृथ्वी तत्व)";
+        else if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) sign = "तुला (वायु तत्व)";
+        else if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) sign = "वृश्चिक (जल तत्व)";
+        else if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) sign = "धनु (अग्नि तत्व)";
+        else if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) sign = "मकर (पृथ्वी तत्व)";
+        else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) sign = "कुंभ (वायु तत्व)";
+        else sign = "मीन (जल तत्व)";
+
+        // लॉजिक आधारित फलादेश
+        if (query === "job") {
+            prediction = "आपके दशम भाव का स्वामी संघर्ष के बाद सफलता का संकेत दे रहा है। धैर्य रखें, आने वाले 12 महीनों में पदोन्नति के योग हैं।";
+            remedy = "शनिवार को पीपल के नीचे दीपक जलाएं।";
+        } else if (query === "child") {
+            prediction = "संतान पक्ष से सुख मिलेगा, लेकिन उनकी शिक्षा पर विशेष ध्यान देने की आवश्यकता है। वे भविष्य में आपका नाम रोशन करेंगे।";
+            remedy = "गुरुवार को चने की दाल का दान करें।";
+        } else if (query === "wealth") {
+            prediction = "आकस्मिक धन लाभ के योग बनते हैं। निवेश के लिए यह समय मध्यम है, सोच-समझकर निर्णय लें।";
+            remedy = "शुक्रवार को लक्ष्मी जी की आरती करें।";
+        } else {
+            prediction = "स्वास्थ्य सामान्य रहेगा, लेकिन खान-पान और योग पर ध्यान दें। मानसिक तनाव से बचें।";
+            remedy = "प्रतिदिन सूर्य को जल अर्पित करें।";
+        }
+
+        document.getElementById('resName').innerText = "नमस्ते " + name + "!";
+        document.getElementById('resSign').innerText = sign;
+        document.getElementById('resText').innerText = prediction;
+        document.getElementById('resRemedy').innerText = remedy;
+        document.getElementById('result').style.display = "block";
     }
-    // CASE 2: 27.03.1980 (Hemant Report Fix)
-    else if(y === 1980 && m === 3 && d === 27) {
-        asc = 2;
-        planets = [
-            {n:"सूर्य", r1:12, deg:13.12, nk:"उ.भा. (2)", r9:7},
-            {n:"चंद्र", r1:4, deg:15.45, nk:"पुष्य (4)", r9:8},
-            {n:"मंगल", r1:5, deg:28.05, nk:"उ.फा. (1)", r9:9},
-            {n:"बुध", r1:11, deg:19.22, nk:"शतभिषा (4)", r9:12},
-            {n:"गुरु", r1:5, deg:7.35, nk:"मघा (3)", r9:3},
-            {n:"शुक्र", r1:1, deg:22.18, nk:"भरणी (3)", r9:7},
-            {n:"शनि", r1:5, deg:28.45, nk:"उ.फा. (1)", r9:9},
-            {n:"राहु", r1:5, deg:4.10, nk:"मघा (2)", r9:1},
-            {n:"केतु", r1:11, deg:4.10, nk:"धनिष्ठा (4)", r9:7}
-        ];
-    }
-    else {
-        // Universal Auto-Engine for other dates
-        asc = (d % 12) + 1;
-        planets = [{n:"सूर्य", r1:(m%12)+1, deg:15.00, nk:"गणना जारी...", r9:1}];
-    }
-
-    renderKundli("d1Container", asc, planets, "r1");
-    renderKundli("d9Container", (asc * 9) % 12 || 12, planets, "r9");
-    
-    document.getElementById('dataTable').innerHTML = planets.map(p => `
-        <tr><td>${p.n}</td><td>${p.r1}</td><td>${p.deg}°</td><td>${p.nk}</td><td>${p.r9}</td></tr>
-    `).join('');
-}
-
-function renderKundli(divId, asc, planets, key) {
-    const container = document.getElementById(divId);
-    container.innerHTML = ""; // Force clean old data
-
-    const pts = [{x:200,y:185},{x:100,y:85},{x:300,y:85},{x:65,y:200},{x:100,y:315},{x:300,y:315},{x:200,y:215},{x:335,y:370},{x:335,y:30},{x:335,y:200},{x:65,y:30},{x:65,y:370}];
-    
-    let svg = `<svg viewBox="0 0 400 400" class="kundli-svg">
-        <path d="M0 0l400 400M400 0L0 400M200 0L0 200l200 200 200-200z" stroke="#000" fill="none" stroke-width="2"/>
-        <rect width="400" height="400" fill="none" stroke="#000" stroke-width="4"/>`;
-
-    // 1. राशियाँ (एक घर में केवल एक नंबर)
-    for(let i=0; i<12; i++) {
-        let rNum = (asc + i - 1) % 12 + 1;
-        svg += `<text x="${pts[i].x}" y="${pts[i].y}" class="rashi-text">${rNum}</text>`;
-    }
-
-    // 2. ग्रह (सटीक भाव वितरण)
-    let posCount = {};
-    planets.forEach(p => {
-        let houseIdx = (p[key] - asc + 12) % 12;
-        if(!posCount[houseIdx]) posCount[houseIdx] = 0;
-        let yOffset = (posCount[houseIdx] * 20) + 25;
-        svg += `<text x="${pts[houseIdx].x}" y="${pts[houseIdx].y + yOffset}" class="planet-text">${p.n}</text>`;
-        posCount[houseIdx]++;
-    });
-
-    container.innerHTML = svg + `</svg>`;
-}
-
-window.onload = masterEngine;
 </script>
+
 </body>
 </html>
