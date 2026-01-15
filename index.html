@@ -3,99 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>हेमंत KP ज्योतिष सॉफ्टवेयर</title>
+    <title>हेमंत KP ज्योतिष प्रोफेशनल</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1a237e;
-            --accent-color: #ffd700;
-            --bg-color: #f4f7f6;
+            --primary: #1a237e;
+            --accent: #ffd700;
+            --bg: #f8f9fa;
         }
-        body { font-family: 'Hind', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: #333; }
-        .header { background-color: var(--primary-color); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 800px; margin: 20px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--primary-color); }
-        input { width: 100%; padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn-submit { background-color: var(--primary-color); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-submit:hover { background-color: #283593; transform: translateY(-2px); }
-        .result-section { display: none; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        th { background-color: var(--primary-color); color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .sublord-cell { color: #d32f2f; font-weight: bold; }
+        body { font-family: 'Hind', sans-serif; background-color: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--primary); }
+        h1 { color: var(--primary); font-size: 24px; margin-bottom: 10px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #283593; transform: scale(1.02); }
+        .result-area { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 10px; border: 1px solid #eee; text-align: center; }
+        th { background: var(--primary); color: white; }
+        .sub { color: #d32f2f; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>हेमंत KP ज्योतिष प्रोफेशनल</h1>
-    <p>सटीक गणना: 3 Dec 1979 | बांसवाड़ा</p>
-</div>
-
-<div class="container">
-    <div id="input-section">
-        <div class="form-group">
-            <label>जन्म तिथि (Date of Birth)</label>
+<div class="card">
+    <h1>हेमंत ज्योतिष सॉफ्टवेयर</h1>
+    <div id="form-box">
+        <div class="input-group">
+            <label>जन्म तारीख</label>
             <input type="date" id="dob" value="1979-12-03">
         </div>
-        <div class="form-group">
-            <label>जन्म समय (Time of Birth)</label>
+        <div class="input-group">
+            <label>जन्म समय</label>
             <input type="time" id="tob" value="02:00">
         </div>
-        <button class="btn-submit" onclick="generateChart()">कुंडली तैयार करें ★</button>
+        <button onclick="showChart()">कुंडली देखें ★</button>
     </div>
 
-    <div id="result-section" class="result-section">
-        <h3 style="color: var(--primary-color); text-align: center;">KP गृह स्पष्ट विवरण</h3>
+    <div id="result-area" class="result-area">
+        <h3 style="color: var(--primary);">KP गृह स्पष्ट (हिंदी)</h3>
+        <p><b>लग्न:</b> कन्या | <b>अयनांश:</b> KP (लाहिरी)</p>
         <table>
             <thead>
                 <tr>
                     <th>ग्रह</th>
                     <th>राशि</th>
                     <th>नक्षत्र</th>
-                    <th>उप-स्वामी (Sub)</th>
+                    <th>उप-स्वामी</th>
                 </tr>
             </thead>
-            <tbody id="planet-data">
+            <tbody id="table-body">
                 </tbody>
         </table>
-        <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #666;">
-            *यह गणना KP अयनांश और प्लासिडस पद्धति पर आधारित है।
-        </p>
-        <button class="btn-submit" style="background: #666;" onclick="location.reload()">नयी गणना</button>
+        <br>
+        <button onclick="location.reload()" style="background: #666;">नयी गणना</button>
     </div>
 </div>
 
 <script>
-    function generateChart() {
-        // यह डेटा आपके रिपोर्ट के अनुसार सेट किया गया है
-        const data = [
-            {p: "सूर्य", r: "वृश्चिक", n: "अनुराधा", s: "शनि"},
-            {p: "चंद्र", r: "मेष", n: "भरणी", s: "बुध"},
-            {p: "मंगल", r: "सिंह", n: "पू. फाल्गुनी", s: "राहू"},
-            {p: "बुध", r: "वृश्चिक", n: "अनुराधा", s: "शनि"},
-            {p: "गुरु", r: "सिंह", n: "पू. फाल्गुनी", s: "शुक्र"},
-            {p: "शुक्र", r: "धनु", n: "मूल", s: "शुक्र"},
-            {p: "शनि", r: "कन्या", n: "उ. फाल्गुनी", s: "गुरु"},
-            {p: "राहू", r: "सिंह", n: "मघा", s: "केतु"},
-            {p: "केतु", r: "कुंभ", n: "शतभिषा", s: "राहू"}
-        ];
+    async function generateChart() {
+        const dob = document.getElementById('dob').value;
+        const tob = document.getElementById('tob').value;
 
-        let tableBody = "";
-        data.forEach(item => {
-            tableBody += `<tr>
-                <td>${item.p}</td>
-                <td>${item.r}</td>
-                <td>${item.n}</td>
-                <td class="sublord-cell">${item.s}</td>
-            </tr>`;
-        });
+        try {
+            // PythonAnywhere के बैकएंड (app.py) से संपर्क करना
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: dob, time: tob })
+            });
 
-        document.getElementById('planet-data').innerHTML = tableBody;
-        document.getElementById('input-section').style.display = 'none';
-        document.getElementById('result-section').style.display = 'block';
+            const data = await response.json();
+
+            if (data.status === "success") {
+                let tableBody = "";
+                data.planets.forEach(item => {
+                    tableBody += `<tr>
+                        <td>${item.name}</td>
+                        <td>${item.rashi}</td>
+                        <td>${item.nakshatra}</td>
+                        <td class="sublord-cell">${item.sublord}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('planet-data').innerHTML = tableBody;
+                document.getElementById('input-section').style.display = 'none';
+                document.getElementById('result-section').style.display = 'block';
+            } else {
+                alert("गणना में त्रुटि: " + data.message);
+            }
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            alert("सर्वर से संपर्क नहीं हो पाया। कृपया 'Reload' बटन चेक करें।");
+        }
     }
 </script>
 
