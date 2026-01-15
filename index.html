@@ -2,105 +2,88 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>हेमंत KP ज्योतिष प्रोफेशनल</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;700&display=swap" rel="stylesheet">
+    <title>Professional Kundli App</title>
     <style>
-        :root {
-            --primary: #1a237e;
-            --accent: #ffd700;
-            --bg: #f8f9fa;
-        }
-        body { font-family: 'Hind', sans-serif; background-color: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--primary); }
-        h1 { color: var(--primary); font-size: 24px; margin-bottom: 10px; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #283593; transform: scale(1.02); }
-        .result-area { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { padding: 10px; border: 1px solid #eee; text-align: center; }
-        th { background: var(--primary); color: white; }
-        .sub { color: #d32f2f; font-weight: bold; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2e9; text-align: center; }
+        .app-container { max-width: 600px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        input { padding: 12px; border: 1.5px solid #e67e22; border-radius: 6px; outline: none; }
+        button { background: #e67e22; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        button:hover { background: #d35400; }
+        .result-table { width: 100%; margin-top: 25px; border-collapse: collapse; }
+        .result-table th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        .result-table th { background: #e67e22; color: white; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>हेमंत ज्योतिष सॉफ्टवेयर</h1>
-    <div id="form-box">
-        <div class="input-group">
-            <label>जन्म तारीख</label>
-            <input type="date" id="dob" value="1979-12-03">
-        </div>
-        <div class="input-group">
-            <label>जन्म समय</label>
-            <input type="time" id="tob" value="02:00">
-        </div>
-        <button onclick="showChart()">कुंडली देखें ★</button>
+<div class="app-container">
+    <h2>ज्योतिष गणना (प्रोफेशनल)</h2>
+    <div class="input-grid">
+        <input type="number" id="day" value="27" placeholder="दिन">
+        <input type="number" id="month" value="3" placeholder="माह">
+        <input type="number" id="year" value="1980" placeholder="वर्ष">
+        <input type="number" id="hour" value="10" placeholder="घंटा">
+        <input type="number" id="min" value="30" placeholder="मिनट">
+        <input type="text" id="lat" value="23.33" placeholder="Latitude">
+        <input type="text" id="lon" value="74.26" placeholder="Longitude">
     </div>
+    <button onclick="getKundli()">कुंडली देखें</button>
 
-    <div id="result-area" class="result-area">
-        <h3 style="color: var(--primary);">KP गृह स्पष्ट (हिंदी)</h3>
-        <p><b>लग्न:</b> कन्या | <b>अयनांश:</b> KP (लाहिरी)</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>ग्रह</th>
-                    <th>राशि</th>
-                    <th>नक्षत्र</th>
-                    <th>उप-स्वामी</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
-        <br>
-        <button onclick="location.reload()" style="background: #666;">नयी गणना</button>
-    </div>
+    <div id="loader" style="display:none; color: #e67e22; margin-top: 10px;">सटीक गणना की जा रही है...</div>
+
+    <table class="result-table" id="outputTable" style="display:none;">
+        <thead>
+            <tr><th>ग्रह</th><th>राशि</th><th>अंश (Degree)</th><th>नक्षत्र</th></tr>
+        </thead>
+        <tbody id="planetData"></tbody>
+    </table>
 </div>
 
 <script>
-    async function generateChart() {
-        const dob = document.getElementById('dob').value;
-        const tob = document.getElementById('tob').value;
+async function getKundli() {
+    document.getElementById('loader').style.display = 'block';
+    const payload = {
+        day: parseInt(document.getElementById('day').value),
+        month: parseInt(document.getElementById('month').value),
+        year: parseInt(document.getElementById('year').value),
+        hour: parseInt(document.getElementById('hour').value),
+        min: parseInt(document.getElementById('min').value),
+        lat: parseFloat(document.getElementById('lat').value),
+        lon: parseFloat(document.getElementById('lon').value),
+        tzone: 5.5
+    };
 
-        try {
-            // PythonAnywhere के बैकएंड (app.py) से संपर्क करना
-            const response = await fetch('/calculate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: dob, time: tob })
-            });
-
-            const data = await response.json();
-
-            if (data.status === "success") {
-                let tableBody = "";
-                data.planets.forEach(item => {
-                    tableBody += `<tr>
-                        <td>${item.name}</td>
-                        <td>${item.rashi}</td>
-                        <td>${item.nakshatra}</td>
-                        <td class="sublord-cell">${item.sublord}</td>
-                    </tr>`;
-                });
-
-                document.getElementById('planet-data').innerHTML = tableBody;
-                document.getElementById('input-section').style.display = 'none';
-                document.getElementById('result-section').style.display = 'block';
-            } else {
-                alert("गणना में त्रुटि: " + data.message);
-            }
-        } catch (error) {
-            console.error("Fetch Error:", error);
-            alert("सर्वर से संपर्क नहीं हो पाया। कृपया 'Reload' बटन चेक करें।");
-        }
+    try {
+        const response = await fetch('http://localhost:3000/generate-kundli', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        renderResults(data.planets);
+    } catch (err) {
+        alert("सर्वर से डेटा नहीं मिला!");
+    } finally {
+        document.getElementById('loader').style.display = 'none';
     }
-</script>
+}
 
+function renderResults(planets) {
+    const table = document.getElementById('outputTable');
+    const tbody = document.getElementById('planetData');
+    table.style.display = 'table';
+    tbody.innerHTML = '';
+
+    planets.forEach(p => {
+        tbody.innerHTML += `<tr>
+            <td><strong>${p.name}</strong></td>
+            <td>${p.sign}</td>
+            <td>${p.fullDegree.toFixed(2)}°</td>
+            <td>${p.nakshatra}</td>
+        </tr>`;
+    });
+}
+</script>
 </body>
 </html>
