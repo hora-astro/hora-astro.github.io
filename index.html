@@ -44,34 +44,57 @@
 
 <script>
     async function getKundli() {
-        const payload = {
-            name: document.getElementById('name').value,
-            place: document.getElementById('place').value,
-            date: document.getElementById('dob').value,
-            time: document.getElementById('tob').value
-        };
+        const name = document.getElementById('name').value;
+        const place = document.getElementById('place').value;
+        const dob = document.getElementById('dob').value;
+        const tob = document.getElementById('tob').value;
+
+        // पक्का करें कि नाम और स्थान खाली न हों
+        if(!name || !place) {
+            alert("कृपया नाम और स्थान भरें");
+            return;
+        }
 
         try {
-            const response = await fetch('https://hemantpurohit27.pythonanywhere.com', {
+            // आपके PythonAnywhere सर्वर से डेटा फेच करना
+            const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ 
+                    name: name, 
+                    place: place, 
+                    date: dob, 
+                    time: tob 
+                })
             });
+
+            if (!response.ok) {
+                throw new Error('सर्वर से संपर्क विफल रहा');
+            }
+
             const data = await response.json();
 
             if(data.status === "success") {
                 document.getElementById('input-form').style.display = 'none';
                 document.getElementById('output').style.display = 'block';
-                document.getElementById('res-name').innerText = "नाम: " + payload.name;
-                document.getElementById('res-detail').innerText = "स्थान: " + payload.place + " | लग्न: " + data.lagna;
+                document.getElementById('res-name').innerText = "नाम: " + name;
+                document.getElementById('res-detail').innerText = "स्थान: " + place + " | लग्न: " + data.lagna;
 
                 let rows = "";
                 data.planets.forEach(p => {
-                    rows += `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.nakshatra}</td><td style="color:red; font-weight:bold;">${p.sublord}</td></tr>`;
+                    rows += `<tr>
+                        <td>${p.name}</td>
+                        <td>${p.rashi}</td>
+                        <td>${p.nakshatra}</td>
+                        <td style="color:red; font-weight:bold;">${p.sublord}</td>
+                    </tr>`;
                 });
                 document.getElementById('planet-table').innerHTML = rows;
             }
-        } catch (e) { alert("सर्वर से डेटा नहीं मिल पा रहा है!"); }
+        } catch (e) {
+            console.error(e);
+            alert("डेटा फेच करने में एरर आया। कृपया PythonAnywhere के Web Tab में 'Reload' बटन दबाएँ।");
+        }
     }
 </script>
 </body>
