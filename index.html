@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satik Jyotish Universal Software</title>
+    <title>Satik Jyotish Pro - Universal</title>
     <style>
         :root { --red: #b71c1c; --gold: #ffd700; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fdfdfd; margin: 0; }
-        .header { background: var(--red); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--gold); }
-        .container { max-width: 950px; margin: auto; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--red); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; }
-        button { background: var(--red); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .results { display: none; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
+        body { font-family: sans-serif; background: #fdfdfd; margin: 0; padding: 0; }
+        .header { background: var(--red); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-top: 5px solid var(--red); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        input { padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        button { background: var(--red); color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .results { display: none; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
         @media (max-width:700px) { .results { grid-template-columns: 1fr; } }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #333; color: white; padding: 10px; }
-        td { border: 1px solid #eee; padding: 10px; text-align: center; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #333; color: white; padding: 12px; }
+        td { border: 1px solid #eee; padding: 12px; text-align: center; font-weight: bold; }
+        #loading { display: none; text-align: center; color: var(--red); font-weight: bold; font-size: 18px; padding: 20px; }
     </style>
 </head>
 <body>
@@ -29,39 +30,50 @@
         <div class="grid">
             <div><label>जन्म तारीख</label><input type="date" id="dob" value="1979-12-03"></div>
             <div><label>जन्म समय</label><input type="time" id="tob" value="02:00"></div>
-            <div><label>स्थान (City)</label><input type="text" id="city" placeholder="जैसे: Banswara" onchange="getCoords()"></div>
+            <div><label>स्थान खोजें</label><input type="text" id="cityInput" placeholder="जैसे: Jaipur" onchange="searchCity()"></div>
         </div>
         <input type="hidden" id="lat" value="23.55">
         <input type="hidden" id="lon" value="74.43">
-        <button onclick="calc()">सटीक कुंडली तैयार करें ★</button>
+        <button onclick="calculateKundli()">सटीक कुंडली व ग्रह स्पष्ट देखें ★</button>
     </div>
 
-    <div id="loading" style="display:none; text-align:center; font-weight:bold; color:var(--red);">खगोलीय गणना की जा रही है...</div>
+    <div id="loading">गणना की जा रही है, कृपया प्रतीक्षा करें...</div>
 
-    <div id="results" class="results">
-        <div class="card"><h3 style="text-align:center; color:var(--red);">लग्न कुंडली</h3><svg id="svgC" viewBox="0 0 400 400" style="width:100%; border:1px solid #000;"></svg></div>
+    <div id="out" class="results">
+        <div class="card" style="text-align:center;">
+            <h3 style="color:var(--red);">लग्न कुंडली चक्र</h3>
+            <svg id="kundliSvg" viewBox="0 0 400 400" style="width:100%; border:2px solid #000; background:white;"></svg>
+        </div>
         <div class="card">
-            <h3 style="text-align:center; color:var(--red);">ग्रह स्थिति</h3>
-            <table><thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr></thead><tbody id="pBody"></tbody></table>
+            <h3 style="color:var(--red); text-align:center;">ग्रह स्पष्ट तालिका</h3>
+            <table>
+                <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr></thead>
+                <tbody id="pTable"></tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-async function getCoords() {
-    const c = document.getElementById('city').value;
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${c}`);
-    const d = await r.json();
-    if(d.length > 0) {
-        document.getElementById('lat').value = d[0].lat;
-        document.getElementById('lon').value = d[0].lon;
-        alert("स्थान सेट: " + d[0].display_name);
-    }
+// शहर खोजकर Lat/Lon अपडेट करने का फंक्शन
+async function searchCity() {
+    const city = document.getElementById('cityInput').value;
+    if(city.length < 3) return;
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
+        const data = await res.json();
+        if(data.length > 0) {
+            document.getElementById('lat').value = data[0].lat;
+            document.getElementById('lon').value = data[0].lon;
+            alert("स्थान सेट किया गया: " + data[0].display_name);
+        }
+    } catch(e) { console.log("Location API Error"); }
 }
 
-async function calc() {
+async function calculateKundli() {
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('results').style.display = 'none';
+    document.getElementById('out').style.display = 'none';
+
     try {
         const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
@@ -74,36 +86,46 @@ async function calc() {
                 lon: document.getElementById('lon').value
             })
         });
-        const d = await res.json();
-        if(d.status === 'success') {
+        const data = await res.json();
+        if(data.status === 'success') {
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('results').style.display = 'grid';
-            show(d);
-        } else { alert("Error: " + d.message); }
-    } catch(e) { alert("सर्वर संपर्क विफल! PythonAnywhere रीलोड करें।"); }
+            document.getElementById('out').style.display = 'grid';
+            renderUI(data);
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            alert("सर्वर एरर: " + data.message);
+        }
+    } catch(e) {
+        document.getElementById('loading').style.display = 'none';
+        alert("सर्वर से संपर्क विफल! PythonAnywhere को रीलोड करें।");
+    }
 }
 
-function show(d) {
-    document.getElementById('pBody').innerHTML = d.planets.map(p => `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg}°</td><td>${p.naks}</td></tr>`).join('');
-    draw(d.lagna, d.planets);
+function renderUI(data) {
+    document.getElementById('pTable').innerHTML = data.planets.map(p => 
+        `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg}°</td><td>${p.naks}</td></tr>`
+    ).join('');
+    drawChart(data.lagna, data.planets);
 }
 
-function draw(asc, planets) {
-    const svg = document.getElementById('svgC');
-    const coords = [{x:200,y:150},{x:100,y:80},{x:50,y:150},{x:150,y:200},{x:50,y:250},{x:100,y:320},{x:200,y:250},{x:300,y:320},{x:350,y:250},{x:250,y:200},{x:350,y:150},{x:300,y:80}];
-    let h = `<rect width="400" height="400" fill="white" stroke="black" stroke-width="2"/>
+function drawChart(asc, planets) {
+    const svg = document.getElementById('kundliSvg');
+    const houseCoords = [{x:200,y:150},{x:100,y:80},{x:50,y:150},{x:150,y:200},{x:50,y:250},{x:100,y:320},{x:200,y:250},{x:300,y:320},{x:350,y:250},{x:250,y:200},{x:350,y:150},{x:300,y:80}];
+    let h = `<rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
         <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
         <line x1="200" y1="0" x2="0" y2="200" stroke="black"/><line x1="200" y1="0" x2="400" y2="200" stroke="black"/>
         <line x1="0" y1="200" x2="200" y2="400" stroke="black"/><line x1="200" y1="400" x2="400" y2="200" stroke="black"/>`;
+
     for(let i=0; i<12; i++) {
         let r = (asc + i) > 12 ? (asc + i) - 12 : (asc + i);
-        h += `<text x="${coords[i].x}" y="${coords[i].y}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${r}</text>`;
+        h += `<text x="${houseCoords[i].x}" y="${houseCoords[i].y}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${r}</text>`;
     }
+
     let m = {};
     planets.forEach(p => {
         let idx = (p.rIdx - asc + 12) % 12;
         if(!m[idx]) m[idx] = 0;
-        h += `<text x="${coords[idx].x}" y="${coords[idx].y + 25 + (m[idx]*18)}" font-size="14" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+        h += `<text x="${houseCoords[idx].x}" y="${houseCoords[idx].y + 25 + (m[idx]*18)}" font-size="14" font-weight="bold" text-anchor="middle">${p.name}</text>`;
         m[idx]++;
     });
     svg.innerHTML = h;
