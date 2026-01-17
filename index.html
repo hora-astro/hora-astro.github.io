@@ -3,138 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hemant Professional KP Suite</title>
+    <title>Satik Jyotish Universal - 2026</title>
     <style>
-        :root { --p-red: #d32f2f; --p-white: #ffffff; --p-border: #e0e0e0; }
-        body { font-family: 'Arial', sans-serif; background: #f5f5f5; margin: 0; padding: 10px; }
-        .app-card { max-width: 900px; margin: auto; background: var(--p-white); border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); overflow: hidden; border: 1px solid var(--p-border); }
-        .header { background: var(--p-red); color: white; padding: 20px; text-align: center; }
-        
-        .form-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 20px; background: #fff; border-bottom: 2px solid #eee; }
-        input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        button { background: var(--p-red); color: white; border: none; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; grid-column: 1 / -1; font-size: 16px; }
-
-        .dashboard { display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; padding: 15px; }
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
-
-        .chart-box { background: white; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
-        .kundli-svg { width: 100%; max-width: 400px; background: #fff; }
-        
-        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .data-table th { background: var(--p-red); color: white; padding: 8px; }
-        .data-table td { border: 1px solid #eee; padding: 8px; text-align: center; }
-        
-        .rashi-num { font-size: 18px; fill: #d32f2f; font-weight: bold; }
-        .planet-name { font-size: 13px; fill: #333; font-weight: bold; }
+        :root { --red: #d32f2f; --gold: #ffd700; }
+        body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
+        .card { max-width: 850px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; border-top: 5px solid var(--red); }
+        .header { background: var(--red); color: white; padding: 15px; text-align: center; }
+        .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 20px; border-bottom: 2px solid #eee; }
+        input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
+        button { background: var(--red); color: white; border: none; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .res-box { display: none; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        @media (max-width:700px) { .res-box { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #333; color: white; padding: 10px; }
+        td { border: 1px solid #eee; padding: 10px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="app-card">
-    <div class="header"><h2>यूनिवर्सल प्रोफेशनल कुंडली सॉफ्टवेयर</h2></div>
-
-    <div class="form-section">
-        <input type="text" id="name" placeholder="नाम">
-        <input type="text" id="city" placeholder="स्थान (उदा: Banswara)">
-        <input type="date" id="dob" value="1979-12-03">
-        <input type="time" id="tob" value="02:00">
-        <button onclick="buildProfessionalChart()">कुंडली तैयार करें</button>
+<div class="card">
+    <div class="header"><h2>सटीक यूनिवर्सल ज्योतिष सॉफ्टवेयर</h2></div>
+    <div class="form">
+        <input type="date" id="dob" value="2026-01-17">
+        <input type="time" id="tob" value="12:00">
+        <input type="text" id="city" placeholder="शहर खोजें..." onchange="findCoords()">
+        <button onclick="calculateNow()">कुंडली तैयार करें ★</button>
     </div>
+    
+    <input type="hidden" id="lat" value="23.55">
+    <input type="hidden" id="lon" value="74.43">
 
-    <div id="main-view" class="dashboard" style="display:none;">
-        <div class="chart-box">
-            <h4 style="color:var(--p-red); margin:5px;">लग्न कुंडली (North Indian)</h4>
-            <svg id="kundliSvg" viewBox="0 0 400 400" class="kundli-svg"></svg>
+    <div id="loading" style="display:none; text-align:center; padding:20px; color:red; font-weight:bold;">गणना की जा रही है...</div>
+
+    <div id="mainView" class="res-box">
+        <div style="text-align:center; background:#fff; border:1px solid #ddd; padding:10px; border-radius:8px;">
+            <h4 style="color:var(--red);">लग्न कुंडली चक्र</h4>
+            <svg id="chartSvg" viewBox="0 0 400 400" style="width:100%;"></svg>
         </div>
-
-        <div class="chart-box">
-            <h4 style="color:var(--p-red); margin:5px;">ग्रह एवं KP उप-स्वामी</h4>
-            <table class="data-table">
-                <thead>
-                    <tr><th>ग्रह</th><th>राशि</th><th>नक्षत्र</th><th>Sub</th></tr>
-                </thead>
-                <tbody id="planetBody"></tbody>
+        <div style="background:#fff; border:1px solid #ddd; padding:10px; border-radius:8px;">
+            <h4 style="color:var(--red); text-align:center;">ग्रह स्पष्ट</h4>
+            <table>
+                <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr></thead>
+                <tbody id="pBody"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-function buildProfessionalChart() {
-    // 1. डेटा फेचिंग (प्रोफेशनल ऐप्स API या फ्लैटलिब का उपयोग करते हैं, यहाँ हम कैलकुलेशन लॉजिक लगा रहे हैं)
-    // 1979-12-03 के लिए सटीक डेटा (Archana Report के अनुसार)
-    const planets = [
-        {id: "सूर्य", deg: 226, nk: "अनुराधा", sub: "राहु"},
-        {id: "चंद्र", deg: 34, nk: "कृत्तिका", sub: "बुध"},
-        {id: "मंगल", deg: 131, nk: "मघा", sub: "शुक्र"},
-        {id: "बुध", deg: 215, nk: "विशाखा", sub: "गुरु"},
-        {id: "गुरु", deg: 134, nk: "मघा", sub: "शुक्र"},
-        {id: "शुक्र", deg: 251, nk: "मूल", sub: "सूर्य"},
-        {id: "शनि", deg: 152, nk: "उ.फा.", sub: "चंद्र"},
-        {id: "राहु", deg: 129, nk: "मघा", sub: "शनि"},
-        {id: "केतु", deg: 309, nk: "धनिष्ठा", sub: "मंगल"}
-    ];
-
-    const lagnaRashi = 6; // कन्या लग्न (Virgo)
-    
-    document.getElementById('main-view').style.display = 'grid';
-    drawDiamondChart(lagnaRashi, planets);
-    renderTable(planets);
-}
-
-function drawDiamondChart(asc, planets) {
-    const svg = document.getElementById('kundliSvg');
-    // घर के केंद्र बिंदु (Center points of houses 1 to 12)
-    const houseCoords = [
-        {x:200, y:150}, {x:100, y:80}, {x:50, y:150}, {x:150, y:200},
-        {x:50, y:250}, {x:100, y:320}, {x:200, y:250}, {x:300, y:320},
-        {x:350, y:250}, {x:250, y:200}, {x:350, y:150}, {x:300, y:80}
-    ];
-
-    let svgContent = `
-        <rect width="400" height="400" fill="none" stroke="#000" stroke-width="2"/>
-        <line x1="0" y1="0" x2="400" y2="400" stroke="#000" stroke-width="1"/>
-        <line x1="400" y1="0" x2="0" y2="400" stroke="#000" stroke-width="1"/>
-        <line x1="200" y1="0" x2="0" y2="200" stroke="#000" stroke-width="1"/>
-        <line x1="200" y1="0" x2="400" y2="200" stroke="#000" stroke-width="1"/>
-        <line x1="0" y1="200" x2="200" y2="400" stroke="#000" stroke-width="1"/>
-        <line x1="200" y1="400" x2="400" y2="200" stroke="#000" stroke-width="1"/>
-    `;
-
-    // 1. राशियाँ लिखना (लग्न से शुरू करके क्लॉकवाइज)
-    for (let i = 0; i < 12; i++) {
-        let rashiNum = (asc + i) > 12 ? (asc + i) - 12 : (asc + i);
-        svgContent += `<text x="${houseCoords[i].x}" y="${houseCoords[i].y}" class="rashi-num" text-anchor="middle">${rashiNum}</text>`;
+async function findCoords() {
+    const city = document.getElementById('city').value;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
+    const data = await res.json();
+    if(data.length > 0) {
+        document.getElementById('lat').value = data[0].lat;
+        document.getElementById('lon').value = data[0].lon;
+        alert("स्थान सेट: " + data[0].display_name);
     }
-
-    // 2. ग्रहों को उनके सही राशि वाले घर में बैठाना
-    let occupation = {};
-    planets.forEach(p => {
-        let pRashi = Math.floor(p.deg / 30) + 1;
-        let houseIdx = (pRashi - asc + 12) % 12;
-        
-        if(!occupation[houseIdx]) occupation[houseIdx] = 0;
-        let offset = occupation[houseIdx] * 15;
-        
-        svgContent += `<text x="${houseCoords[houseIdx].x}" y="${houseCoords[houseIdx].y + 20 + offset}" class="planet-name" text-anchor="middle">${p.id}</text>`;
-        occupation[houseIdx]++;
-    });
-
-    svg.innerHTML = svgContent;
 }
 
-function renderTable(planets) {
-    const rashis = ["मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"];
-    document.getElementById('planetBody').innerHTML = planets.map(p => `
-        <tr>
-            <td>${p.id}</td>
-            <td>${rashis[Math.floor(p.deg/30)]}</td>
-            <td>${p.nk}</td>
-            <td style="color:red; font-weight:bold;">${p.sub}</td>
-        </tr>
-    `).join('');
+async function calculateNow() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('mainView').style.display = 'none';
+
+    const payload = {
+        date: document.getElementById('dob').value,
+        time: document.getElementById('tob').value,
+        lat: document.getElementById('lat').value,
+        lon: document.getElementById('lon').value
+    };
+
+    try {
+        const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if(data.status === 'success') {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('mainView').style.display = 'grid';
+            renderResults(data);
+        } else { alert("Error: " + data.message); }
+    } catch(e) { alert("सर्वर त्रुटि: रीलोड करें"); }
+}
+
+function renderResults(data) {
+    document.getElementById('pBody').innerHTML = data.planets.map(p => 
+        `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg}°</td><td>${p.naks}</td></tr>`
+    ).join('');
+    drawDiamond(data.lagna, data.planets);
+}
+
+function drawDiamond(asc, planets) {
+    const svg = document.getElementById('chartSvg');
+    const coords = [{x:200,y:150},{x:100,y:80},{x:50,y:150},{x:150,y:200},{x:50,y:250},{x:100,y:320},{x:200,y:250},{x:300,y:320},{x:350,y:250},{x:250,y:200},{x:350,y:150},{x:300,y:80}];
+    let h = `<rect width="400" height="400" fill="none" stroke="#000" stroke-width="2"/>
+        <line x1="0" y1="0" x2="400" y2="400" stroke="#000"/><line x1="400" y1="0" x2="0" y2="400" stroke="#000"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="#000"/><line x1="200" y1="0" x2="400" y2="200" stroke="#000"/>
+        <line x1="0" y1="200" x2="200" y2="400" stroke="#000"/><line x1="200" y1="400" x2="400" y2="200" stroke="#000"/>`;
+    for(let i=0; i<12; i++) {
+        let r = (asc + i) > 12 ? (asc + i) - 12 : (asc + i);
+        h += `<text x="${coords[i].x}" y="${coords[i].y}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${r}</text>`;
+    }
+    let m = {};
+    planets.forEach(p => {
+        let idx = (p.rIdx - asc + 12) % 12;
+        if(!m[idx]) m[idx] = 0;
+        h += `<text x="${coords[idx].x}" y="${coords[idx].y + 25 + (m[idx]*18)}" font-size="14" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+        m[idx]++;
+    });
+    svg.innerHTML = h;
 }
 </script>
-
 </body>
 </html>
