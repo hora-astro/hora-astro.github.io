@@ -2,84 +2,119 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Satik Universal Kundli</title>
+    <title>Satik Kundli Pro</title>
     <style>
-        :root { --main: #b91c1c; --bg: #fff5f5; }
-        body { font-family: sans-serif; background: var(--bg); text-align: center; padding: 20px; }
-        .card { background: white; max-width: 800px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        svg { width: 100%; height: auto; border: 2px solid #000; background: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
-        th { background: var(--main); color: white; }
-        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: var(--main); color: white; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; text-align: center; margin: 0; padding: 20px; }
+        .box { background: white; max-width: 900px; margin: auto; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .input-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+        input, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { background: #d32f2f; color: white; cursor: pointer; border: none; font-weight: bold; min-width: 150px; }
+        .output-grid { display: none; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
+        @media (max-width: 700px) { .output-grid { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #eee; text-align: center; }
+        th { background: #333; color: white; }
+        #error-msg { color: red; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>॥ सटीक यूनिवर्सल कुंडली प्रो ॥</h2>
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="08:10">
-    <input type="text" id="city" placeholder="City (Lat, Lon)" value="23.5, 74.4">
-    <button onclick="getKundli()">कुंडली बनाएँ</button>
+<div class="box">
+    <h2 style="color:#d32f2f;">॥ सटीक यूनिवर्सल ज्योतिष ॥</h2>
+    <div class="input-row">
+        <input type="date" id="date" value="1980-03-27">
+        <input type="time" id="time" value="08:10">
+        <input type="text" id="city" placeholder="City Name" onchange="getGeo()">
+        <button onclick="calc()">कुंडली देखें</button>
+    </div>
+    <div id="error-msg"></div>
+    <input type="hidden" id="lat" value="23.55">
+    <input type="hidden" id="lon" value="74.43">
 
-    <div class="grid" id="result" style="display:none;">
-        <div id="chart-area">
-            <svg id="kundliSvg" viewBox="0 0 400 400"></svg>
+    <div id="result" class="output-grid">
+        <div style="background:white; padding:15px; border:1px solid #ddd;">
+            <h3>लग्न कुंडली</h3>
+            <svg id="svg" viewBox="0 0 400 400"></svg>
         </div>
-        <div id="data-area">
+        <div style="background:white; padding:15px; border:1px solid #ddd;">
+            <h3>ग्रह स्पष्ट</h3>
             <table>
                 <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th></tr></thead>
-                <tbody id="pTable"></tbody>
+                <tbody id="tbody"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-async function getKundli() {
-    const [lat, lon] = document.getElementById('city').value.split(',');
-    const response = await fetch('hemantpurohit27.pythonanywhere.com/calculate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            date: document.getElementById('dob').value,
-            time: document.getElementById('tob').value,
-            lat: lat.trim(),
-            lon: lon.trim()
-        })
-    });
-    const data = await response.json();
-    if(data.status === 'success') {
-        document.getElementById('result').style.display = 'grid';
-        renderChart(data);
+async function getGeo() {
+    const city = document.getElementById('city').value;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
+    const data = await res.json();
+    if(data.length > 0) {
+        document.getElementById('lat').value = data[0].lat;
+        document.getElementById('lon').value = data[0].lon;
+        alert("स्थान सेट किया गया: " + data[0].display_name);
     }
 }
 
-function renderChart(data) {
-    const svg = document.getElementById('kundliSvg');
-    const asc = data.lagna_rashi;
+async function calc() {
+    const errorBox = document.getElementById('error-msg');
+    errorBox.innerText = "गणना की जा रही है...";
+    
+    try {
+        const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                lat: document.getElementById('lat').value,
+                lon: document.getElementById('lon').value
+            })
+        });
+        
+        const data = await response.json();
+        if(data.status === 'success') {
+            errorBox.innerText = "";
+            document.getElementById('result').style.display = 'grid';
+            showUI(data);
+        } else {
+            errorBox.innerText = "सर्वर एरर: " + data.message;
+        }
+    } catch(e) {
+        errorBox.innerText = "कनेक्शन एरर: चेक करें कि PythonAnywhere चालू है या नहीं।";
+    }
+}
+
+function showUI(data) {
+    document.getElementById('tbody').innerHTML = data.planets.map(p => 
+        `<tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg}°</td></tr>`
+    ).join('');
+    
+    const svg = document.getElementById('svg');
+    const asc = data.lagna;
     const pos = {1:[200,150], 2:[100,80], 3:[50,150], 4:[150,200], 5:[50,250], 6:[100,320], 7:[200,250], 8:[300,320], 9:[350,250], 10:[250,200], 11:[350,150], 12:[300,80]};
     
-    let housesHtml = `<path d="M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="red" stroke-width="2"/>`;
-    
-    // राशियाँ लिखना
-    for(let i=1; i<=12; i++){
-        let rNum = (asc + i - 1) > 12 ? (asc + i - 13) : (asc + i - 1);
-        housesHtml += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-size="20" fill="red" font-weight="bold">${rNum || 12}</text>`;
+    let h = `<rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
+             <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
+             <line x1="200" y1="0" x2="0" y2="200" stroke="black"/><line x1="200" y1="0" x2="400" y2="200" stroke="black"/>
+             <line x1="0" y1="200" x2="200" y2="400" stroke="black"/><line x1="200" y1="400" x2="400" y2="200" stroke="black"/>`;
+
+    for(let i=1; i<=12; i++) {
+        let r = (asc + i - 1) > 12 ? (asc + i - 13) : (asc + i - 1);
+        h += `<text x="${pos[i][0]}" y="${pos[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r || 12}</text>`;
+        
+        let m = 0;
+        data.planets.forEach(p => {
+            let hIdx = (p.rIdx - asc + 12) % 12 + 1;
+            if(hIdx === i) {
+                h += `<text x="${pos[i][0]}" y="${pos[i][1] + 20 + (m*15)}" font-size="12" text-anchor="middle">${p.name}</text>`;
+                m++;
+            }
+        });
     }
-
-    // ग्रह बिठाना
-    data.planets.forEach(p => {
-        let houseIdx = (p.rashi_idx - asc + 12) % 12 + 1;
-        housesHtml += `<text x="${pos[houseIdx][0]}" y="${pos[houseIdx][1]+25}" font-size="12" fill="blue">${p.name}</text>`;
-    });
-
-    svg.innerHTML = housesHtml;
-    // टेबल अपडेट
-    document.getElementById('pTable').innerHTML = data.planets.map(p => `<tr><td>${p.name}</td><td>${p.rashi_idx}</td><td>${p.deg}°</td></tr>`).join('');
+    svg.innerHTML = h;
 }
 </script>
 </body>
