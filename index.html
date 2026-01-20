@@ -3,76 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satik Jyotish Pro - Universal Kundli</title>
+    <title>Universal Vedic Kundli - Nakshatra & Charan</title>
     <style>
         :root { --red: #b91c1c; --gold: #f59e0b; --bg: #fffbf0; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .container { max-width: 1100px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .container { max-width: 1200px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
         
-        /* Header & Inputs */
         .header { background: var(--red); color: white; padding: 20px; text-align: center; }
         .input-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 25px; background: #fff3e0; border-bottom: 2px solid var(--gold); }
         input, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
         button { background: var(--red); color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
         button:hover { background: #7f1d1d; transform: scale(1.02); }
 
-        /* Results Area */
-        .results { display: none; grid-template-columns: 1.2fr 1fr; gap: 20px; padding: 25px; animation: fadeIn 0.6s; }
-        @media (max-width: 768px) { .results { grid-template-columns: 1fr; } }
+        .results { display: none; grid-template-columns: 1fr 1.2fr; gap: 20px; padding: 25px; }
+        @media (max-width: 900px) { .results { grid-template-columns: 1fr; } }
         
-        .chart-container { background: white; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
-        svg { width: 100%; max-width: 480px; height: auto; border: 2px solid #333; }
+        .chart-box { background: white; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
+        svg { width: 100%; max-width: 450px; height: auto; border: 2px solid #333; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #334155; color: white; padding: 12px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: #334155; color: white; padding: 12px; }
         td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: bold; color: #1e293b; }
+        .lagna-row { background: #fffbeb; color: var(--red); }
         
-        #status { text-align: center; padding: 10px; font-weight: bold; color: var(--red); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #loader { text-align: center; padding: 20px; color: var(--red); font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1 style="margin:0;">॥ सटीक यूनिवर्सल ज्योतिष ॥</h1>
-        <p style="margin:5px 0 0; opacity: 0.9;">वैदिक पद्धति (Lahiri Ayanamsa) पर आधारित गणना</p>
+        <h1 style="margin:0;">॥ यूनिवर्सल वैदिक ज्योतिष ॥</h1>
+        <p style="margin:5px 0 0; opacity: 0.9;">सटीक गणना: राशि, अंश, नक्षत्र एवं चरण</p>
     </div>
 
     <div class="input-section">
         <div style="display:flex; flex-direction:column;">
-            <label style="font-weight:bold; margin-bottom:5px;">शहर का नाम</label>
-            <input type="text" id="city" placeholder="e.g. Jaipur, London" onblur="searchCity()">
+            <label>शहर का नाम</label>
+            <input type="text" id="city" placeholder="उदा: Jaipur" onblur="findGeo()">
         </div>
         <div style="display:flex; flex-direction:column;">
-            <label style="font-weight:bold; margin-bottom:5px;">जन्म दिनांक</label>
+            <label>जन्म दिनांक</label>
             <input type="date" id="dob" value="1980-03-27">
         </div>
         <div style="display:flex; flex-direction:column;">
-            <label style="font-weight:bold; margin-bottom:5px;">जन्म समय</label>
+            <label>जन्म समय</label>
             <input type="time" id="tob" value="10:30">
         </div>
-        
-        <input type="hidden" id="lat" value="23.55">
-        <input type="hidden" id="lon" value="74.43">
-        
-        <button style="align-self: flex-end;" onclick="getKundli()">कुंडली जनरेट करें ★</button>
+        <input type="hidden" id="lat" value="26.91">
+        <input type="hidden" id="lon" value="75.78">
+        <button onclick="getCalculation()">कुंडली देखें</button>
     </div>
 
-    <div id="status"></div>
+    <div id="loader">ग्रहों की स्थिति जांची जा रही है...</div>
 
-    <div id="resultDisplay" class="results">
-        <div class="chart-container">
-            <h3 style="color:var(--red); margin-top:0;">लग्न कुंडली (D-1 Chart)</h3>
-            <div id="svgBox"></div>
-            <p id="loc-info" style="font-size:12px; color:gray; margin-top:10px; font-style:italic;"></p>
+    <div id="mainView" class="results">
+        <div class="chart-box">
+            <h3 style="color:var(--red);">लग्न कुंडली (D-1)</h3>
+            <div id="kundliSvg"></div>
         </div>
 
-        <div class="chart-container">
-            <h3 style="color:var(--red); margin-top:0;">ग्रह स्पष्ट स्थिति</h3>
+        <div class="chart-box">
+            <h3 style="color:var(--red);">ग्रह स्पष्ट एवं नक्षत्र विवरण</h3>
             <table>
                 <thead>
-                    <tr><th>ग्रह</th><th>राशि सं.</th><th>अंश</th></tr>
+                    <tr>
+                        <th>ग्रह/लग्न</th>
+                        <th>राशि</th>
+                        <th>अंश</th>
+                        <th>नक्षत्र</th>
+                        <th>चरण</th>
+                    </tr>
                 </thead>
                 <tbody id="planetTable"></tbody>
             </table>
@@ -81,36 +82,25 @@
 </div>
 
 <script>
-// 1. दुनिया भर के शहरों के लिए Geo-Search
-async function searchCity() {
+async function findGeo() {
     const city = document.getElementById('city').value;
-    if(city.length < 3) return;
-    
-    const status = document.getElementById('status');
-    status.innerText = "स्थान खोजा जा रहा है...";
-
+    if(!city) return;
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
         const data = await res.json();
         if(data.length > 0) {
             document.getElementById('lat').value = data[0].lat;
             document.getElementById('lon').value = data[0].lon;
-            document.getElementById('loc-info').innerText = "स्थान: " + data[0].display_name;
-            status.innerText = "स्थान सेट कर दिया गया है। ✅";
-            status.style.color = "green";
+            alert("स्थान सेट: " + data[0].display_name);
         }
-    } catch(e) { status.innerText = "स्थान खोजने में समस्या आई।"; }
-    setTimeout(() => status.innerText = "", 2000);
+    } catch(e) { console.log("Geo Error"); }
 }
 
-// 2. बैकएंड से गणना प्राप्त करना
-async function getKundli() {
-    const status = document.getElementById('status');
-    const resultDisplay = document.getElementById('resultDisplay');
-    
-    status.innerText = "खगोलीय गणना की जा रही है, कृपया प्रतीक्षा करें...";
-    status.style.color = "blue";
-    resultDisplay.style.display = 'none';
+async function getCalculation() {
+    const loader = document.getElementById('loader');
+    const view = document.getElementById('mainView');
+    loader.style.display = 'block';
+    view.style.display = 'none';
 
     const payload = {
         date: document.getElementById('dob').value,
@@ -125,67 +115,76 @@ async function getKundli() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
-
         const data = await res.json();
-
+        
         if(data.status === 'success') {
-            status.innerText = "";
-            resultDisplay.style.display = 'grid';
-            updateUI(data);
+            loader.style.display = 'none';
+            view.style.display = 'grid';
+            renderDisplay(data);
         } else {
-            status.innerText = "सर्वर एरर: " + data.message;
+            alert("Error: " + data.message);
+            loader.style.display = 'none';
         }
-    } catch (err) {
-        status.innerText = "कनेक्शन फेल! सुनिश्चित करें कि PythonAnywhere पर 'Reload' दबाया गया है।";
+    } catch(e) { 
+        alert("सर्वर से संपर्क नहीं हो पाया!"); 
+        loader.style.display = 'none';
     }
 }
 
-// 3. कुंडली रेंडर करना
-function updateUI(data) {
-    // तालिका अपडेट
-    document.getElementById('planetTable').innerHTML = data.planets.map(p => `
-        <tr><td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}°</td></tr>
-    `).join('');
+function renderDisplay(data) {
+    // 1. टेबल भरना (नक्षत्र और चरण के साथ)
+    let tableHtml = `<tr class="lagna-row">
+        <td>लग्न (ASC)</td>
+        <td>${data.lagna}</td>
+        <td>-</td>
+        <td>${data.lagna_nak}</td>
+        <td>${data.lagna_charan}</td>
+    </tr>`;
 
-    // डायमंड चार्ट बनाना
-    drawDiamondChart(data.lagna, data.planets);
+    tableHtml += data.planets.map(p => `
+        <tr>
+            <td>${p.name}</td>
+            <td>${p.rIdx}</td>
+            <td>${p.deg}°</td>
+            <td>${p.nak}</td>
+            <td>${p.charan}</td>
+        </tr>
+    `).join('');
+    document.getElementById('planetTable').innerHTML = tableHtml;
+
+    // 2. कुंडली चित्र बनाना
+    drawKundli(data.lagna, data.planets);
 }
 
-function drawDiamondChart(asc, planets) {
-    const container = document.getElementById('svgBox');
-    const houseCoords = {
+function drawKundli(asc, planets) {
+    const box = document.getElementById('kundliSvg');
+    const pos = {
         1:[200,150], 2:[100,80], 3:[50,150], 4:[150,200], 5:[50,250], 6:[100,320],
         7:[200,250], 8:[300,320], 9:[350,250], 10:[250,200], 11:[350,150], 12:[300,80]
     };
 
-    let svgStr = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-        <rect width="400" height="400" fill="white" stroke="#000" stroke-width="2"/>
-        <line x1="0" y1="0" x2="400" y2="400" stroke="#000"/>
-        <line x1="400" y1="0" x2="0" y2="400" stroke="#000"/>
-        <line x1="200" y1="0" x2="0" y2="200" stroke="#000"/>
-        <line x1="200" y1="0" x2="400" y2="200" stroke="#000"/>
-        <line x1="0" y1="200" x2="200" y2="400" stroke="#000"/>
-        <line x1="200" y1="400" x2="400" y2="200" stroke="#000"/>`;
+    let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="400" fill="white" stroke="black" stroke-width="2"/>
+        <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="black"/><line x1="200" y1="0" x2="400" y2="200" stroke="black"/>
+        <line x1="0" y1="200" x2="200" y2="400" stroke="black"/><line x1="200" y1="400" x2="400" y2="200" stroke="black"/>`;
 
-    // 1 से 12 भावों में राशियों और ग्रहों को बिठाना
     for (let i = 1; i <= 12; i++) {
-        let rNum = (asc + i - 1);
-        if (rNum > 12) rNum -= 12;
+        let rVal = (asc + i - 1);
+        if (rVal > 12) rVal -= 12;
 
-        // राशि नंबर (लाल रंग में)
-        svgStr += `<text x="${houseCoords[i][0]}" y="${houseCoords[i][1]}" fill="red" font-size="24" font-weight="bold" text-anchor="middle">${rNum}</text>`;
+        svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${rVal}</text>`;
         
-        let m = 0;
+        let pOffset = 0;
         planets.forEach(p => {
-            if (p.rIdx === rNum) {
-                // ग्रह का नाम
-                svgStr += `<text x="${houseCoords[i][0]}" y="${houseCoords[i][1] + 25 + (m * 18)}" fill="#1e293b" font-size="14" font-weight="bold" text-anchor="middle">${p.name}</text>`;
-                m++;
+            if (p.rIdx === rVal) {
+                svg += `<text x="${pos[i][0]}" y="${pos[i][1] + 25 + (pOffset * 18)}" font-size="13" font-weight="bold" text-anchor="middle">${p.name}</text>`;
+                pOffset++;
             }
         });
     }
-    svgStr += `</svg>`;
-    container.innerHTML = svgStr;
+    svg += `</svg>`;
+    box.innerHTML = svg;
 }
 </script>
 </body>
