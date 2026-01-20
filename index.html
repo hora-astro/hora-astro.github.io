@@ -2,67 +2,47 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Satik Jyotish Pro - KP & Panchang</title>
+    <title>Satik Jyotish Pro - Universal Kundli</title>
     <style>
         :root { --main-red: #b71c1c; --gold: #ffd600; --bg: #fffbf0; }
         body { font-family: 'Arial Unicode MS', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .container { max-width: 1100px; margin: auto; background: #fff; border: 4px solid var(--gold); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
-        
-        /* Input Section */
         .header-panel { background: var(--main-red); color: white; padding: 20px; text-align: center; }
         .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 25px; background: #fff3e0; }
         input, select { padding: 12px; border: 2px solid var(--gold); border-radius: 8px; font-size: 16px; }
-        
         .main-layout { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; }
-        .chart-box { flex: 1; min-width: 450px; text-align: center; }
-        .data-box { flex: 1; min-width: 350px; }
-
-        /* KP & Panchang Tables */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .chart-box { flex: 1.2; text-align: center; }
+        .data-box { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background: #5d4037; color: white; }
-        .panchang-card { background: #efebe9; padding: 15px; border-radius: 10px; border-left: 5px solid var(--main-red); margin-bottom: 15px; }
-
-        .btn-calc { background: var(--main-red); color: gold; padding: 15px 30px; font-weight: bold; border: none; cursor: pointer; border-radius: 8px; font-size: 18px; transition: 0.3s; }
-        .btn-calc:hover { background: #880e4f; transform: scale(1.05); }
-
-        .kundli-svg { width: 450px; height: 450px; background: white; border: 2px solid #000; }
+        .btn-calc { background: var(--main-red); color: gold; padding: 15px; font-weight: bold; border: none; cursor: pointer; border-radius: 8px; font-size: 18px; }
+        .kundli-svg { width: 100%; max-width: 500px; height: auto; background: white; border: 2px solid #000; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-panel">
-        <h1>सटीक ज्योतिष सॉफ्टवेयर (KP पद्धति एवं पंचांग)</h1>
-    </div>
+    <div class="header-panel"><h1>॥ सटीक ज्योतिष प्रो (डायनेमिक) ॥</h1></div>
 
     <div class="input-grid">
-        <input type="text" id="cityName" placeholder="शहर का नाम (e.g. Jaipur)" value="Jaipur">
+        <input type="text" id="city" placeholder="शहर खोजें..." onblur="findGeo()">
         <input type="date" id="dob" value="1980-03-27">
         <input type="time" id="tob" value="10:30">
-        <select id="ayan">
-            <option value="23.34">लहरी अयनंश (Lahiri)</option>
-            <option value="23.36">KP अयनंश</option>
-        </select>
-        <button class="btn-calc" onclick="initCalculations()">गणना करें</button>
+        <input type="hidden" id="lat" value="23.55"><input type="hidden" id="lon" value="74.43">
+        <button class="btn-calc" onclick="fetchKundli()">गणना करें</button>
     </div>
 
-    <div class="main-layout">
+    <div class="main-layout" id="resultArea" style="display:none;">
         <div class="chart-box">
-            <h3 id="chartTitle">पाराशरी/KP लग्न कुंडली</h3>
+            <h3 id="chartTitle">लग्न कुंडली</h3>
             <svg id="kundliSvg" class="kundli-svg" viewBox="0 0 400 400"></svg>
         </div>
-
         <div class="data-box">
-            <div class="panchang-card" id="panchangResult">
-                <strong>आज का पंचांग:</strong><br>
-                वार: --- | तिथि: --- | नक्षत्र: --- | योग: ---
-            </div>
-            
-            <h3>KP उप-स्वामी (Sub-Lords) तालिका</h3>
+            <h3>ग्रह एवं नक्षत्र स्पष्ट तालिका</h3>
             <table>
                 <thead>
-                    <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र स्वामी</th><th>उप-स्वामी</th></tr>
+                    <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th></tr>
                 </thead>
                 <tbody id="kpTableBody"></tbody>
             </table>
@@ -71,79 +51,89 @@
 </div>
 
 <script>
-// पंचांग डेटाबेस
-const hindiMonths = ["चैत्र", "वैशाख", "ज्येष्ठ", "आषाढ़", "श्रावण", "भाद्रपद", "आश्विन", "कार्तिक", "मार्गशीर्ष", "पौष", "माघ", "फाल्गुन"];
-const planetsJP = ["सूर्य", "चंद्र", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "राहु", "केतु"];
-
-function initCalculations() {
-    const city = document.getElementById('cityName').value;
-    const dob = document.getElementById('dob').value;
-    const tob = document.getElementById('tob').value;
-    
-    // 1. पंचांग गणना (Static simulation for display)
-    document.getElementById('panchangResult').innerHTML = `
-        <strong>पंचांग (Satik Panchang):</strong><br>
-        हिन्दू तिथि: शुक्ल पक्ष, द्वादशी <br>
-        नक्षत्र: मघा (केतु स्वामी) <br>
-        हिन्दू माह: ${hindiMonths[2]} | विक्रम संवत: 2082 <br>
-        सूर्योदय: 06:42 AM | सूर्यास्त: 05:58 PM
-    `;
-
-    // 2. KP गणना और चार्ट ड्राइंग
-    drawChart(2); // वृषभ लग्न (2) के लिए उदाहरण
-    fillKPTable();
+// लोकेशन सर्च
+async function findGeo() {
+    const city = document.getElementById('city').value;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
+    const data = await res.json();
+    if(data.length > 0) {
+        document.getElementById('lat').value = data[0].lat;
+        document.getElementById('lon').value = data[0].lon;
+        alert("स्थान सेट: " + data[0].display_name);
+    }
 }
 
-function drawChart(asc) {
+// सर्वर से डेटा लाना
+async function fetchKundli() {
+    const payload = {
+        date: document.getElementById('dob').value,
+        time: document.getElementById('tob').value,
+        lat: document.getElementById('lat').value,
+        lon: document.getElementById('lon').value
+    };
+
+    try {
+        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.status === 'success') {
+            document.getElementById('resultArea').style.display = 'flex';
+            renderUI(data);
+        }
+    } catch(e) { alert("सर्वर एरर! कृपया PythonAnywhere चेक करें।"); }
+}
+
+function renderUI(data) {
+    // 1. टेबल भरना
+    document.getElementById('kpTableBody').innerHTML = data.planets.map(p => `
+        <tr><td>${p.name}</td><td>${p.rashi}</td><td>${p.deg}°</td><td>${p.star || '---'}</td></tr>
+    `).join('');
+
+    // 2. कुंडली चार्ट बनाना (लग्न के आधार पर)
+    drawDiamondChart(data.lagna, data.planets);
+}
+
+function drawDiamondChart(asc, planets) {
     const svg = document.getElementById('kundliSvg');
-    const rashis = [];
-    for(let i=0; i<12; i++) rashis.push((asc + i - 1) % 12 + 1);
+    
+    // उत्तर भारतीय चार्ट के 12 भावों के सटीक केंद्र बिंदु (Anticlockwise)
+    const pos = {
+        1:[200,150], 2:[100,80], 3:[50,150], 4:[150,200], 5:[50,250], 6:[100,320],
+        7:[200,250], 8:[300,320], 9:[350,250], 10:[250,200], 11:[350,150], 12:[300,80]
+    };
 
-    let svgContent = `
-        <line x1="0" y1="0" x2="400" y2="400" stroke="black" />
-        <line x1="400" y1="0" x2="0" y2="400" stroke="black" />
-        <line x1="200" y1="0" x2="0" y2="200" stroke="black" />
-        <line x1="200" y1="0" x2="400" y2="200" stroke="black" />
-        <line x1="200" y1="400" x2="0" y2="200" stroke="black" />
-        <line x1="200" y1="400" x2="400" y2="200" stroke="black" />
-        <rect x="0" y="0" width="400" height="400" fill="none" stroke="black" stroke-width="4"/>
+    let content = `
+        <rect width="400" height="400" fill="white" stroke="black" stroke-width="2"/>
+        <line x1="0" y1="0" x2="400" y2="400" stroke="black"/>
+        <line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="black"/>
+        <line x1="200" y1="0" x2="400" y2="200" stroke="black"/>
+        <line x1="0" y1="200" x2="200" y2="400" stroke="black"/>
+        <line x1="200" y1="400" x2="400" y2="200" stroke="black"/>
     `;
 
-    const coords = [
-        {x:200, y:170, r:rashis[0]}, {x:100, y:80, r:rashis[1]}, {x:300, y:80, r:rashis[2]},
-        {x:70, y:200, r:rashis[3]}, {x:100, y:320, r:rashis[4]}, {x:300, y:320, r:rashis[5]},
-        {x:200, y:230, r:rashis[6]}, {x:330, y:370, r:rashis[7]}, {x:330, y:40, r:rashis[8]},
-        {x:330, y:200, r:rashis[9]}, {x:70, y:40, r:rashis[10]}, {x:70, y:370, r:rashis[11]}
-    ];
+    // लग्न के अनुसार राशियों का क्रम सेट करना
+    for(let i=1; i<=12; i++) {
+        let rashiNum = (asc + i - 1);
+        if(rashiNum > 12) rashiNum -= 12;
 
-    coords.forEach(c => {
-        svgContent += `<text x="${c.x}" y="${c.y}" font-size="20" font-weight="bold" fill="#666">${c.r}</text>`;
-    });
+        // भाव में राशि नंबर लिखें
+        content += `<text x="${pos[i][0]}" y="${pos[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${rashiNum}</text>`;
 
-    // 27-03-1980 के अनुसार ग्रहों को 4थे भाव (सिंह राशि) में सेट करना
-    svgContent += `<text x="100" y="240" font-size="14" fill="red" font-weight="bold">मं, श, गु, रा</text>`;
-    svgContent += `<text x="200" y="110" font-size="14" fill="red">सूर्य, बुध</text>`;
-
-    svg.innerHTML = svgContent;
+        // उस राशि में बैठे ग्रहों को ढूँढें
+        let occupation = 0;
+        planets.forEach(p => {
+            if(p.rIdx === rashiNum) {
+                content += `<text x="${pos[i][0]}" y="${pos[i][1] + 25 + (occupation*15)}" font-size="12" font-weight="bold" text-anchor="middle" fill="black">${p.name}</text>`;
+                occupation++;
+            }
+        });
+    }
+    svg.innerHTML = content;
 }
-
-function fillKPTable() {
-    const table = document.getElementById('kpTableBody');
-    table.innerHTML = "";
-    planetsJP.forEach(p => {
-        table.innerHTML += `
-            <tr>
-                <td>${p}</td>
-                <td>सिंह</td>
-                <td>14° 22'</td>
-                <td>शुक्र</td>
-                <td>राहु</td>
-            </tr>
-        `;
-    });
-}
-
-window.onload = initCalculations;
 </script>
 </body>
 </html>
