@@ -2,87 +2,86 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Vedic Software Pro</title>
+    <title>Professional Vedic Kundli Software v3.0</title>
     <style>
-        :root { --primary: #7c2d12; --accent: #ea580c; --bg: #fffbf0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .wrapper { max-width: 1300px; margin: auto; background: white; border: 4px double var(--primary); border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.2); }
+        :root { --maroon: #7c2d12; --orange: #ea580c; --gold: #f59e0b; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffcf2; margin: 0; padding: 10px; }
+        .main-container { max-width: 1200px; margin: auto; background: white; border: 3px solid var(--maroon); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { background: var(--maroon); color: white; text-align: center; padding: 15px; border-bottom: 4px solid var(--gold); }
+        .input-section { display: flex; flex-wrap: wrap; gap: 15px; padding: 20px; background: #fff7ed; justify-content: center; border-bottom: 1px solid #ddd; }
+        .input-section input, .input-section button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .btn-main { background: var(--maroon); color: white; font-weight: bold; cursor: pointer; border: none; padding: 10px 30px !important; }
+
+        .dashboard { display: none; padding: 20px; }
+        .grid-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 850px) { .grid-charts { grid-template-columns: 1fr; } }
+
+        .box { border: 1px solid #fed7aa; border-radius: 8px; padding: 15px; background: white; margin-bottom: 20px; }
+        .box h2 { color: var(--maroon); text-align: center; margin-top: 0; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
         
-        .top-nav { background: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .input-box { background: #ffedd5; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: flex-end; }
-        .input-box div { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: var(--primary); }
-        input { padding: 10px; border: 1px solid #c2410c; border-radius: 4px; }
-        .btn-calc { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; }
-
-        .main-content { display: none; padding: 20px; }
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
-
-        .section-card { border: 1px solid #fed7aa; border-radius: 8px; padding: 15px; background: #fffcf5; }
-        .section-card h2 { color: var(--primary); text-align: center; font-size: 20px; margin-top: 0; border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }
+        svg { width: 100%; max-width: 450px; display: block; margin: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: var(--maroon); color: white; }
         
-        svg { width: 100%; max-width: 500px; filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.1)); }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
-        th, td { border: 1px solid #fed7aa; padding: 10px; text-align: center; font-size: 14px; }
-        th { background: #7c2d12; color: white; }
-        .status-exalt { color: green; font-weight: bold; }
-        .status-debil { color: red; font-weight: bold; }
-
-        .dasha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
-        .dasha-item { background: white; border: 1px solid var(--accent); padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
+        .dasha-item { display: inline-block; background: #fffbeb; border: 1px solid var(--gold); padding: 10px; margin: 5px; border-radius: 5px; text-align: center; font-weight: bold; min-width: 100px; }
+        .status-badge { font-weight: bold; padding: 2px 5px; border-radius: 3px; }
+        .high { color: green; } .low { color: red; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div class="top-nav"><h1>॥ श्री गणेशाय नमः - प्रोफेशनल वैदिक कुंडली सॉफ्टवेयर ॥</h1></div>
+<div class="main-container">
+    <div class="header"><h1>॥ सटीक प्रोफेशनल कुंडली सॉफ्टवेयर ॥</h1></div>
 
-    <div class="input-box">
-        <div><label>स्थान</label><input type="text" id="city" value="Banswara"></div>
-        <div><label>दिनांक</label><input type="date" id="dob" value="1980-03-27"></div>
-        <div><label>समय</label><input type="time" id="tob" value="10:30"></div>
-        <button class="btn-calc" onclick="generate()">कुंडली देखें</button>
+    <div class="input-section">
+        <input type="text" id="city" placeholder="शहर" value="Jaipur">
+        <input type="date" id="dob" value="1980-03-27">
+        <input type="time" id="tob" value="10:30">
+        <button class="btn-main" onclick="startCalculation()">कुंडली तैयार करें</button>
     </div>
 
-    <div id="mainUI" class="main-content">
-        <div class="grid-container">
-            <div class="section-card">
+    <div id="dashboard" class="dashboard">
+        <div class="box">
+            <h2>विंशोत्तरी महादशा अनुक्रम</h2>
+            <div id="dashaArea" style="text-align:center;"></div>
+        </div>
+
+        <div class="grid-charts">
+            <div class="box">
                 <h2>लग्न कुंडली (D-1)</h2>
-                <div id="d1Plot"></div>
+                <div id="d1Chart"></div>
             </div>
-
-            <div class="section-card">
+            <div class="box">
                 <h2>नवांश कुंडली (D-9)</h2>
-                <div id="d9Plot"></div>
+                <div id="d9Chart"></div>
             </div>
+        </div>
 
-            <div class="section-card" style="grid-column: 1 / -1;">
-                <h2>ग्रह स्पष्ट एवं नक्षत्र विवरण</h2>
-                <table>
-                    <thead>
-                        <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>अवस्था</th></tr>
-                    </thead>
-                    <tbody id="pTable"></tbody>
-                </table>
-            </div>
+        <div class="box">
+            <h2>ग्रह स्पष्ट, नक्षत्र एवं अवस्था</h2>
+            <table>
+                <thead>
+                    <tr><th>ग्रह/लग्न</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>अवस्था</th></tr>
+                </thead>
+                <tbody id="pTableBody"></tbody>
+            </table>
+        </div>
 
-            <div class="section-card" style="grid-column: 1 / -1;">
-                <h2>विंशोत्तरी महादशा अनुक्रम</h2>
-                <div id="dashaBox" class="dasha-grid"></div>
-            </div>
+        <div class="box">
+            <h2>विस्तृत फलादेश</h2>
+            <div id="predictionArea" style="line-height:1.8; color:#444;"></div>
         </div>
     </div>
 </div>
 
 <script>
-async function generate() {
+async function startCalculation() {
     const city = document.getElementById('city').value;
-    let lat = 23.54, lon = 74.47;
+    let lat = 26.91, lon = 75.78;
     try {
-        const gRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`).then(r => r.json());
-        if(gRes.length > 0) { lat = gRes[0].lat; lon = gRes[0].lon; }
+        const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`).then(r => r.json());
+        if(geo.length > 0) { lat = geo[0].lat; lon = geo[0].lon; }
     } catch(e) {}
 
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
@@ -96,49 +95,57 @@ async function generate() {
     }).then(r => r.json());
 
     if(res.status === 'success') {
-        document.getElementById('mainUI').style.display = 'block';
-        render(res);
+        document.getElementById('dashboard').style.display = 'block';
+        updateUI(res);
     }
 }
 
-function render(data) {
-    // 1. Table
-    document.getElementById('pTable').innerHTML = data.planets.map(p => `
-        <tr>
-            <td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}°</td>
-            <td>${p.nak}</td><td>${p.charan}</td>
-            <td class="${p.status==='उच्च'?'status-exalt':p.status==='नीच'?'status-debil':''}">${p.status}</td>
-        </tr>
-    `).join('');
-
-    // 2. Dasha
-    document.getElementById('dashaBox').innerHTML = data.dasha_list.map(d => `
+function updateUI(data) {
+    // 1. Dasha
+    document.getElementById('dashaArea').innerHTML = data.dasha.map(d => `
         <div class="dasha-item">${d.lord}<br><small>${d.years} वर्ष</small></div>
     `).join('');
 
+    // 2. Planet Table
+    let rows = `<tr><td><b>लग्न</b></td><td>${data.lagna}</td><td>-</td><td>${data.lagna_nak}</td><td>${data.lagna_charan}</td><td>-</td></tr>`;
+    rows += data.planets.map(p => `
+        <tr>
+            <td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td>
+            <td class="${p.status==='उच्च'?'high':p.status==='नीच'?'low':''}">${p.status}</td>
+        </tr>
+    `).join('');
+    document.getElementById('pTableBody').innerHTML = rows;
+
     // 3. Charts
-    drawDiamond('d1Plot', data.lagna, data.planets, 'rIdx');
-    drawDiamond('d9Plot', data.lagna_d9, data.planets, 'd9Idx');
+    drawChart('d1Chart', data.lagna, data.planets, 'rIdx');
+    drawChart('d9Chart', data.lagna_d9, data.planets, 'd9Idx');
+
+    // 4. Prediction
+    let fal = `• आपका जन्म <b>${data.lagna_nak}</b> नक्षत्र के <b>${data.lagna_charan}</b> चरण में हुआ है।<br>`;
+    data.planets.forEach(p => {
+        if(p.status === "उच्च") fal += `• <b>${p.name}</b> आपकी कुंडली में उच्च का होकर अत्यंत शुभ फल दे रहा है।<br>`;
+        if(p.status === "नीच") fal += `• <b>${p.name}</b> नीच राशि में है, इसके लिए दान-जाप आवश्यक है।<br>`;
+    });
+    document.getElementById('predictionArea').innerHTML = fal;
 }
 
-function drawDiamond(id, asc, planets, key) {
-    const pts = {1:[200,165], 2:[100,75], 3:[50,150], 4:[150,215], 5:[50,285], 6:[100,360], 7:[200,275], 8:[300,360], 9:[350,285], 10:[250,215], 11:[350,150], 12:[300,75]};
-    let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="background:white;">
-        <rect width="400" height="400" fill="none" stroke="#7c2d12" stroke-width="3"/>
-        <line x1="0" y1="0" x2="400" y2="400" stroke="#7c2d12"/><line x1="400" y1="0" x2="0" y2="400" stroke="#7c2d12"/>
-        <line x1="200" y1="0" x2="0" y2="200" stroke="#7c2d12"/><line x1="200" y1="0" x2="400" y2="200" stroke="#7c2d12"/>
-        <line x1="0" y1="200" x2="200" y2="400" stroke="#7c2d12"/><line x1="200" y1="400" x2="400" y2="200" stroke="#7c2d12"/>`;
+function drawChart(containerId, asc, planets, key) {
+    const centers = {1:[200,165], 2:[100,75], 3:[50,150], 4:[150,215], 5:[50,285], 6:[100,360], 7:[200,275], 8:[300,360], 9:[350,285], 10:[250,215], 11:[350,150], 12:[300,75]};
+    let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="border:2px solid #7c2d12;">
+        <line x1="0" y1="0" x2="400" y2="400" stroke="#7c2d12"/> <line x1="400" y1="0" x2="0" y2="400" stroke="#7c2d12"/>
+        <line x1="200" y1="0" x2="0" y2="200" stroke="#7c2d12"/> <line x1="200" y1="0" x2="400" y2="200" stroke="#7c2d12"/>
+        <line x1="0" y1="200" x2="200" y2="400" stroke="#7c2d12"/> <line x1="200" y1="400" x2="400" y2="200" stroke="#7c2d12"/>`;
 
     for(let i=1; i<=12; i++) {
         let r = (asc + i - 1); if(r > 12) r -= 12;
-        svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="red" font-weight="bold" font-size="24" text-anchor="middle">${r}</text>`;
+        svg += `<text x="${centers[i][0]}" y="${centers[i][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${r}</text>`;
         let pIn = planets.filter(p => p[key] === r);
         pIn.forEach((p, idx) => {
-            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 25 + (idx * 18)}" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
+            svg += `<text x="${centers[i][0]}" y="${centers[i][1] + 25 + (idx * 16)}" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
         });
     }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
+    document.getElementById(containerId).innerHTML = svg + `</svg>`;
 }
 </script>
 </body>
-    </html>
+</html>
