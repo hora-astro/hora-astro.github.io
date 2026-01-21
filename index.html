@@ -2,189 +2,118 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Vedic Kundli - Nakshatra & Charan</title>
+    <title>Satik Jyotish Pro - Universal</title>
     <style>
-        :root { --red: #b91c1c; --gold: #f59e0b; --bg: #fffbf0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .container { max-width: 1200px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
-        
-        .header { background: var(--red); color: white; padding: 20px; text-align: center; }
-        .input-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 25px; background: #fff3e0; border-bottom: 2px solid var(--gold); }
-        input, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: var(--red); color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
-        button:hover { background: #7f1d1d; transform: scale(1.02); }
-
-        .results { display: none; grid-template-columns: 1fr 1.2fr; gap: 20px; padding: 25px; }
-        @media (max-width: 900px) { .results { grid-template-columns: 1fr; } }
-        
-        .chart-box { background: white; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
-        svg { width: 100%; max-width: 450px; height: auto; border: 2px solid #333; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th { background: #334155; color: white; padding: 12px; }
-        td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: bold; color: #1e293b; }
-        .lagna-row { background: #fffbeb; color: var(--red); }
-        
-        #loader { text-align: center; padding: 20px; color: var(--red); font-weight: bold; display: none; }
+        :root { --red: #b91c1c; --gold: #f59e0b; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffbf0; margin: 0; padding: 10px; }
+        .container { max-width: 1100px; margin: auto; background: white; border: 3px solid var(--gold); border-radius: 15px; overflow: hidden; }
+        .header { background: var(--red); color: white; padding: 15px; text-align: center; }
+        .input-row { display: flex; flex-wrap: wrap; gap: 10px; padding: 20px; background: #fff3e0; justify-content: center; }
+        input, button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: var(--red); color: white; cursor: pointer; font-weight: bold; }
+        .results { display: none; padding: 20px; grid-template-columns: 1fr 1.2fr; gap: 20px; }
+        @media (max-width: 800px) { .results { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #334155; color: white; }
+        svg { width: 100%; max-width: 450px; height: auto; border: 2px solid #000; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1 style="margin:0;">॥ यूनिवर्सल वैदिक ज्योतिष ॥</h1>
-        <p style="margin:5px 0 0; opacity: 0.9;">सटीक गणना: राशि, अंश, नक्षत्र एवं चरण</p>
+    <div class="header"><h1>॥ सटीक यूनिवर्सल ज्योतिष ॥</h1></div>
+    <div class="input-row">
+        <input type="text" id="city" placeholder="शहर (e.g. Jaipur)" style="width:150px;">
+        <input type="date" id="dob">
+        <input type="time" id="tob">
+        <button onclick="calculate()">कुंडली देखें</button>
     </div>
 
-    <div class="input-section">
-        <div style="display:flex; flex-direction:column;">
-            <label>शहर का नाम</label>
-            <input type="text" id="city" placeholder="उदा: Jaipur" onblur="findGeo()">
+    <div id="res" class="results">
+        <div style="text-align:center;">
+            <h3 id="lagna_head">लग्न चार्ट</h3>
+            <div id="svgContainer"></div>
         </div>
-        <div style="display:flex; flex-direction:column;">
-            <label>जन्म दिनांक</label>
-            <input type="date" id="dob" value="1980-03-27">
-        </div>
-        <div style="display:flex; flex-direction:column;">
-            <label>जन्म समय</label>
-            <input type="time" id="tob" value="10:30">
-        </div>
-        <input type="hidden" id="lat" value="26.91">
-        <input type="hidden" id="lon" value="75.78">
-        <button onclick="getCalculation()">कुंडली देखें</button>
-    </div>
-
-    <div id="loader">ग्रहों की स्थिति जांची जा रही है...</div>
-
-    <div id="mainView" class="results">
-        <div class="chart-box">
-            <h3 style="color:var(--red);">लग्न कुंडली (D-1)</h3>
-            <div id="kundliSvg"></div>
-        </div>
-
-        <div class="chart-box">
-            <h3 style="color:var(--red);">ग्रह स्पष्ट एवं नक्षत्र विवरण</h3>
+        <div>
+            <h3>ग्रह विवरण</h3>
             <table>
                 <thead>
-                    <tr>
-                        <th>ग्रह/लग्न</th>
-                        <th>राशि</th>
-                        <th>अंश</th>
-                        <th>नक्षत्र</th>
-                        <th>चरण</th>
-                    </tr>
+                    <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th></tr>
                 </thead>
-                <tbody id="planetTable"></tbody>
+                <tbody id="pTable"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-async function findGeo() {
+async function calculate() {
+    const resDiv = document.getElementById('res');
+    resDiv.style.display = 'none';
+    
+    // शहर से Lat/Lon खोजने का छोटा फंक्शन
+    let lat = 26.91, lon = 75.78; 
     const city = document.getElementById('city').value;
-    if(!city) return;
-    try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
-        const data = await res.json();
-        if(data.length > 0) {
-            document.getElementById('lat').value = data[0].lat;
-            document.getElementById('lon').value = data[0].lon;
-            alert("स्थान सेट: " + data[0].display_name);
-        }
-    } catch(e) { console.log("Geo Error"); }
-}
+    if(city) {
+        const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`).then(r => r.json());
+        if(g.length > 0) { lat = g[0].lat; lon = g[0].lon; }
+    }
 
-async function getCalculation() {
-    const loader = document.getElementById('loader');
-    const view = document.getElementById('mainView');
-    loader.style.display = 'block';
-    view.style.display = 'none';
-
-    const payload = {
+    const body = {
         date: document.getElementById('dob').value,
         time: document.getElementById('tob').value,
-        lat: document.getElementById('lat').value,
-        lon: document.getElementById('lon').value
+        lat: lat, lon: lon
     };
 
     try {
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        const resp = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            body: JSON.stringify(body)
         });
-        const data = await res.json();
+        const data = await resp.json();
         
         if(data.status === 'success') {
-            loader.style.display = 'none';
-            view.style.display = 'grid';
-            renderDisplay(data);
-        } else {
-            alert("Error: " + data.message);
-            loader.style.display = 'none';
-        }
-    } catch(e) { 
-        alert("सर्वर से संपर्क नहीं हो पाया!"); 
-        loader.style.display = 'none';
-    }
+            resDiv.style.display = 'grid';
+            showData(data);
+        } else { alert("Error: " + data.message); }
+    } catch(e) { alert("Server not responding!"); }
 }
 
-function renderDisplay(data) {
-    // 1. टेबल भरना (नक्षत्र और चरण के साथ)
-    let tableHtml = `<tr class="lagna-row">
-        <td>लग्न (ASC)</td>
-        <td>${data.lagna}</td>
-        <td>-</td>
-        <td>${data.lagna_nak}</td>
-        <td>${data.lagna_charan}</td>
-    </tr>`;
+function showData(data) {
+    // टेबल भरना (यहाँ नक्षत्र और चरण अब 'undefined' नहीं आएंगे)
+    let rows = `<tr><td>लग्न</td><td>${data.lagna}</td><td>-</td><td>${data.lagna_nak}</td><td>${data.lagna_charan}</td></tr>`;
+    data.planets.forEach(p => {
+        rows += `<tr><td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td></tr>`;
+    });
+    document.getElementById('pTable').innerHTML = rows;
 
-    tableHtml += data.planets.map(p => `
-        <tr>
-            <td>${p.name}</td>
-            <td>${p.rIdx}</td>
-            <td>${p.deg}°</td>
-            <td>${p.nak}</td>
-            <td>${p.charan}</td>
-        </tr>
-    `).join('');
-    document.getElementById('planetTable').innerHTML = tableHtml;
-
-    // 2. कुंडली चित्र बनाना
-    drawKundli(data.lagna, data.planets);
+    // चार्ट बनाना
+    drawChart(data.lagna, data.planets);
 }
 
-function drawKundli(asc, planets) {
-    const box = document.getElementById('kundliSvg');
-    const pos = {
-        1:[200,150], 2:[100,80], 3:[50,150], 4:[150,200], 5:[50,250], 6:[100,320],
-        7:[200,250], 8:[300,320], 9:[350,250], 10:[250,200], 11:[350,150], 12:[300,80]
-    };
-
-    let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-        <rect width="400" height="400" fill="white" stroke="black" stroke-width="2"/>
+function drawChart(asc, planets) {
+    const centers = {1:[200,150], 2:[100,80], 3:[50,150], 4:[150,200], 5:[50,250], 6:[100,320], 7:[200,250], 8:[300,320], 9:[350,250], 10:[250,200], 11:[350,150], 12:[300,80]};
+    let svg = `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="background:white;">
+        <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
         <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
         <line x1="200" y1="0" x2="0" y2="200" stroke="black"/><line x1="200" y1="0" x2="400" y2="200" stroke="black"/>
         <line x1="0" y1="200" x2="200" y2="400" stroke="black"/><line x1="200" y1="400" x2="400" y2="200" stroke="black"/>`;
 
-    for (let i = 1; i <= 12; i++) {
-        let rVal = (asc + i - 1);
-        if (rVal > 12) rVal -= 12;
-
-        svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" fill="red" font-weight="bold" font-size="22" text-anchor="middle">${rVal}</text>`;
-        
-        let pOffset = 0;
+    for(let i=1; i<=12; i++) {
+        let r = (asc + i - 1); if(r > 12) r -= 12;
+        svg += `<text x="${centers[i][0]}" y="${centers[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
+        let off = 0;
         planets.forEach(p => {
-            if (p.rIdx === rVal) {
-                svg += `<text x="${pos[i][0]}" y="${pos[i][1] + 25 + (pOffset * 18)}" font-size="13" font-weight="bold" text-anchor="middle">${p.name}</text>`;
-                pOffset++;
+            if(p.rIdx === r) {
+                svg += `<text x="${centers[i][0]}" y="${centers[i][1]+20+(off*15)}" font-size="12" text-anchor="middle">${p.name}</text>`;
+                off++;
             }
         });
     }
     svg += `</svg>`;
-    box.innerHTML = svg;
+    document.getElementById('svgContainer').innerHTML = svg;
 }
 </script>
 </body>
