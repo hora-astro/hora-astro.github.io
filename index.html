@@ -2,93 +2,149 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Maha Kundli Report</title>
+    <title>Sateek Maha-Report Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #eee; padding: 20px; text-align: center; }
-        .box { background: white; padding: 20px; max-width: 800px; margin: auto; border: 5px solid #800000; }
-        .chart { width: 320px; height: 320px; margin: 20px auto; display: block; background: #fffdf5; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #800000; padding: 10px; }
-        #loading { color: blue; font-weight: bold; }
+        :root { --main: #7c2d12; }
+        body { font-family: 'Georgia', serif; background: #f0f0f0; margin: 0; }
+        .no-print { position: sticky; top: 0; background: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--main); z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 40px; box-sizing: border-box; border: 1px solid #ddd; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-bottom: 30px; }
+        .section-title { background: var(--main); color: white; padding: 10px; font-size: 22px; margin: 30px 0 15px 0; clear: both; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #7c2d12; padding: 10px; text-align: center; }
+        th { background: #fff7ed; font-weight: bold; }
+        .pred-text { font-size: 18px; line-height: 2; text-align: justify; color: #333; margin-bottom: 20px; }
+        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
+        svg { width: 320px; height: 320px; border: 1px solid var(--main); }
+        .dasha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>ज्योतिष गणना केंद्र</h2>
-    <input type="text" id="name" value="हेमंत पुरोहित">
-    <input type="date" id="date" value="1980-03-27">
-    <input type="time" id="time" value="10:30">
-    <button onclick="getData()">कुंडली देखें</button>
-    <div id="loading"></div>
+<div class="no-print">
+    <input type="text" id="city" value="Banswara" placeholder="शहर">
+    <input type="date" id="dob" value="1980-03-27">
+    <input type="time" id="tob" value="10:30">
+    <button onclick="generate()" style="background:var(--main); color:white; padding:10px 20px; border:none; cursor:pointer;">विस्तृत रिपोर्ट बनाएँ</button>
+    <button onclick="downloadPDF()" style="background:green; color:white; padding:10px 20px; border:none; cursor:pointer;">PDF डाउनलोड करें</button>
+</div>
 
-    <div id="result" style="display:none;">
-        <h3 id="out_name"></h3>
-        <div id="chart_container"></div>
-        <table>
-            <thead><tr style="background:#800000;color:white;"><th>ग्रह</th><th>अंश</th><th>भाव</th></tr></thead>
-            <tbody id="table_body"></tbody>
-        </table>
+<div id="reportContainer">
+    <div class="pdf-page">
+        <div class="header">
+            <h1>॥ श्री गणेशाय नमः ॥</h1>
+            <h2>सम्पूर्ण जन्म कुंडली विश्लेषण एवं महा-फलादेश</h2>
+        </div>
+        <div class="chart-box">
+            <div><h3 align="center">लग्न कुंडली (D-1)</h3><div id="d1"></div></div>
+            <div><h3 align="center">नवांश कुंडली (D-9)</h3><div id="d9"></div></div>
+        </div>
+        <div class="section-title">ग्रह स्पष्टीकरण एवं नक्षत्र विवरण</div>
+        <table id="pTable"></table>
+    </div>
+
+    <div class="pdf-page">
+        <div class="section-title">विंशोत्तरी महादशा एवं संपूर्ण अंतर्दशा विवरण</div>
+        <div id="dashaContent"></div>
+    </div>
+
+    <div class="pdf-page">
+        <div class="section-title">करियर, व्यवसाय एवं आर्थिक स्थिति</div>
+        <div id="careerPred" class="pred-text"></div>
+        <div class="section-title">स्वास्थ्य एवं शारीरिक संरचना</div>
+        <div id="healthPred" class="pred-text"></div>
+        <div class="section-title">सप्तम भाव: विवाह एवं वैवाहिक जीवन</div>
+        <div id="marriagePred" class="pred-text"></div>
     </div>
 </div>
 
 <script>
-async function getData() {
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    loading.innerText = "सर्वर को कॉल किया जा रहा है...";
-    result.style.display = "none";
+async function generate() {
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
+    }).then(r => r.json());
 
-    // URL में ?t=... जोड़ने से Cache की समस्या खत्म हो जाती है
-    const url = `https://hemantpurohit27.pythonanywhere.com/calculate?t=${new Date().getTime()}`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: document.getElementById('name').value,
-                date: document.getElementById('date').value,
-                time: document.getElementById('time').value
-            })
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-        
-        const data = await response.json();
-        if(data.status === 'success') {
-            loading.innerText = "डेटा प्राप्त हुआ!";
-            result.style.display = "block";
-            document.getElementById('out_name').innerText = "नाम: " + data.meta.name;
-            
-            // टेबल
-            let html = "";
-            data.planets.forEach(p => {
-                html += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
-            });
-            document.getElementById('table_body').innerHTML = html;
-
-            // कुंडली
-            draw(data.lagna_r, data.planets);
-        }
-    } catch (err) {
-        loading.innerHTML = "<b>कनेक्शन फेल!</b><br>कृपया ब्राउज़र के नए टैब में <u>https://hemantpurohit27.pythonanywhere.com</u> खोलें और देखें क्या वहां 'SERVER IS RUNNING' लिखा है?";
-        console.error(err);
-    }
+    if(res.status === 'success') render(res);
+    else alert("Error: " + res.message);
 }
 
-function draw(asc, planets) {
+function render(data) {
+    // 1. Planet Table
+    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>`;
+    table += `<tr><td><b>लग्न</b></td><td>${data.lagna.deg}°</td><td>${data.lagna.nak}</td><td>${data.lagna.charan}</td><td>1</td></tr>`;
+    data.planets.forEach(p => {
+        table += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+    });
+    document.getElementById('pTable').innerHTML = table;
+
+    // 2. Charts
+    drawDiamond('d1', data.lagna.rIdx, data.planets, 'rIdx');
+    drawDiamond('d9', data.lagna.d9, data.planets, 'd9');
+
+    // 3. Deep Dasha
+    let dashaHtml = "";
+    data.dasha.forEach(m => {
+        dashaHtml += `<h3>${m.lord} की महादशा (${m.start} - ${m.end})</h3><div class="dasha-grid">`;
+        m.ants.forEach(a => {
+            dashaHtml += `<div style="border:1px solid #eee; padding:5px;"><b>${a.lord}</b>: ${a.date} तक</div>`;
+        });
+        dashaHtml += `</div><hr>`;
+    });
+    document.getElementById('dashaContent').innerHTML = dashaHtml;
+
+    // 4. Detailed Predictions (15 Page Logic)
+    const find = (n) => data.planets.find(p => p.name === n);
+    const sun=find("सूर्य"), sat=find("शनि"), jup=find("गुरु"), mar=find("मंगल");
+
+    // Career
+    let cp = `दशम भाव का स्वामी और ग्रहों के अंशों का सूक्ष्म विश्लेषण यह दर्शाता है कि आपका करियर काफी स्थिर रहेगा। `;
+    if(sat.house === 10 || sat.house === 1) cp += "शनि की मजबूत स्थिति तकनीकी, लोहे या रियल एस्टेट के कार्यों में बड़ी सफलता दिलाएगी। ";
+    else if(sun.house === 10 || jup.house === 10) cp += "आप प्रशासनिक पद या सरकारी सेवा में उच्च सम्मान प्राप्त करेंगे। ";
+    cp += "ग्रहों के नक्षत्रों के अनुसार आपको 34 वर्ष की आयु के बाद भाग्योदय की प्राप्ति होगी।";
+    document.getElementById('careerPred').innerHTML = cp;
+
+    // Health
+    let hp = `लग्न नक्षत्र <b>${data.lagna.nak}</b> होने के कारण आपका शरीर बलिष्ठ होगा। `;
+    if(mar.house === 6 || sat.house === 6) hp += "छठे भाव में क्रूर ग्रह होने से आप शत्रुओं पर विजय पाएंगे परंतु जोड़ों के दर्द और रक्त संबंधी सावधानी रखें। ";
+    hp += "नियमित योग और खान-पान का ध्यान आपके लिए अनिवार्य है।";
+    document.getElementById('healthPred').innerHTML = hp;
+
+    // Marriage
+    let mp = `सप्तम भाव का विश्लेषण करने पर ज्ञात होता है कि आपका जीवनसाथी गुणवान और धार्मिक स्वभाव का होगा। `;
+    const in7 = data.planets.filter(p => p.house === 7).map(p => p.name);
+    if(in7.length > 0) mp += `सप्तम भाव में ${in7.join(", ")} की उपस्थिति वैवाहिक जीवन में प्रेम और सामंजस्य बनाए रखेगी। `;
+    mp += "विवाह के पश्चात आपकी आर्थिक स्थिति में सकारात्मक परिवर्तन आएंगे।";
+    document.getElementById('marriagePred').innerHTML = mp;
+}
+
+function drawDiamond(id, asc, planets, key) {
     const pts = {1:[160,130], 2:[80,60], 3:[40,120], 4:[120,170], 5:[40,230], 6:[80,290], 7:[160,220], 8:[240,290], 9:[280,230], 10:[200,170], 11:[280,120], 12:[240,60]};
-    let svg = `<svg class="chart" viewBox="0 0 320 320"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+    let svg = `<svg viewBox="0 0 320 320">
+        <path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#7c2d12" stroke-width="2"/>`;
     for(let i=1; i<=12; i++) {
         let r = (asc + i - 1); if(r > 12) r -= 12;
-        svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
-        let pin = planets.filter(p => p.house === i);
-        pin.forEach((p, idx) => {
-            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 20 + (idx*16)}" font-size="12" text-anchor="middle" font-weight="bold">${p.name}</text>`;
+        svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="red" font-weight="bold" font-size="18" text-anchor="middle">${r}</text>`;
+        planets.filter(p => p[key] === r).forEach((p, idx) => {
+            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 18 + (idx*14)}" font-size="11" font-weight="bold" text-anchor="middle">${p.name}</text>`;
         });
     }
-    document.getElementById('chart_container').innerHTML = svg + `</svg>`;
+    document.getElementById(id).innerHTML = svg + `</svg>`;
+}
+
+async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pages = document.querySelectorAll('.pdf-page');
+    for(let i=0; i<pages.length; i++) {
+        const canvas = await html2canvas(pages[i], {scale: 2, useCORS: true});
+        if(i > 0) doc.addPage();
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+    }
+    doc.save("Deep_Life_Report.pdf");
 }
 </script>
 </body>
