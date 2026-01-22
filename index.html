@@ -45,8 +45,8 @@
             margin-bottom: 15px;
         }
 
-        .dasha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .dasha-item { border: 1px solid #eee; padding: 8px; font-size: 12px; text-align: center; background: #fafafa; }
+        .prediction-item { margin-bottom: 20px; }
+        .prediction-item h4 { color: var(--gold); margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
 
         input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; outline: none; }
         button { background: var(--main); color: white; cursor: pointer; font-weight: bold; border: none; }
@@ -77,27 +77,23 @@
             <div><h3 align="center">नवांश कुंडली (D-9)</h3><div id="d9"></div></div>
         </div>
 
-        <div class="section-title">ग्रह स्पष्टीकरण (Sideral Lahiri)</div>
+        <div class="section-title">ग्रह एवं नक्षत्र स्पष्टीकरण (KP & Lahiri)</div>
         <table id="pTable"></table>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">विंशोत्तरी महादशा एवं अंतर्दशा प्रवाह</div>
-        <div id="dashaContent"></div>
-    </div>
+        <div class="section-title">गहन ज्योतिषीय फलादेश (Analysis)</div>
+        <div id="predictionArea" class="pred-text">
+            <p>कृपया 'विस्तृत रिपोर्ट बनाएँ' बटन पर क्लिक करें...</p>
+        </div>
 
-    <div class="pdf-page">
-        <div class="section-title">करियर एवं आर्थिक स्थिति</div>
-        <div id="careerPred" class="pred-text"></div>
-        
-        <div class="section-title">स्वास्थ्य एवं व्यक्तित्व</div>
-        <div id="healthPred" class="pred-text"></div>
-        
-        <div class="section-title">वैवाहिक जीवन एवं सुख</div>
-        <div id="marriagePred" class="pred-text"></div>
-
-        <div class="section-title">विशेष ज्योतिषीय परामर्श</div>
-        <div class="pred-text" id="specialAdvice"></div>
+        <div class="section-title">उपाय एवं परामर्श</div>
+        <div class="pred-text">
+            <ul id="remedyList">
+                <li>ग्रहों की शांति के लिए नित्य इष्ट देव का स्मरण करें।</li>
+                <li>समय-समय पर अपनी कुंडली के अनुसार दान-पुण्य करें।</li>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -107,7 +103,6 @@ async function generate() {
     btn.innerText = "सर्वर से कनेक्ट हो रहा है...";
     btn.disabled = true;
 
-    // API URL - HTTPS अनिवार्य है
     const apiURL = 'https://hemantpurohit27.pythonanywhere.com/calculate';
 
     try {
@@ -118,12 +113,10 @@ async function generate() {
             body: JSON.stringify({ 
                 date: document.getElementById('dob').value, 
                 time: document.getElementById('tob').value,
-                lat: 23.58, lon: 74.44 // शहर के अनुसार डेटा
+                lat: 23.58, lon: 74.44 
             })
         });
 
-        if (!response.ok) throw new Error('Network Issue');
-        
         const data = await response.json();
         if(data.status === 'success') {
             render(data);
@@ -131,8 +124,7 @@ async function generate() {
             alert("गणना में त्रुटि: " + data.message);
         }
     } catch (err) {
-        alert("संपर्क विफल! \n1. PythonAnywhere में 'Reload' दबाएँ।\n2. 'Force HTTPS' चालू करें।");
-        console.error(err);
+        alert("संपर्क विफल! सर्वर रीलोड करें।");
     } finally {
         btn.innerText = "विस्तृत रिपोर्ट बनाएँ";
         btn.disabled = false;
@@ -142,60 +134,40 @@ async function generate() {
 function render(data) {
     // 1. Bio Data
     document.getElementById('bioData').innerText = `जातक: ${document.getElementById('uname').value} | स्थान: ${document.getElementById('city').value} | जन्म तिथि: ${document.getElementById('dob').value}`;
-// फलादेश रेंडर करने के लिए (render function के अंदर डालें)
-let predHtml = "";
-data.predictions.forEach(p => {
-    predHtml += `
-        <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-            <h4 style="color:var(--main); margin-bottom:5px;">● ${p.t}</h4>
-            <p style="font-size:15px; color:#444; line-height:1.6;">${p.d}</p>
-        </div>`;
-    });
-    document.getElementById('careerPred').innerHTML = predHtml; // या किसी भी div id में डालें
-    // 2. Planet Table
-    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>`;
-    table += `<tr style="font-weight:bold; background:#fff7ed;"><td>लग्न</td><td>${data.lagna.deg}°</td><td>${data.lagna.nak}</td><td>${data.lagna.charan}</td><td>1</td></tr>`;
+
+    // 2. Table with Sub-Lord
+    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>उप-स्वामी (Sub)</th><th>भाव</th></tr>`;
     data.planets.forEach(p => {
-        table += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td style="color:red"><b>${p.sub}</b></td><td>${p.house}</td></tr>`;
     });
     document.getElementById('pTable').innerHTML = table;
 
-    // 3. Charts (Dynamic Houses)
+    // 3. Charts
     drawDiamond('d1', data.lagna.rIdx, data.planets, 'house');
     drawDiamond('d9', data.lagna.d9, data.planets, 'd9');
 
-    // 4. Dasha
-    let dashaHtml = "";
-    data.dasha.slice(0, 6).forEach(m => {
-        dashaHtml += `<h4>● ${m.lord} की महादशा (${m.start} - ${m.end})</h4><div class="dasha-grid">`;
-        m.ants.forEach(a => {
-            dashaHtml += `<div class="dasha-item"><b>${a.lord}</b><br>${a.date}</div>`;
+    // 4. Detailed Predictions
+    let predHtml = "";
+    if(data.predictions && data.predictions.length > 0) {
+        data.predictions.forEach(item => {
+            predHtml += `
+                <div class="prediction-item">
+                    <h4>● ${item.title}</h4>
+                    <p>${item.desc}</p>
+                </div>`;
         });
-        dashaHtml += `</div>`;
-    });
-    document.getElementById('dashaContent').innerHTML = dashaHtml;
-
-    // 5. Commercial Predictions
-    const findP = (name) => data.planets.find(p => p.name === name);
-    const sun = findP("सूर्य"), jup = findP("गुरु"), sat = findP("शनि"), mar = findP("मंगल");
-
-    document.getElementById('careerPred').innerHTML = `दशम भाव और नक्षत्र <b>${data.lagna.nak}</b> का प्रभाव बताता है कि आप कार्यक्षेत्र में अत्यंत कुशल होंगे। ${sat.house === 10 || sat.house === 11 ? 'शनि की मजबूत स्थिति व्यापार और तकनीकी कार्यों में बड़ी सफलता का संकेत देती है।' : 'सरकारी सेवा या शिक्षण के क्षेत्र में आपका भविष्य उज्ज्वल है।'}`;
-    
-    document.getElementById('healthPred').innerHTML = `लग्न भाव की स्थिति के अनुसार आपका व्यक्तित्व प्रभावशाली है। ${mar.house === 6 || mar.house === 8 ? 'रक्त और पित्त संबंधी सावधानी रखना आवश्यक है।' : 'स्वास्थ्य उत्तम रहेगा, नियमित योग लाभदायक होगा।'}`;
-    
-    document.getElementById('marriagePred').innerHTML = `सप्तम भाव का विश्लेषण बताता है कि आपका जीवनसाथी गुणवान होगा। विवाह के पश्चात भाग्योदय की प्रबल संभावनाएं हैं।`;
-    
-    document.getElementById('specialAdvice').innerHTML = `नित्य सूर्य देव को अर्घ्य दें। गुरुवार को पीली वस्तुओं का दान करना आपके भाग्य को और अधिक प्रबल करेगा।`;
+    } else {
+        predHtml = "<p>फलादेश उपलब्ध नहीं है।</p>";
+    }
+    document.getElementById('predictionArea').innerHTML = predHtml;
 }
 
 function drawDiamond(id, ascSign, planets, key) {
     const pts = {1:[160,130], 2:[80,60], 3:[40,120], 4:[120,170], 5:[40,230], 6:[80,290], 7:[160,220], 8:[240,290], 9:[280,230], 10:[200,170], 11:[280,120], 12:[240,60]};
-    let svg = `<svg viewBox="0 0 320 320">
-        <path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#7c2d12" stroke-width="2"/>`;
+    let svg = `<svg viewBox="0 0 320 320"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#7c2d12" stroke-width="2"/>`;
     for(let i=1; i<=12; i++) {
         let r = (ascSign + i - 1); if(r > 12) r -= 12;
         svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="#b91c1c" font-weight="bold" font-size="18" text-anchor="middle">${r}</text>`;
-        
         let inHouse = (key === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === r);
         inHouse.forEach((p, idx) => {
             svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 18 + (idx*14)}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
@@ -213,7 +185,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Universal_Kundli_Report.pdf");
+    doc.save("Astro_Detailed_Report.pdf");
 }
 </script>
 </body>
