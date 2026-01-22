@@ -2,150 +2,138 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Sateek Maha-Report Pro</title>
+    <title>Professional Vedic Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --main: #7c2d12; }
-        body { font-family: 'Georgia', serif; background: #f0f0f0; margin: 0; }
-        .no-print { position: sticky; top: 0; background: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--main); z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 40px; box-sizing: border-box; border: 1px solid #ddd; position: relative; page-break-after: always; }
-        .header { text-align: center; border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-bottom: 30px; }
-        .section-title { background: var(--main); color: white; padding: 10px; font-size: 22px; margin: 30px 0 15px 0; clear: both; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #7c2d12; padding: 10px; text-align: center; }
-        th { background: #fff7ed; font-weight: bold; }
-        .pred-text { font-size: 17px; line-height: 2.1; text-align: justify; color: #333; margin-bottom: 20px; background: #fffaf5; padding: 15px; border-left: 5px solid var(--main); }
-        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
-        svg { width: 320px; height: 320px; border: 1px solid var(--main); }
-        .dasha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .watermark { position: absolute; top: 40%; left: 15%; font-size: 80px; color: rgba(124, 45, 18, 0.05); transform: rotate(-45deg); pointer-events: none; }
+        body { font-family: 'serif'; background: #f4f4f4; margin: 0; padding: 0; }
+        .no-print { background: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--main); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .pdf-page { width: 210mm; background: white; margin: 20px auto; padding: 25mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 1px solid #ddd; page-break-after: always; }
+        .section-title { background: var(--main); color: white; padding: 12px; font-size: 20px; margin-top: 25px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid var(--main); padding: 10px; text-align: center; }
+        .chart-container { display: flex; justify-content: space-around; margin: 25px 0; }
+        svg { width: 320px; height: 320px; border: 2px solid var(--main); }
+        .pred-text { line-height: 1.8; text-align: justify; font-size: 17px; color: #333; padding: 15px; background: #fffcf5; border-left: 4px solid var(--main); }
+        input, button { padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .dasha-item { border-bottom: 1px solid #eee; padding: 5px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="no-print">
     <input type="text" id="uname" value="हेमंत पुरोहित" placeholder="नाम">
+    <input type="text" id="cityInput" value="Banswara" placeholder="शहर का नाम">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="generate()" style="background:var(--main); color:white; padding:10px 20px; border:none; cursor:pointer; font-weight:bold;">विस्तृत रिपोर्ट बनाएँ</button>
-    <button onclick="downloadPDF()" style="background:green; color:white; padding:10px 20px; border:none; cursor:pointer; font-weight:bold;">PDF डाउनलोड करें</button>
+    <button onclick="generateReport()" style="background:var(--main); color:white; font-weight:bold; cursor:pointer;">विस्तृत रिपोर्ट बनाएँ</button>
+    <button onclick="downloadPDF()" style="background:green; color:white; font-weight:bold; cursor:pointer;">PDF डाउनलोड</button>
 </div>
 
-<div id="reportContainer">
+<div id="reportContent">
     <div class="pdf-page">
-        <div class="watermark">KUNDLI REPORT</div>
-        <div class="header">
-            <h1>॥ श्री गणेशाय नमः ॥</h1>
-            <h2>सम्पूर्ण जन्म कुंडली विश्लेषण एवं महा-फलादेश</h2>
-            <p id="dispInfo"></p>
-        </div>
-        <div class="chart-box">
+        <h1 align="center" style="color:var(--main); margin:0;">॥ श्री गणेशाय नमः ॥</h1>
+        <h2 align="center">सम्पूर्ण जन्म कुंडली विश्लेषण एवं फलादेश</h2>
+        <p id="metaData" align="center" style="font-weight:bold;"></p>
+        
+        <div class="chart-container">
             <div><h3 align="center">लग्न कुंडली (D-1)</h3><div id="d1"></div></div>
             <div><h3 align="center">नवांश कुंडली (D-9)</h3><div id="d9"></div></div>
         </div>
+
         <div class="section-title">ग्रह स्पष्टीकरण एवं नक्षत्र विवरण</div>
-        <table id="pTable"></table>
+        <table id="planetTable"></table>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">विंशोत्तरी महादशा एवं संपूर्ण अंतर्दशा विवरण</div>
-        <div id="dashaContent"></div>
+        <div class="section-title">विंशोत्तरी महादशा एवं अंतर्दशा</div>
+        <div id="dashaInfo" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;"></div>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">1. व्यक्तित्व, स्वभाव एवं मानसिक स्थिति</div>
+        <div class="section-title">व्यक्तित्व एवं स्वभाव विश्लेषण</div>
         <div id="naturePred" class="pred-text"></div>
         
-        <div class="section-title">2. करियर, व्यवसाय एवं धन-सम्पदा</div>
+        <div class="section-title">करियर, धन एवं भाग्य</div>
         <div id="careerPred" class="pred-text"></div>
-    </div>
 
-    <div class="pdf-page">
-        <div class="section-title">3. स्वास्थ्य, आयु एवं शारीरिक संरचना</div>
-        <div id="healthPred" class="pred-text"></div>
-        
-        <div class="section-title">4. वैवाहिक जीवन एवं सुख-सुविधाएँ</div>
-        <div id="marriagePred" class="pred-text"></div>
-
-        <div class="section-title">5. महत्वपूर्ण उपाय एवं रत्न परामर्श</div>
+        <div class="section-title">विशेष ज्योतिषीय परामर्श</div>
         <div id="remedyPred" class="pred-text"></div>
     </div>
 </div>
 
 <script>
-async function generate() {
-    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-            date: document.getElementById('dob').value, 
-            time: document.getElementById('tob').value 
-        })
-    }).then(r => r.json());
+async function generateReport() {
+    const city = document.getElementById('cityInput').value;
+    const btn = document.querySelector('button');
+    btn.innerText = "गणना चालू है...";
 
-    if(res.status === 'success') render(res);
-    else alert("Error: " + res.message);
+    try {
+        // 1. Geocoding: शहर से Lat/Lon निकालना
+        const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`).then(r => r.json());
+        if(geo.length === 0) throw new Error("शहर नहीं मिल पाया");
+        
+        const lat = geo[0].lat;
+        const lon = geo[0].lon;
+
+        // 2. Server Request
+        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                date: document.getElementById('dob').value,
+                time: document.getElementById('tob').value,
+                lat: lat, lon: lon
+            })
+        }).then(r => r.json());
+
+        if(res.status === 'success') render(res, city);
+        else alert(res.message);
+
+    } catch (e) {
+        alert("Error: " + e.message);
+    } finally {
+        btn.innerText = "विस्तृत रिपोर्ट बनाएँ";
+    }
 }
 
-function render(data) {
-    document.getElementById('dispInfo').innerText = `जातक: ${document.getElementById('uname').value} | तिथि: ${data.meta.date || document.getElementById('dob').value} | समय: ${data.meta.time || document.getElementById('tob').value}`;
-    
-    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>`;
-    table += `<tr><td><b>लग्न</b></td><td>${data.lagna.deg}°</td><td>${data.lagna.nak}</td><td>${data.lagna.charan}</td><td>1</td></tr>`;
-    data.planets.forEach(p => {
-        table += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
-    });
-    document.getElementById('pTable').innerHTML = table;
+function render(data, city) {
+    const name = document.getElementById('uname').value;
+    document.getElementById('metaData').innerHTML = `जातक: ${name} | स्थान: ${city} (${parseFloat(data.lat).toFixed(2)}°N, ${parseFloat(data.lon).toFixed(2)}°E) <br> तिथि: ${document.getElementById('dob').value} | समय: ${document.getElementById('tob').value}`;
 
+    // Planet Table
+    let html = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>`;
+    data.planets.forEach(p => {
+        html += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+    });
+    document.getElementById('planetTable').innerHTML = html;
+
+    // Charts
     drawDiamond('d1', data.lagna.rIdx, data.planets, 'house');
     drawDiamond('d9', data.lagna.d9, data.planets, 'd9');
 
+    // Dasha
     let dashaHtml = "";
-    data.dasha.forEach(m => {
-        dashaHtml += `<h3>${m.lord} की महादशा (${m.start} - ${m.end})</h3><div class="dasha-grid">`;
-        m.ants.forEach(a => { dashaHtml += `<div style="border:1px solid #eee; padding:5px;"><b>${a.lord}</b>: ${a.date}</div>`; });
-        dashaHtml += `</div><hr>`;
+    data.dasha.slice(0, 6).forEach(m => {
+        dashaHtml += `<div style="border:1px solid #ccc; padding:10px;"><b>${m.lord} की महादशा</b> (${m.start}-${m.end})<br>`;
+        m.ants.slice(0, 5).forEach(a => { dashaHtml += `<div class="dasha-item">${a.lord}: ${a.date}</div>`; });
+        dashaHtml += `</div>`;
     });
-    document.getElementById('dashaContent').innerHTML = dashaHtml;
+    document.getElementById('dashaInfo').innerHTML = dashaHtml;
 
-    // --- विस्त़ृत फलादेश लॉजिक ---
-    const getP = (name) => data.planets.find(p => p.name === name);
-    const sun=getP("सूर्य"), moon=getP("चंद्र"), jup=getP("गुरु"), sat=getP("शनि"), mar=getP("मंगल"), mer=getP("बुध"), ven=getP("शुक्र");
+    // Advanced Predictions
+    const getP = (n) => data.planets.find(p => p.name === n);
+    const sun=getP("सूर्य"), sat=getP("शनि"), jup=getP("गुरु");
 
-    // Nature
-    let nTxt = `आपका जन्म <b>${data.lagna.nak}</b> नक्षत्र के <b>${data.lagna.charan}</b> चरण में हुआ है। `;
-    nTxt += `चंद्रमा की स्थिति <b>${moon.nak}</b> नक्षत्र में होने से आप मानसिक रूप से काफी संवेदनशील और विचारशील व्यक्ति हैं। `;
-    if(jup.house === 1 || jup.house === 5 || jup.house === 9) nTxt += "गुरु का प्रभाव आपको समाज में मान-सम्मान और धार्मिक प्रवृत्ती प्रदान करेगा। आप एक अच्छे सलाहकार सिद्ध होंगे। ";
-    else nTxt += "आप मेहनत पर विश्वास करने वाले व्यक्ति हैं और अपने दम पर पहचान बनाएंगे। ";
-    document.getElementById('naturePred').innerHTML = nTxt;
+    document.getElementById('naturePred').innerHTML = `आपका जन्म <b>${data.lagna.nak}</b> नक्षत्र में हुआ है। आप एक आत्मविश्वासी और स्पष्टवादी व्यक्ति हैं। लग्न के स्वामी की स्थिति यह दर्शाती है कि आप अपने जीवन के फैसले खुद लेना पसंद करते हैं और समाज में आपकी एक विशिष्ट पहचान होगी।`;
+    
+    let cp = `दशम भाव (कर्म स्थान) का सूक्ष्म विश्लेषण दर्शाता है कि `;
+    if(sat.house === 10 || sat.house === 11) cp += "शनि की मजबूत स्थिति आपको तकनीकी, निर्माण या प्रशासनिक क्षेत्र में बड़ी सफलता दिलाएगी। ";
+    else cp += "आप व्यापार और प्रबंधन के क्षेत्र में विशेष उन्नति करेंगे। आर्थिक रूप से 32 वर्ष की आयु के बाद आपका स्वर्ण काल शुरू होगा। ";
+    document.getElementById('careerPred').innerHTML = cp;
 
-    // Career
-    let cTxt = `दशम भाव (कर्म स्थान) का विश्लेषण करने पर पता चलता है कि `;
-    if(sat.house === 10 || sat.house === 11) cTxt += "शनि की स्थिति तकनीकी, लोहा, मशीनरी या रियल एस्टेट के कार्यों में अपार सफलता का योग बनाती है। ";
-    else if(mer.house === 10 || mer.house === 2) cTxt += "बुध के प्रभाव से आप व्यापार, गणना और लेखन के क्षेत्र में बहुत उन्नति करेंगे। ";
-    else cTxt += "आपके करियर में स्थिरता 30 वर्ष की आयु के बाद आएगी। आप नौकरी के बजाय स्वतंत्र कार्य में अधिक सुखी रहेंगे। ";
-    cTxt += `<b>${jup.nak}</b> नक्षत्र का प्रभाव आपको आर्थिक रूप से मजबूत बनाएगा।`;
-    document.getElementById('careerPred').innerHTML = cTxt;
-
-    // Health
-    let hTxt = `षष्ठ भाव का स्वामी और लग्न की स्थिति दर्शाती है कि `;
-    if(mar.house === 6 || sat.house === 6 || mar.house === 8) hTxt += "आपको रक्त संबंधी विकार, जोड़ों में दर्द या पित्त की समस्या से सावधान रहना चाहिए। ";
-    else hTxt += "आपका स्वास्थ्य सामान्यतः अच्छा रहेगा, परन्तु मौसमी बीमारियों से बचाव जरूरी है। ";
-    hTxt += `लग्न नक्षत्र <b>${data.lagna.nak}</b> के कारण आपकी रोग प्रतिरोधक क्षमता अच्छी है।`;
-    document.getElementById('healthPred').innerHTML = hTxt;
-
-    // Marriage
-    let mTxt = `सप्तम भाव का स्वामी अच्छी स्थिति में है। `;
-    if(ven.house === 7 || ven.house === 9) mTxt += "आपका जीवनसाथी भाग्यशाली और दिखने में आकर्षक होगा। विवाह के बाद आपके भाग्योदय के प्रबल योग हैं। ";
-    else if(mar.house === 7 || sat.house === 7) mTxt += "वैवाहिक जीवन में थोड़े मतभेद संभव हैं, शांति बनाए रखें। मंगल का प्रभाव कार्यों में तेजी लाएगा। ";
-    else mTxt += "जीवनसाथी के सहयोग से आप संपत्ति और सुख-सुविधाएं जुटाने में सफल रहेंगे। ";
-    document.getElementById('marriagePred').innerHTML = mTxt;
-
-    // Remedy
-    let rTxt = `आपकी कुंडली के अनुसार, भाग्य वृद्धि के लिए <b>${jup.name}</b> और <b>${sun.name}</b> की उपासना लाभदायक है। `;
-    rTxt += `नित्य सूर्य को अर्घ्य दें और संभव हो तो <b>पुखराज</b> या <b>मूंगा</b> (परामर्शानुसार) धारण करें। शनिवार को दान करना आपके कष्टों को कम करेगा।`;
-    document.getElementById('remedyPred').innerHTML = rTxt;
+    document.getElementById('remedyPred').innerHTML = `कुंडली के अनुसार, आपको <b>${jup.name}</b> की मजबूती के लिए गुरुवार को केसर का तिलक लगाना चाहिए। सूर्य देव को जल देना आपके आत्मविश्वास और करियर में आ रही बाधाओं को दूर करेगा। शनिवार को तिल के तेल का दान करना आपके लिए श्रेष्ठ रहेगा।`;
 }
 
 function drawDiamond(id, asc, planets, key) {
@@ -166,11 +154,11 @@ async function downloadPDF() {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pages = document.querySelectorAll('.pdf-page');
     for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 2, useCORS: true});
+        const canvas = await html2canvas(pages[i], {scale: 2});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Sampoorna_Kundli_Report.pdf");
+    doc.save("Deep_Astro_Report.pdf");
 }
 </script>
 </body>
