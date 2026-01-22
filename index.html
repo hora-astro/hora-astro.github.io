@@ -2,103 +2,105 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroPro Enterprise - 15 Page Report</title>
+    <title>AstroPro Ultimate - Detailed Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --main: #7c2d12; --gold: #b45309; }
-        body { font-family: 'Times New Roman', serif; background: #e5e7eb; padding: 20px; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 25mm; box-shadow: 0 0 20px rgba(0,0,0,0.2); position: relative; }
-        .border-frame { border: 10px double var(--main); height: 100%; padding: 15px; }
-        .header { text-align: center; border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-bottom: 20px; }
-        .section-title { background: var(--main); color: white; padding: 10px; font-size: 22px; margin-top: 30px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #7c2d12; padding: 10px; text-align: center; font-size: 16px; }
-        .pred-box { margin-top: 20px; font-size: 18px; line-height: 1.8; text-align: justify; }
-        .page-break { page-break-after: always; }
-        .no-print { text-align: center; background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; position: sticky; top: 0; z-index: 100; }
-        svg { width: 300px; height: 300px; display: block; margin: auto; }
+        :root { --main: #7c2d12; }
+        body { font-family: 'Times New Roman', serif; background: #eee; padding: 10px; }
+        .pdf-page { width: 210mm; background: white; margin: 20px auto; padding: 15mm; border: 2px solid var(--main); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .header { text-align: center; border-bottom: 3px double var(--main); margin-bottom: 20px; }
+        .section-title { background: var(--main); color: white; padding: 10px; font-size: 20px; margin-top: 20px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid var(--main); padding: 8px; text-align: center; }
+        .chart-container { display: flex; justify-content: space-around; margin: 20px 0; }
+        .dasha-table td { font-size: 12px; text-align: left; padding: 5px; }
+        .no-print { text-align: center; margin-bottom: 20px; position: sticky; top: 0; background: #fff; padding: 10px; z-index: 10; }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <input type="text" id="uname" value="हेमंत पुरोहित" placeholder="नाम">
+    <input type="text" id="uname" value="हेमंत पुरोहित">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="generate()" style="background:var(--main); color:white; padding:10px 20px; cursor:pointer;">पूर्ण महा-रिपोर्ट तैयार करें</button>
-    <button onclick="downloadPDF()" style="background:green; color:white; padding:10px 20px; cursor:pointer;">PDF डाउनलोड (15 पेज)</button>
+    <button onclick="generate()" style="padding:10px; background:var(--main); color:#white;">विस्तृत कुंडली बनाएँ</button>
+    <button onclick="downloadPDF()" style="padding:10px; background:green; color:#white;">PDF डाउनलोड करें</button>
 </div>
 
-<div id="fullReport">
+<div id="reportArea">
     <div class="pdf-page">
-        <div class="border-frame">
-            <div class="header">
-                <h1 style="font-size: 40px; color: var(--main);">॥ जन्मकुंडली महा-फलादेश ॥</h1>
-                <p id="bioData" style="font-size: 20px; font-weight: bold;"></p>
-            </div>
-            <div style="text-align:center; margin-top: 50px;">
-                <h3 style="font-size: 24px;">लग्न कुंडली (Lagna Chart)</h3>
-                <div id="d1"></div>
-            </div>
-            <div class="section-title">ग्रह स्पष्टीकरण एवं नक्षत्र</div>
-            <table id="pTable"></table>
+        <div class="header">
+            <h1>॥ श्री गणेशाय नमः ॥</h1>
+            <h2 id="dispName">जन्म कुंडली रिपोर्ट</h2>
         </div>
+        <div class="chart-container">
+            <div><h3 align="center">लग्न कुंडली (D1)</h3><div id="d1"></div></div>
+            <div><h3 align="center">नवांश कुंडली (D9)</h3><div id="d9"></div></div>
+        </div>
+        <div class="section-title">ग्रह स्पष्टीकरण</div>
+        <table id="pTable"></table>
     </div>
 
     <div class="pdf-page">
-        <div class="border-frame">
-            <div class="section-title">विस्तृत ज्योतिषीय विश्लेषण</div>
-            <div id="predictionArea" class="pred-box"></div>
-        </div>
+        <div class="section-title">विंशोत्तरी महादशा एवं अंतर्दशा</div>
+        <table class="dasha-table" id="dashaTable"></table>
+    </div>
+
+    <div class="pdf-page">
+        <div class="section-title">विस्तृत फलादेश</div>
+        <div id="predArea" style="line-height:1.8; font-size:18px; padding:20px;"></div>
     </div>
 </div>
 
 <script>
 async function generate() {
-    const apiURL = 'https://hemantpurohit27.pythonanywhere.com/calculate';
-    try {
-        const response = await fetch(apiURL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                date: document.getElementById('dob').value, 
-                time: document.getElementById('tob').value
-            })
-        });
-        const data = await response.json();
-        if(data.status === 'success') render(data);
-    } catch (err) { alert("Error connecting to server!"); }
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
+    });
+    const data = await res.json();
+    if(data.status === 'success') render(data);
 }
 
 function render(data) {
-    document.getElementById('bioData').innerText = `जातक: ${document.getElementById('uname').value} | जन्म तिथि: ${document.getElementById('dob').value}`;
+    document.getElementById('dispName').innerText = `जातक: ${document.getElementById('uname').value}`;
     
-    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>उप-स्वामी</th><th>भाव</th></tr>`;
+    // Planet Table
+    let pTab = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th></tr>`;
     data.planets.forEach(p => {
-        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.sub}</td><td>${p.house}</td></tr>`;
+        pTab += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
     });
-    document.getElementById('pTable').innerHTML = table;
+    document.getElementById('pTable').innerHTML = pTab;
 
-    drawDiamond('d1', data.lagna.rIdx, data.planets, 'house');
+    // Charts
+    drawChart('d1', data.lagna.rIdx, data.planets, 'house');
+    drawChart('d9', data.lagna.d9, data.planets, 'd9');
 
-    let predHtml = "";
-    data.predictions.forEach(p => {
-        predHtml += `<div style="margin-bottom:30px;"><h3 style="color:var(--main); border-bottom:1px solid #7c2d12;">● ${p.t}</h3><p>${p.d}</p></div>`;
+    // Dasha Table
+    let dTab = `<tr><th>महादशा</th><th>प्रारंभ</th><th>अंत</th><th>अंतर्दशा विवरण</th></tr>`;
+    data.dasha.forEach(d => {
+        let ants = d.antardashas.map(a => `${a.lord}(${a.until})`).join(', ');
+        dTab += `<tr><td><b>${d.lord}</b></td><td>${d.start}</td><td>${d.end}</td><td>${ants}</td></tr>`;
     });
-    // फलादेश को बड़ा दिखाने के लिए एक्स्ट्रा कंटेंट जोड़ें
-    document.getElementById('predictionArea').innerHTML = predHtml;
+    document.getElementById('dashaTable').innerHTML = dTab;
+
+    // Predictions
+    let pTxt = "";
+    data.predictions.forEach(p => pTxt += `<h3>● ${p.t}</h3><p>${p.d}</p>`);
+    document.getElementById('predArea').innerHTML = pTxt;
 }
 
-function drawDiamond(id, ascSign, planets, key) {
+function drawChart(id, ascSign, planets, key) {
     const pts = {1:[160,130], 2:[80,60], 3:[40,120], 4:[120,170], 5:[40,230], 6:[80,290], 7:[160,220], 8:[240,290], 9:[280,230], 10:[200,170], 11:[280,120], 12:[240,60]};
-    let svg = `<svg viewBox="0 0 320 320"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#7c2d12" stroke-width="2"/>`;
+    let svg = `<svg viewBox="0 0 320 320" width="300"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="red" stroke-width="2"/>`;
     for(let i=1; i<=12; i++) {
         let r = (ascSign + i - 1); if(r > 12) r -= 12;
-        svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="#b91c1c" font-size="20" font-weight="bold" text-anchor="middle">${r}</text>`;
-        let inHouse = planets.filter(p => p.house === i);
+        svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="blue" font-size="18" text-anchor="middle">${r}</text>`;
+        let inHouse = (key === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === r);
         inHouse.forEach((p, idx) => {
-            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 20 + (idx*16)}" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
+            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 18 + (idx*14)}" font-size="12" text-anchor="middle" fill="black">${p.name}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
@@ -113,7 +115,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Astro_Maha_Report.pdf");
+    doc.save("Kundli_Full_Report.pdf");
 }
 </script>
 </body>
