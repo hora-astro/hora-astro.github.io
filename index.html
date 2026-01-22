@@ -142,7 +142,16 @@ async function generate() {
 function render(data) {
     // 1. Bio Data
     document.getElementById('bioData').innerText = `जातक: ${document.getElementById('uname').value} | स्थान: ${document.getElementById('city').value} | जन्म तिथि: ${document.getElementById('dob').value}`;
-
+// फलादेश रेंडर करने के लिए (render function के अंदर डालें)
+let predHtml = "";
+data.predictions.forEach(p => {
+    predHtml += `
+        <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+            <h4 style="color:var(--main); margin-bottom:5px;">● ${p.t}</h4>
+            <p style="font-size:15px; color:#444; line-height:1.6;">${p.d}</p>
+        </div>`;
+    });
+    document.getElementById('careerPred').innerHTML = predHtml; // या किसी भी div id में डालें
     // 2. Planet Table
     let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>चरण</th><th>भाव</th></tr>`;
     table += `<tr style="font-weight:bold; background:#fff7ed;"><td>लग्न</td><td>${data.lagna.deg}°</td><td>${data.lagna.nak}</td><td>${data.lagna.charan}</td><td>1</td></tr>`;
