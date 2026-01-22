@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>सटीक कुंडली महा-रिपोर्ट</title>
+    <title>Professional Vedic Kundli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -14,7 +14,7 @@
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         th, td { border: 1px solid var(--main); padding: 8px; text-align: center; }
         .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
-        svg { width: 320px; height: 320px; border: 2px solid var(--main); }
+        svg { width: 310px; height: 310px; border: 2px solid var(--main); }
         .pred-text { font-size: 18px; line-height: 1.8; text-align: justify; padding: 20px; background: #fffaf0; border-left: 5px solid var(--main); margin-bottom: 20px; }
         input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
         .dasha-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 13px; }
@@ -24,7 +24,7 @@
 
 <div class="no-print">
     <input type="text" id="uname" value="हेमंत पुरोहित" placeholder="नाम">
-    <input type="text" id="cityInput" value="Banswara" placeholder="शहर का नाम (e.g. Delhi)">
+    <input type="text" id="cityInput" value="Banswara" placeholder="शहर (e.g. Delhi)">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
     <button onclick="generate()" style="background:var(--main); color:white; font-weight:bold; cursor:pointer;">सटीक रिपोर्ट बनाएँ</button>
@@ -46,16 +46,16 @@
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">व्यक्तित्व, स्वभाव एवं करियर फलादेश</div>
+        <div class="section-title">व्यक्तित्व एवं करियर फलादेश</div>
         <div id="careerPred" class="pred-text"></div>
         <div class="section-title">स्वास्थ्य एवं वैवाहिक जीवन</div>
         <div id="healthPred" class="pred-text"></div>
-        <div class="section-title">विशेष ज्योतिषीय उपाय</div>
+        <div class="section-title">विशेष उपाय</div>
         <div id="remedyPred" class="pred-text"></div>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">विंशोत्तरी महादशा एवं अंतर्दशा विवरण</div>
+        <div class="section-title">विंशोत्तरी महादशा एवं अंतर्दशा</div>
         <div id="dashaContent"></div>
     </div>
 </div>
@@ -66,28 +66,30 @@ async function generate() {
     const btn = document.querySelector('button');
     btn.innerText = "स्थान खोज रहे हैं...";
 
-    let lat = 23.58, lon = 74.44; // Default
+    let lat = 23.58, lon = 74.44; 
     try {
         const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`).then(r => r.json());
         if(g.length > 0) { lat = g[0].lat; lon = g[0].lon; }
-    } catch(e) {}
+    } catch(e) { console.log("Loc error"); }
 
-    btn.innerText = "सर्वर से कनेक्ट हो रहा है...";
+    btn.innerText = "गणना चालू है...";
     try {
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 date: document.getElementById('dob').value, 
                 time: document.getElementById('tob').value,
                 lat: lat, lon: lon
             })
-        }).then(r => r.json());
+        });
 
-        if(res.status === 'success') render(res, city);
-        else alert("सर्वर एरर: " + res.message);
+        const data = await response.json();
+        if(data.status === 'success') render(data, city);
+        else alert("सर्वर एरर: " + data.message);
     } catch(e) {
-        alert("कनेक्शन फेल! सुनिश्चित करें कि PythonAnywhere पर Reload बटन दबाया गया है।");
+        alert("कनेक्शन फेल! सुनिश्चित करें कि PythonAnywhere पर 'Reload' बटन दबाया गया है।");
     } finally { btn.innerText = "सटीक रिपोर्ट बनाएँ"; }
 }
 
@@ -103,7 +105,6 @@ function render(data, city) {
     drawDiamond('d1', data.lagna.rIdx, data.planets, 'house');
     drawDiamond('d9', data.lagna.d9, data.planets, 'd9');
 
-    // महादशा
     let dHtml = "";
     data.dasha.slice(0, 6).forEach(m => {
         dHtml += `<h3>${m.lord} की महादशा (${m.start}-${m.end})</h3><div class="dasha-grid">`;
@@ -112,22 +113,12 @@ function render(data, city) {
     });
     document.getElementById('dashaContent').innerHTML = dHtml;
 
-    // विस्तृत फलादेश लॉजिक
     const getP = (n) => data.planets.find(p => p.name === n);
-    const sun=getP("सूर्य"), jup=getP("गुरु"), sat=getP("शनि"), mar=getP("मंगल");
+    const jup=getP("गुरु"), sat=getP("शनि");
 
-    let cp = `आपका जन्म <b>${data.lagna.nak}</b> नक्षत्र में हुआ है। नक्षत्र स्वामी और ग्रहों की स्थिति के अनुसार, आप एक बुद्धिमान और दूरदर्शी व्यक्ति हैं। `;
-    if(sat.house === 10 || sat.house === 11) cp += "शनि की शुभ स्थिति आपको तकनीकी, न्याय या लोहा व्यवसाय में बड़ी सफलता दिलाएगी। ";
-    else if(jup.house === 10 || jup.house === 1) cp += "गुरु का प्रभाव आपको सरकारी क्षेत्र या शिक्षण में उच्च पद दिलाएगा। ";
-    cp += "करियर में 33 वर्ष की आयु के बाद आप बहुत अच्छी आर्थिक उन्नति करेंगे।";
-    document.getElementById('careerPred').innerHTML = cp;
-
-    let hp = `सप्तम भाव का स्वामी और ग्रहों की दृष्टि दर्शाती है कि आपका जीवनसाथी धार्मिक और सुशील स्वभाव का होगा। `;
-    if(mar.house === 7 || mar.house === 8) hp += "मंगल का प्रभाव वैवाहिक जीवन में थोड़े मतभेद पैदा कर सकता है, शांति बनाए रखें। ";
-    hp += "स्वास्थ्य के मामले में आपको पेट और रक्तचाप (BP) का विशेष ध्यान रखना चाहिए।";
-    document.getElementById('healthPred').innerHTML = hp;
-
-    document.getElementById('remedyPred').innerHTML = `आपको नित्य सूर्य को जल देना चाहिए। गुरुवार के दिन चने की दाल का दान करना और माथे पर केसर का तिलक लगाना आपके भाग्य को बल प्रदान करेगा।`;
+    document.getElementById('careerPred').innerHTML = `आपका जन्म <b>${data.lagna.nak}</b> नक्षत्र में हुआ है। कुंडली के अनुसार आप बुद्धिमान और प्रभावशाली व्यक्तित्व के स्वामी हैं। ${sat.house === 10 ? 'शनि 10वें भाव में होने से कर्म क्षेत्र में मजबूती देगा।' : 'करियर में स्थिरता 30 वर्ष के बाद आएगी।'}`;
+    document.getElementById('healthPred').innerHTML = `आपका वैवाहिक जीवन सुखद रहेगा। स्वास्थ्य का ध्यान रखें, विशेषकर पाचन तंत्र का।`;
+    document.getElementById('remedyPred').innerHTML = `नित्य सूर्य देव को जल दें और गुरुवार को केसर का तिलक लगाएं।`;
 }
 
 function drawDiamond(id, asc, planets, key) {
@@ -152,7 +143,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Kundli_Maha_Report.pdf");
+    doc.save("Kundli_Report.pdf");
 }
 </script>
 </body>
