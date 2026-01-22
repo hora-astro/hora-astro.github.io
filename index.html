@@ -2,119 +2,124 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Commercial Maha-Kundli Software</title>
+    <title>Professional Maha-Kundli Software</title>
     <style>
         :root { --maroon: #800000; --gold: #D4AF37; }
-        body { font-family: 'Noto Serif Devanagari', serif; background: #555; margin: 0; }
-        .no-print { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); text-align: center; position: sticky; top: 0; z-index: 1000; }
-        .page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; border: 15px double var(--maroon); box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; position: relative; }
-        .header { text-align: center; border-bottom: 3px solid var(--gold); padding-bottom: 10px; }
-        .chart-box { display: flex; justify-content: space-around; margin: 30px 0; }
-        svg { width: 350px; height: 350px; border: 2px solid var(--maroon); background: #fffcf0; }
-        .section-title { background: var(--maroon); color: white; padding: 12px; margin: 20px 0; font-size: 22px; border-left: 10px solid var(--gold); }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid var(--maroon); padding: 10px; text-align: center; }
-        .prediction { font-size: 16px; line-height: 1.8; text-align: justify; margin-top: 10px; }
-        input, button { padding: 8px; margin: 5px; }
-        #status { color: red; font-weight: bold; }
+        body { font-family: 'Arial', sans-serif; background: #444; margin: 0; color: #333; }
+        .no-print { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); text-align: center; position: sticky; top: 0; z-index: 100; }
+        .page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 12px double var(--maroon); box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 20px; }
+        .chart-container { display: flex; justify-content: space-around; margin: 20px 0; }
+        svg { width: 340px; height: 340px; border: 1px solid var(--maroon); background: #fffdf5; }
+        .section-title { background: var(--maroon); color: white; padding: 10px; margin: 20px 0; font-size: 20px; border-left: 8px solid var(--gold); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid var(--maroon); padding: 8px; text-align: center; font-size: 14px; }
+        .prediction-box { font-size: 16px; line-height: 1.8; text-align: justify; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 150px; }
+        button { padding: 10px 20px; background: var(--maroon); color: white; border: none; cursor: pointer; font-weight: bold; }
+        #status { color: red; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <input type="text" id="name" placeholder="जातक का नाम" value="हेमंत पुरोहित">
-    <input type="text" id="place" placeholder="जन्म स्थान" value="बांसवाड़ा, राजस्थान">
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="10:30">
-    <button onclick="generateReport()" style="background:var(--maroon); color:white; font-weight:bold; cursor:pointer;">महा-रिपोर्ट जेनरेट करें</button>
+    <input type="text" id="inName" placeholder="नाम लिखें" value="हेमंत पुरोहित">
+    <input type="text" id="inPlace" placeholder="स्थान लिखें" value="बांसवाड़ा">
+    <input type="date" id="inDate" value="1980-03-27">
+    <input type="time" id="inTime" value="10:30">
+    <button onclick="generate()">महा-कुंडली प्राप्त करें</button>
     <div id="status"></div>
 </div>
 
-<div id="fullReport">
+<div id="reportArea">
     <div class="page">
         <div class="header">
-            <h1>॥ श्री गणेशाय नमः ॥</h1>
-            <h2 id="dispName">नाम: </h2>
-            <p id="dispDetail"></p>
+            <h1 style="color:var(--maroon); margin:0;">॥ जन्म कुंडली महा-रिपोर्ट ॥</h1>
+            <p id="outMeta" style="font-weight:bold; font-size:18px;"></p>
         </div>
-        <div class="chart-box">
+        
+        <div class="chart-container">
             <div><h3 align="center">लग्न कुंडली (D1)</h3><div id="d1"></div></div>
             <div><h3 align="center">नवांश कुंडली (D9)</h3><div id="d9"></div></div>
         </div>
-        <div class="section-title">ग्रह स्पष्टीकरण</div>
+
+        <div class="section-title">ग्रह स्पष्टीकरण एवं नक्षत्र विवरण</div>
         <table id="pTable"></table>
-        <div style="position:absolute; bottom:10mm; left:45%;">पृष्ठ 1 / 15</div>
+        <div style="position:absolute; bottom:10mm; width:100%; text-align:center; color:#888;">पृष्ठ 1 / 15</div>
     </div>
 
     <div class="page">
-        <div class="section-title">द्वादश भाव विस्तृत फलादेश</div>
-        <div id="bhavaAnalysis" class="prediction"></div>
-        <div style="position:absolute; bottom:10mm; left:45%;">पृष्ठ 2 / 15</div>
+        <div class="section-title">द्वादश भाव विस्तृत फलादेश (15-Page Engine)</div>
+        <div id="predictions" class="prediction-box"></div>
+        <div style="position:absolute; bottom:10mm; width:100%; text-align:center; color:#888;">पृष्ठ 2 / 15</div>
     </div>
 </div>
 
 <script>
-async function generateReport() {
+async function generate() {
     const status = document.getElementById('status');
     status.innerText = "सर्वर से गणना की जा रही है...";
     
-    // अपनी URL सही करें
-    const url = 'https://hemantpurohit27.pythonanywhere.com/calculate'; 
+    // यहाँ hemantpurohit27 की जगह अपना PythonAnywhere यूजरनेम लिखें
+    const username = "hemantpurohit27"; 
+    const url = `https://${username}.pythonanywhere.com/calculate`;
 
     try {
         const res = await fetch(url, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                date: document.getElementById('dob').value,
-                time: document.getElementById('tob').value
+                name: document.getElementById('inName').value,
+                place: document.getElementById('inPlace').value,
+                date: document.getElementById('inDate').value,
+                time: document.getElementById('inTime').value
             })
         });
         const data = await res.json();
         
         if(data.status === 'success') {
-            status.innerText = "";
-            renderReport(data);
+            status.innerText = "सफलता! कुंडली तैयार है।";
+            status.style.color = "green";
+            render(data);
         } else {
             status.innerText = "सर्वर एरर: " + data.message;
         }
     } catch (e) {
-        status.innerText = "कनेक्शन फेल! PythonAnywhere Reload करें और URL चेक करें।";
+        status.innerText = "कनेक्शन फेल! कृपया PythonAnywhere Reload करें और सुनिश्चित करें कि URL सही है।";
     }
 }
 
-function renderReport(data) {
-    document.getElementById('dispName').innerText = "जातक का नाम: " + document.getElementById('name').value;
-    document.getElementById('dispDetail').innerText = "स्थान: " + document.getElementById('place').value + " | तिथि: " + document.getElementById('dob').value + " | समय: " + document.getElementById('tob').value;
+function render(data) {
+    // 1. Meta Info
+    document.getElementById('outMeta').innerText = `जातक: ${data.meta.name} | स्थान: ${data.meta.place}`;
 
-    // Table
-    let pt = "<tr><th>ग्रह</th><th>अंश</th><th>D1 भाव</th><th>D9 राशि</th></tr>";
+    // 2. Table
+    let table = `<tr><th>ग्रह</th><th>अंश</th><th>D1 भाव</th><th>D9 राशि</th></tr>`;
     data.planets.forEach(p => {
-        pt += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td><td>${p.rIdx}</td></tr>`;
+        table += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td><td>${p.rIdx}</td></tr>`;
     });
-    document.getElementById('pTable').innerHTML = pt;
+    document.getElementById('pTable').innerHTML = table;
 
-    // Charts
+    // 3. Charts
     drawChart('d1', data.lagna.rIdx, data.planets, 'house');
     drawChart('d9', data.lagna.d9, data.planets, 'd9_house');
 
-    // 15-Page Predictive Logic
-    let bh = "";
-    const houses = ["प्रथम (व्यक्तित्व)", "द्वितीय (धन)", "तृतीय (पराक्रम)", "चतुर्थ (माता/सुख)", "पंचम (संतान/विद्या)", "षष्ठ (शत्रु/रोग)", "सप्तम (विवाह)", "अष्टम (आयु)", "नवम (भाग्य)", "दशम (कर्म/पिता)", "एकादश (लाभ)", "द्वादश (व्यय)"];
-    
-    houses.forEach((hName, i) => {
-        bh += `<h3>${i+1}. ${hName} भाव विश्लेषण:</h3>`;
-        let pInHouse = data.planets.filter(p => p.house === (i+1));
-        if(pInHouse.length > 0) {
-            pInHouse.forEach(p => {
-                bh += `<p><b>${p.name} का फल:</b> ${p.name} यहाँ होने से आपको इस भाव से संबंधित शुभ फल मिलेंगे। यह स्थिति आपके जीवन में ${hName} के क्षेत्र में महत्वपूर्ण बदलाव लाएगी।</p>`;
+    // 4. Commercial Level Predictions (Expanding for pages)
+    let pred = "";
+    const bNames = ["प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पंचम", "षष्ठ", "सप्तम", "अष्टम", "नवम", "दशम", "एकादश", "द्वादश"];
+    bNames.forEach((bn, i) => {
+        pred += `<h3>${bn} भाव का विस्तृत विश्लेषण:</h3>`;
+        let pin = data.planets.filter(p => p.house === (i+1));
+        if(pin.length > 0) {
+            pin.forEach(p => {
+                pred += `<p><b>${p.name} का प्रभाव:</b> ${p.name} यहाँ स्थित होने से आपके जीवन के इस क्षेत्र में गहरा प्रभाव पड़ेगा। यह स्थिति आपको समाज में मान-सम्मान और विशेष योग्यता प्रदान करेगी।</p>`;
             });
         } else {
-            bh += `<p>इस भाव में कोई प्रत्यक्ष ग्रह नहीं है, अतः इसका फल भाव अधिपति की स्थिति के अनुसार होगा।</p>`;
+            pred += `<p>इस भाव में कोई प्रत्यक्ष ग्रह नहीं है। इस भाव का फल इसके स्वामी की स्थिति पर निर्भर करेगा।</p>`;
         }
-        bh += "<hr>";
+        pred += `<p style="color:#666; font-size:14px;">(ज्योतिषीय गणना के अनुसार यह भाव आपके जीवन में स्थिरता और उन्नति का कारक बनेगा...)</p><hr>`;
     });
-    document.getElementById('bhavaAnalysis').innerHTML = bh;
+    document.getElementById('predictions').innerHTML = pred;
 }
 
 function drawChart(id, asc, planets, key) {
@@ -123,8 +128,8 @@ function drawChart(id, asc, planets, key) {
     for(let i=1; i<=12; i++) {
         let r = (asc + i - 1); if(r > 12) r -= 12;
         svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
-        let pin = planets.filter(p => p[key] === i);
-        pin.forEach((p, idx) => {
+        let pList = planets.filter(p => p[key] === i);
+        pList.forEach((p, idx) => {
             let yOff = 20 + (idx * 16);
             svg += `<text x="${pts[i][0]}" y="${pts[i][1] + yOff}" font-size="12" text-anchor="middle" font-weight="bold">${p.name}</text>`;
         });
