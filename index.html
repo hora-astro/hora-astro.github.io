@@ -98,18 +98,18 @@
 </div>
 
 <script>
-async function generate() {
-    const btn = document.getElementById('btnGen');
-    btn.innerText = "सर्वर से कनेक्ट हो रहा है...";
-    btn.disabled = true;
 
-    const apiURL = 'https://hemantpurohit27.pythonanywhere.com/calculate';
+async function generate() {
+    const apiURL = 'https://hemantpurohit27.pythonanywhere.com/calculate'; // सुनिश्चित करें कि यहाँ https है
 
     try {
         const response = await fetch(apiURL, {
             method: 'POST',
-            mode: 'cors',
-            headers: {'Content-Type': 'application/json'},
+            // headers में ये दो चीजें होना जरूरी हैं
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify({ 
                 date: document.getElementById('dob').value, 
                 time: document.getElementById('tob').value,
@@ -117,20 +117,17 @@ async function generate() {
             })
         });
 
-        const data = await response.json();
-        if(data.status === 'success') {
-            render(data);
-        } else {
-            alert("गणना में त्रुटि: " + data.message);
+        if (!response.ok) {
+            throw new Error(`सर्वर एरर: ${response.status}`);
         }
-    } catch (err) {
-        alert("संपर्क विफल! सर्वर रीलोड करें।");
-    } finally {
-        btn.innerText = "विस्तृत रिपोर्ट बनाएँ";
-        btn.disabled = false;
-    }
-}
 
+        const data = await response.json();
+        render(data);
+    } catch (err) {
+        console.error(err);
+        alert("संपर्क विफल! कारण: " + err.message + "\n\nसमाधान:\n1. PythonAnywhere Web टैब में Reload दबाएँ।\n2. 'Force HTTPS' सेटिंग ऑन करें।");
+    }
+        }
 function render(data) {
     // 1. Bio Data
     document.getElementById('bioData').innerText = `जातक: ${document.getElementById('uname').value} | स्थान: ${document.getElementById('city').value} | जन्म तिथि: ${document.getElementById('dob').value}`;
