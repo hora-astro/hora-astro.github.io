@@ -2,11 +2,11 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroPro Manual Ayanamsha - हेमंत पुरोहित</title>
+    <title>AstroPro Accuracy - हेमंत पुरोहित</title>
     <style>
         :root { --main: #7c2d12; --bg: #fffcf5; }
         body { font-family: 'Arial', sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .box { background: #fff; border: 2px solid var(--main); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .box { background: #fff; border: 2px solid var(--main); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
         .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
         input, button { padding: 10px; border: 1px solid var(--main); border-radius: 4px; }
         button { background: var(--main); color: white; cursor: pointer; font-weight: bold; }
@@ -26,8 +26,8 @@
         <input type="text" id="city" value="Banswara" placeholder="शहर">
         <input type="date" id="dob" value="1980-03-27">
         <input type="time" id="tob" value="10:30">
-        <input type="number" id="manual_ayan" step="0.0001" placeholder="अयनांश (उदा: 23.58)">
-        <button onclick="fetchData()">गणना करें</button>
+        <input type="number" id="manual_ayan" step="0.0001" placeholder="अयनांश (Manual)">
+        <button onclick="fetchData()" id="btn">गणना करें</button>
     </div>
     <div id="ayanVal" class="ayan-info"></div>
 </div>
@@ -42,19 +42,22 @@
         <table id="pTable"></table>
     </div>
     <div class="box">
-        <h3>विंशोत्तरी महादशा</h3>
+        <h3>विंशोत्तरी महादशा चक्र</h3>
         <table id="dTable"></table>
     </div>
 </div>
 
 <script>
 async function fetchData() {
-    const city = document.getElementById('city').value;
+    const btn = document.getElementById('btn');
+    btn.innerText = "कनेक्ट हो रहा है...";
+    
     let lat = 23.58, lon = 74.44; 
+    const city = document.getElementById('city').value;
     
     try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
-        const geoData = await geoRes.json();
+        const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`);
+        const geoData = await geo.json();
         if(geoData.length > 0) { lat = geoData[0].lat; lon = geoData[0].lon; }
     } catch(e) { console.log("Geo error"); }
 
@@ -74,8 +77,11 @@ async function fetchData() {
             document.getElementById('resultArea').style.display = 'block';
             document.getElementById('ayanVal').innerText = "उपयोग किया गया अयनांश: " + data.ayan;
             render(data);
-        }
-    } catch (e) { alert("सर्वर से संपर्क विफल!"); }
+        } else { alert("Error: " + data.message); }
+    } catch (e) { 
+        alert("संपर्क विफल! \n1. PythonAnywhere में 'Reload' बटन दबाएँ। \n2. Web Tab में 'Force HTTPS' चालू करें।"); 
+    }
+    btn.innerText = "गणना करें";
 }
 
 function render(data) {
@@ -85,7 +91,7 @@ function render(data) {
     });
     document.getElementById('pTable').innerHTML = pRows;
 
-    let dRows = `<tr><th>स्वामी</th><th>प्रारंभ</th><th>अंत</th></tr>`;
+    let dRows = `<tr><th>महादशा स्वामी</th><th>प्रारंभ</th><th>अंत तिथि</th></tr>`;
     data.dasha.forEach(d => {
         dRows += `<tr><td><b>${d.lord}</b></td><td>${d.start}</td><td>${d.end}</td></tr>`;
     });
