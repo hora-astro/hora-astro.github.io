@@ -2,99 +2,113 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Maha Kundli Software</title>
+    <title>Professional Vedic Kundli</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f0f0; text-align: center; }
-        .page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; border: 10px double #800000; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .controls { background: white; padding: 20px; border-bottom: 5px solid #800000; position: sticky; top: 0; }
-        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
-        svg { width: 320px; height: 320px; border: 1px solid #800000; background: #fffcf5; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+        .form-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+        .report-page { width: 210mm; min-height: 297mm; background: white; margin: auto; padding: 15mm; border: 2px solid #800000; display: none; }
+        .chart-svg { width: 350px; height: 350px; background: #fffdf5; border: 2px solid #800000; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #800000; padding: 8px; }
-        #debug { color: red; font-weight: bold; }
+        th, td { border: 1px solid #800000; padding: 10px; text-align: center; }
+        #msg { color: #d9534f; font-weight: bold; margin: 10px; }
+        button { background: #800000; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="controls">
-    <input type="text" id="n" placeholder="नाम" value="हेमंत पुरोहित">
-    <input type="text" id="p" placeholder="स्थान" value="बांसवाड़ा">
-    <input type="date" id="d" value="1980-03-27">
-    <input type="time" id="t" value="10:30">
-    <button onclick="calculate()" style="padding:10px; cursor:pointer;">कुंडली बनाएँ</button>
-    <div id="debug"></div>
+<div class="form-box">
+    <h2>॥ प्रोफेशनल कुंडली सॉफ्टवेयर ॥</h2>
+    <input type="text" id="jaatak_name" placeholder="नाम" value="हेमंत पुरोहित">
+    <input type="text" id="jaatak_place" placeholder="स्थान" value="बांसवाड़ा">
+    <input type="date" id="jaatak_date" value="1980-03-27">
+    <input type="time" id="jaatak_time" value="10:30">
+    <button onclick="makeKundli()">कुंडली जेनरेट करें</button>
+    <div id="msg"></div>
 </div>
 
-<div id="report">
-    <div class="page">
-        <h1 id="outName" style="color:#800000">॥ जन्म कुंडली ॥</h1>
-        <p id="outPlace"></p>
-        <div class="chart-box">
-            <div id="d1"></div>
-            <div id="d9"></div>
-        </div>
-        <table id="pTable"></table>
+<div id="printableReport" class="report-page">
+    <h1 style="text-align: center; color: #800000;">जन्म कुंडली महा-फलादेश</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <b id="res_name"></b> | <span id="res_place"></span>
     </div>
+    
+    <div style="display: flex; justify-content: center;">
+        <div id="chart_div"></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr style="background: #800000; color: white;">
+                <th>ग्रह</th><th>अंश</th><th>भाव (D1)</th>
+            </tr>
+        </thead>
+        <tbody id="res_table"></tbody>
+    </table>
 </div>
 
 <script>
-async function calculate() {
-    const debug = document.getElementById('debug');
-    debug.innerText = "सर्वर से जुड़ रहा है...";
+async function makeKundli() {
+    const msg = document.getElementById('msg');
+    const report = document.getElementById('printableReport');
+    msg.innerText = "सर्वर से डेटा लोड हो रहा है...";
+    report.style.display = "none";
 
-    // अपनी URL यहाँ ठीक से लिखें
-    const username = "YOUR_USERNAME"; // <-- यहाँ अपना नाम लिखें
-    const url = `https://hemantpurohit27.pythonanywhere.com/calculate`;
+    // आपका फिक्स URL
+    const apiUrl = 'https://hemantpurohit27.pythonanywhere.com/calculate';
 
     try {
-        const res = await fetch(url, {
+        const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name: document.getElementById('n').value,
-                place: document.getElementById('p').value,
-                date: document.getElementById('d').value,
-                time: document.getElementById('t').value
+                name: document.getElementById('jaatak_name').value,
+                place: document.getElementById('jaatak_place').value,
+                date: document.getElementById('jaatak_date').value,
+                time: document.getElementById('jaatak_time').value
             })
         });
 
-        const data = await res.json();
-        if(data.status === 'success') {
-            debug.innerText = "सफलता!";
-            render(data);
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            msg.innerText = "सफलता!";
+            msg.style.color = "green";
+            report.style.display = "block";
+            
+            // डेटा भरना
+            document.getElementById('res_name').innerText = "नाम: " + data.meta.name;
+            document.getElementById('res_place').innerText = "स्थान: " + data.meta.place;
+
+            // टेबल भरना
+            let rows = "";
+            data.planets.forEach(p => {
+                rows += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
+            });
+            document.getElementById('res_table').innerHTML = rows;
+
+            // कुंडली बनाना
+            drawChart(data.lagna_r, data.planets);
         } else {
-            debug.innerText = "सर्वर एरर: " + data.message;
+            msg.innerText = "सर्वर एरर: " + data.message;
         }
-    } catch (e) {
-        debug.innerHTML = `कनेक्शन फेल! <br> 1. जाँचें कि क्या https://${username}.pythonanywhere.com ब्राउज़र में खुल रहा है? <br> 2. HTML कोड में 'YOUR_USERNAME' बदला या नहीं?`;
+    } catch (err) {
+        msg.innerText = "कनेक्शन फेल! सुनिश्चित करें कि 'https://hemantpurohit27.pythonanywhere.com' ब्राउज़र में खुल रहा है।";
+        console.error(err);
     }
 }
 
-function render(data) {
-    document.getElementById('outName').innerText = "नाम: " + data.meta.name;
-    document.getElementById('outPlace').innerText = "स्थान: " + data.meta.place;
-
-    let t = `<tr><th>ग्रह</th><th>अंश</th><th>भाव</th></tr>`;
-    data.planets.forEach(p => {
-        t += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.house}</td></tr>`;
-    });
-    document.getElementById('pTable').innerHTML = t;
-
-    draw('d1', data.lagna.rIdx, data.planets);
-}
-
-function draw(id, asc, planets) {
+function drawChart(asc, planets) {
     const pts = {1:[160,130], 2:[80,60], 3:[40,120], 4:[120,170], 5:[40,230], 6:[80,290], 7:[160,220], 8:[240,290], 9:[280,230], 10:[200,170], 11:[280,120], 12:[240,60]};
-    let svg = `<svg viewBox="0 0 320 320"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+    let svg = `<svg class="chart-svg" viewBox="0 0 320 320"><path d="M0 0 L320 0 L320 320 L0 320 Z M0 0 L320 320 M320 0 L0 320 M160 0 L0 160 L160 320 L320 160 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
     for(let i=1; i<=12; i++) {
         let r = (asc + i - 1); if(r > 12) r -= 12;
         svg += `<text x="${pts[i][0]}" y="${pts[i][1]}" fill="red" font-weight="bold" font-size="20" text-anchor="middle">${r}</text>`;
-        let pin = planets.filter(p => p.house === i);
-        pin.forEach((p, idx) => {
-            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 20 + (idx*15)}" font-size="12" text-anchor="middle">${p.name}</text>`;
+        let pInHouse = planets.filter(p => p.house === i);
+        pInHouse.forEach((p, idx) => {
+            svg += `<text x="${pts[i][0]}" y="${pts[i][1] + 20 + (idx*16)}" font-size="12" text-anchor="middle" font-weight="bold">${p.name}</text>`;
         });
     }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
+    document.getElementById('chart_div').innerHTML = svg + `</svg>`;
 }
 </script>
 </body>
