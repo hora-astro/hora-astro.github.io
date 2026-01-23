@@ -2,151 +2,133 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroExpert Pro - 15 Page Comprehensive Report</title>
+    <title>AstroPro Ultimate - विस्तृत फलादेश इंजन</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --maroon: #800000; --gold: #b45309; }
-        body { font-family: 'Times New Roman', serif; background: #f0f0f0; margin: 0; color: #1a1a1a; }
-        .no-print { background: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--maroon); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 30px auto; padding: 20mm; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.3); border: 1px solid #ccc; position: relative; }
-        .page-break { page-break-after: always; }
-        h1, h2, h3 { color: var(--maroon); text-align: center; text-transform: uppercase; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
-        .chart-row { display: flex; justify-content: center; gap: 40px; margin: 30px 0; }
-        .chart-box { border: 2px solid var(--maroon); padding: 15px; background: #fffcf5; border-radius: 5px; }
-        svg { width: 340px; height: 340px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-        th, td { border: 1px solid #444; padding: 12px; text-align: center; }
-        th { background: #fff2f2; color: var(--maroon); font-weight: bold; }
-        .pred-box { margin-bottom: 30px; line-height: 1.8; text-align: justify; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .dasha-item { border-left: 5px solid var(--maroon); padding-left: 15px; margin: 15px 0; background: #fafafa; }
-        button { background: var(--maroon); color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #500000; transform: translateY(-2px); }
+        body { font-family: 'Georgia', serif; background: #f4f4f4; margin: 0; color: #1a1a1a; }
+        .no-print { background: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--maroon); position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        h1, h2, h3 { color: var(--maroon); text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 10px; }
+        .chart-container { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+        .chart-box { border: 2px solid var(--maroon); padding: 10px; background: #fffcf5; flex: 1; text-align: center; }
+        svg { width: 100%; max-width: 350px; height: auto; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px; }
+        th, td { border: 1px solid #999; padding: 10px; text-align: center; }
+        th { background: #fff2f2; }
+        .pred-text { font-size: 16px; line-height: 1.8; text-align: justify; margin-top: 15px; background: #fffdf0; padding: 20px; border-radius: 8px; border-left: 5px solid var(--maroon); }
+        input, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        button { background: var(--maroon); color: white; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <input type="text" id="name" value="हेमंत पुरोहित" placeholder="नाम">
-    <input type="text" id="place" value="दिल्ली" placeholder="स्थान">
+    <input type="text" id="uname" value="हेमंत पुरोहित">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="generate15PageReport()">विस्तृत 15-पेज रिपोर्ट जेनरेट करें</button>
-    <button onclick="downloadFullPDF()" style="background:green;">PDF डाउनलोड (Full Report)</button>
+    <button onclick="generateDynamicReport()">सम्पूर्ण 15-पेज फलादेश जेनरेट करें</button>
+    <button onclick="downloadPDF()" style="background:green;">PDF डाउनलोड</button>
 </div>
 
 <div id="reportContainer">
     <div class="pdf-page">
-        <div style="text-align: center; margin-top: 100px;">
-            <h1 style="font-size: 40px;">व्यावसायिक जन्म कुंडली रिपोर्ट</h1>
-            <div style="border: 2px solid var(--gold); display: inline-block; padding: 30px; margin-top: 50px;">
-                <p><b>नाम:</b> <span id="rName">हेमंत पुरोहित</span></p>
-                <p><b>जन्म तिथि:</b> <span id="rDob">27/03/1980</span></p>
-                <p><b>जन्म समय:</b> <span id="rTob">10:30 AM</span></p>
-                <p><b>जन्म स्थान:</b> <span id="rPlace">दिल्ली</span></p>
-            </div>
-            <h2 style="margin-top: 100px;">॥ शुभम भवतु ॥</h2>
+        <h1>जन्म कुंडली विश्लेषण</h1>
+        <div class="chart-container">
+            <div class="chart-box"><h3>लग्न (D1)</h3><div id="d1_svg"></div></div>
+            <div class="chart-box"><h3>नवांश (D9)</h3><div id="d9_svg"></div></div>
         </div>
+        <table id="p_table"></table>
     </div>
 
-    <div class="pdf-page">
-        <h2>लग्न एवं नवांश चक्र</h2>
-        <div class="chart-row">
-            <div class="chart-box">
-                <p><b>लग्न कुंडली (D1)</b></p>
-                <div id="d1_svg"></div>
-            </div>
-            <div class="chart-box">
-                <p><b>नवांश कुंडली (D9)</b></p>
-                <div id="d9_svg"></div>
-            </div>
-        </div>
-        <table id="planet_table"></table>
-    </div>
-
-    <div id="house_pages"></div>
-
-    <div class="pdf-page">
-        <h2>विंशोत्तरी महादशा एवं अंतर्दशा विश्लेषण</h2>
-        <p>जातक के जीवन की मुख्य घटनाओं का समय चक्र निम्नलिखित है:</p>
-        <table id="dasha_table"></table>
-    </div>
-
-    <div class="pdf-page">
-        <h2>विशेष ज्योतिषीय परामर्श एवं उपाय</h2>
-        <div class="pred-box">
-            <h3>करियर एवं व्यवसाय (Career)</h3>
-            <p>दशम भाव के स्वामी और बुध की स्थिति आपके लिए तकनीकी और प्रबंधकीय क्षेत्रों में अपार सफलता के योग बनाती है. 2024 से 2030 के बीच सूर्य की महादशा में पदोन्नति के प्रबल योग हैं.</p>
-            
-            <h3>आर्थिक स्थिति (Finance)</h3>
-            <p>एकादश भाव में सूर्य की उपस्थिति स्थायी आय और पैतृक संपत्ति के लाभ को दर्शाती है.</p>
-            
-            <h3>अचूक उपाय (Remedies)</h3>
-            <p>1. प्रतिदिन हनुमान चालीसा का पाठ करें.<br>
-            2. पक्षियों को सात प्रकार का अनाज खिलाएं.<br>
-            3. माणिक्य रत्न धारण करने से पूर्व विशेषज्ञ की सलाह लें।</p>
-        </div>
-    </div>
+    <div id="dynamic_houses"></div>
 </div>
 
 <script>
-async function generate15PageReport() {
+// ग्रहों के स्वभाव और फल का डेटाबेस
+const planetEffects = {
+    "सूर्य": "आत्मविश्वास, सरकारी लाभ और पिता का सुख प्रदान करता है।",
+    "चंद्र": "मानसिक शांति, भावुकता और माता के सुख का कारक है।",
+    "मंगल": "साहस, ऊर्जा और भूमि संबंधी लाभ देता है।",
+    "बुध": "बुद्धि, व्यापार और संचार कौशल में निपुण बनाता है।",
+    "गुरु": "ज्ञान, संतान सुख और भाग्य में वृद्धि करता है।",
+    "शुक्र": "वैवाहिक सुख, विलासिता और कलात्मकता का प्रतीक है।",
+    "शनि": "अनुशासन, संघर्ष के बाद सफलता और न्याय का कारक है।",
+    "राहु": "अचानक लाभ, विदेश यात्रा और कूटनीति का कारक है।",
+    "केतु": "आध्यात्मिकता, वैराग्य और अंतर्ज्ञान प्रदान करता है।"
+};
+
+const houseSignificance = [
+    "शरीर, स्वभाव और व्यक्तित्व", "धन, वाणी और परिवार", "पराक्रम और छोटे भाई-बहन",
+    "माता, सुख और वाहन", "शिक्षा, संतान और बुद्धि", "रोग, ऋण और शत्रु",
+    "विवाह और साझेदारी", "आयु और गुप्त विद्या", "भाग्य, धर्म और लंबी यात्रा",
+    "कर्म, पद और प्रतिष्ठा", "आय और लाभ", "व्यय और मोक्ष"
+];
+
+async function generateDynamicReport() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
     });
     const data = await res.json();
-    if(data.status === 'success') renderFullReport(data);
+    if(data.status === 'success') renderReport(data);
 }
 
-function renderFullReport(data) {
-    document.getElementById('rName').innerText = document.getElementById('name').value;
-    document.getElementById('rPlace').innerText = document.getElementById('place').value;
-
-    // Charts
-    drawProChart('d1_svg', data.lagna.rIdx, data.planets, 'house');
-    drawProChart('d9_svg', data.lagna.d9, data.planets, 'd9');
-
-    // Planet Table
-    let pt = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>फल</th></tr>`;
-    data.planets.forEach(p => { pt += `<tr><td>${p.name}</td><td>${p.house}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>शुभ</td></tr>`; });
-    document.getElementById('planet_table').innerHTML = pt;
-
-    // 12 House Predictions (Multi-page)
-    let hContent = "";
-    const titles = ["प्रथम भाव: व्यक्तित्व एवं स्वभाव", "द्वितीय भाव: धन एवं कुटुंब", "तृतीय भाव: पराक्रम एवं छोटे भाई-बहन", "चतुर्थ भाव: माता, भूमि एवं सुख", "पंचम भाव: संतान, विद्या एवं प्रेम", "षष्ठ भाव: रोग, ऋण एवं शत्रु", "सप्तम भाव: जीवनसाथी एवं साझेदारी", "अष्टम भाव: आयु एवं संकट", "नवम भाव: भाग्य एवं धर्म", "दशम भाव: करियर एवं मान-सम्मान", "एकादश भाव: लाभ एवं आय", "द्वादश भाव: व्यय एवं मोक्ष"];
+function renderReport(data) {
+    // चार्ट और टेबल ड्रा करना
+    drawPerfectChart('d1_svg', data.lagna.rIdx, data.planets, 'house');
+    drawPerfectChart('d9_svg', data.lagna.d9, data.planets, 'd9');
     
-    titles.forEach((title, i) => {
-        let pList = data.planets.filter(p => p.house === (i+1)).map(p => p.name).join(", ");
-        hContent += `<div class="pdf-page">
-            <h3>${title}</h3>
-            <div class="pred-box">
-                यह भाव आपके जीवन के ${title.split(":")[1]} को नियंत्रित करता है। 
-                ${pList ? `इस भाव में <b>${pList}</b> की उपस्थिति आपके लिए अत्यंत महत्वपूर्ण है। यह ग्रह युति आपको विशेष फल प्रदान करेगी।` : `यह भाव वर्तमान में रिक्त है, किन्तु भाव स्वामी की स्थिति आपको अनुकूल परिणाम देगी।`}
-                <br><br><b>विस्तृत विश्लेषण:</b> ज्योतिषीय गणना के अनुसार, इस भाव का स्वामी ${i+1}वें घर में बैठकर आपकी मानसिक और सामाजिक स्थिति को प्रभावित कर रहा है। आने वाली अंतर्दशाओं में आपको इस क्षेत्र में सकारात्मक बदलाव देखने को मिलेंगे.
+    let pRows = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th></tr>`;
+    data.planets.forEach(p => { pRows += `<tr><td>${p.name}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.house}</td></tr>`; });
+    document.getElementById('p_table').innerHTML = pRows;
+
+    // डायनामिक फलादेश इंजन
+    let houseHtml = "";
+    for(let i=1; i<=12; i++) {
+        let planetsInHouse = data.planets.filter(p => p.house === i);
+        let houseTitle = `भाव ${i}: ${houseSignificance[i-1]}`;
+        
+        let prediction = `ज्योतिषीय गणना के अनुसार, आपका ${houseSignificance[i-1]} भाव वर्तमान में महत्वपूर्ण स्थिति में है। `;
+        
+        if(planetsInHouse.length > 0) {
+            prediction += `इस भाव में <b>${planetsInHouse.map(p => p.name).join(", ")}</b> विराजमान हैं। `;
+            planetsInHouse.forEach(p => {
+                prediction += `${p.name} यहाँ स्थित होकर आपको ${planetEffects[p.name]} `;
+            });
+            prediction += `इन ग्रहों की युति आपके जीवन में इस क्षेत्र को अत्यंत सक्रिय और फलदायी बनाएगी।`;
+        } else {
+            prediction += `यह भाव रिक्त है, जिसका अर्थ है कि यहाँ का फल इस भाव के स्वामी की स्थिति और अन्य ग्रहों की दृष्टि पर निर्भर करेगा। सामान्यतः यह आपको संतुलित परिणाम देगा।`;
+        }
+
+        // दृष्टि गणना (Simplified)
+        let drishti = data.planets.filter(p => (p.house + 6) % 12 + 1 === i);
+        if(drishti.length > 0) {
+            prediction += `<br><br><b>दृष्टि संबंध:</b> इस भाव पर <b>${drishti.map(p => p.name).join(", ")}</b> की पूर्ण दृष्टि पड़ रही है, जो इसके फलों में वृद्धि करेगी।`;
+        }
+
+        houseHtml += `<div class="pdf-page">
+            <h2>${houseTitle} विश्लेषण</h2>
+            <div class="pred-text">${prediction}</div>
+            <div style="margin-top:20px; font-style:italic; color:#666;">
+                *यह फलादेश आपकी कुंडली में ग्रहों की उपस्थिति और उनके नैसर्गिक गुणों पर आधारित है।
             </div>
         </div>`;
-    });
-    document.getElementById('house_pages').innerHTML = hContent;
-
-    // Dasha Table with Dates
-    let dHtml = `<tr><th>महादशा</th><th>आरंभ</th><th>समाप्ति</th><th>अंतर्दशा तिथियां</th></tr>`;
-    data.dasha.forEach(m => {
-        dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord}-${m.lord} (सटीक समय)</td></tr>`;
-    });
-    document.getElementById('dasha_table').innerHTML = dHtml;
+    }
+    document.getElementById('dynamic_houses').innerHTML = houseHtml;
 }
 
-function drawProChart(divId, asc, planets, mode) {
-    const coords = {
-        1: [190, 145], 2: [95, 85], 3: [55, 145], 4: [130, 220], 5: [55, 295], 6: [95, 350],
-        7: [190, 295], 8: [285, 350], 9: [325, 295], 10: [250, 220], 11: [325, 145], 12: [285, 85]
+function drawPerfectChart(divId, asc, planets, mode) {
+    const pos = {
+        1: [190, 145], 2: [95, 80], 3: [55, 140], 4: [130, 220], 5: [55, 290], 6: [95, 350],
+        7: [190, 295], 8: [285, 350], 9: [325, 290], 10: [250, 220], 11: [325, 140], 12: [285, 80]
     };
     let svg = `<svg viewBox="0 0 380 400"><path d="M0 0 L380 0 L380 380 L0 380 Z M0 0 L380 380 M380 0 L0 380 M190 0 L0 190 L190 380 L380 190 Z" fill="none" stroke="#444" stroke-width="2.5"/>`;
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1); if (sign > 12) sign -= 12;
-        let [x, y] = coords[i];
+        let [x, y] = pos[i];
         svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="24" text-anchor="middle" dominant-baseline="middle">${sign}</text>`;
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
         list.forEach((p, idx) => {
@@ -157,16 +139,16 @@ function drawProChart(divId, asc, planets, mode) {
     document.getElementById(divId).innerHTML = svg + `</svg>`;
 }
 
-async function downloadFullPDF() {
+async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 2});
+    const sections = document.querySelectorAll('.pdf-page');
+    for(let i=0; i<sections.length; i++) {
+        const canvas = await html2canvas(sections[i], {scale: 2});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, 210, 297);
     }
-    doc.save("Vistrit_Kundli_Report_Pro.pdf");
+    doc.save("Vistrit_Fphaladesh_Report.pdf");
 }
 </script>
 </body>
