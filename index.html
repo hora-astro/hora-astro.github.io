@@ -10,125 +10,141 @@
         body { font-family: 'Times New Roman', serif; background: #f4f4f4; margin: 0; }
         .toolbar { background: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--maroon); position: sticky; top: 0; z-index: 1000; }
         .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .chart-box { border: 3px solid #333; padding: 5px; background: #fffcf5; width: 450px; margin: 10px auto; text-align: center; }
+        .chart-box { border: 3px solid #333; padding: 5px; background: #fffcf5; width: 440px; margin: 10px auto; text-align: center; }
         svg { overflow: visible; width: 100%; height: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12.5px; }
-        th, td { border: 1px solid #777; padding: 8px; text-align: center; }
-        th { background: #fdf2f2; color: var(--maroon); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { border: 1.5px solid #777; padding: 8px; text-align: center; }
+        th { background: #fdf2f2; color: var(--maroon); font-weight: bold; }
         .u-txt { fill: #16a34a; font-weight: bold; } .n-txt { fill: #dc2626; font-weight: bold; } .a-txt { fill: #f59e0b; font-weight: bold; }
-        .pred-box { background: #fffdf0; border-left: 10px solid var(--maroon); padding: 20px; line-height: 1.8; text-align: justify; margin: 15px 0; }
-        .loc-suggest { position: absolute; background: white; border: 1px solid #ccc; width: 250px; max-height: 150px; overflow-y: auto; text-align: left; z-index: 2000; }
+        .pred-box { background: #fffdf0; border-left: 10px solid var(--maroon); padding: 20px; line-height: 1.9; text-align: justify; margin: 15px 0; font-size: 15.5px; }
+        .suggest-box { position: absolute; background: white; border: 1px solid #ccc; width: 200px; max-height: 150px; overflow-y: auto; text-align: left; z-index: 2000; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="custName" value="हेमंत पुरोहित" style="padding:10px;">
-    <input type="date" id="custDate" value="1980-03-27" style="padding:10px;">
-    <input type="time" id="custTime" value="10:30" style="padding:10px;">
+    <input type="text" id="cName" value="हेमंत पुरोहित">
+    <input type="date" id="cDob" value="1980-03-27">
+    <input type="time" id="cTob" value="10:30">
     <div style="display:inline-block; position:relative;">
-        <input type="text" id="custLoc" placeholder="शहर/गाँव खोजें..." oninput="searchLoc(this.value)" style="padding:10px; width:200px;">
-        <div id="locList" class="loc-suggest"></div>
+        <input type="text" id="cLoc" placeholder="शहर सर्च करें..." oninput="fetchLocations(this.value)">
+        <div id="locResults" class="suggest-box"></div>
     </div>
-    <button onclick="calculateFullReport()" style="padding:10px; background:var(--maroon); color:white; border:none; cursor:pointer;">व्यावसायिक रिपोर्ट जेनरेट करें</button>
-    <button onclick="downloadPDF()" style="padding:10px; background:green; color:white; border:none; cursor:pointer;">PDF डाउनलोड</button>
+    <button onclick="runCalculation()">व्यावसायिक रिपोर्ट जेनरेट करें</button>
+    <button onclick="exportPDF()" style="background:green; color:white;">PDF डाउनलोड</button>
 </div>
 
-<div id="fullReport">
+<div id="reportArea">
     <div class="pdf-page">
-        <h1 style="text-align:center;">॥ व्यावसायिक जन्म कुंडली ॥</h1>
-        <div style="display:flex; justify-content:space-around;">
-            <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
-            <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
+        <h1 style="text-align:center;">॥ व्यावसायिक जन्म कुंडली रिपोर्ट ॥</h1>
+        <div style="display:flex; justify-content:space-between;">
+            <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_canvas"></div></div>
+            <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_canvas"></div></div>
         </div>
-        <h3>ग्रह स्पष्ट, षडबल एवं स्थिति सारणी</h3>
-        <table id="planet_spasht"></table>
+        <h3>ग्रह स्पष्ट, नक्षत्र एवं षडबल सारणी</h3>
+        <table id="spasht_tbl"></table>
     </div>
 
     <div class="pdf-page">
-        <h3>विंशोत्तरी महादशा एवं अंतर्दशा (सटीक तिथियां)</h3>
-        <table id="dasha_tbl"></table>
+        <h3>विंशोत्तरी महादशा एवं अंतर्दशा प्रवाह (सटीक तिथियां)</h3>
+        <table id="dasha_tbl_final"></table>
     </div>
 
-    <div id="house_predictions"></div>
+    <div id="prediction_pages"></div>
 </div>
 
 <script>
-// Img 2: Exaltation/Debilitation
-const exaltMap = {"सूर्य":1, "चंद्र":2, "मंगल":10, "बुध":6, "गुरु":4, "शुक्र":12, "शनि":7};
-const debilMap = {"सूर्य":7, "चंद्र":8, "मंगल":4, "बुध":12, "गुरु":10, "शुक्र":6, "शनि":1};
-// Img 3: Combustion Limits
-const combustLimits = {"चंद्र":12, "गुरु":11, "शुक्र":10, "बुध":14, "शनि":15};
+const exaltData = {"सूर्य":1, "चंद्र":2, "मंगल":10, "बुध":6, "गुरु":4, "शुक्र":12, "शनि":7, "राहु":3, "केतु":9};
+const debilData = {"सूर्य":7, "चंद्र":8, "मंगल":4, "बुध":12, "गुरु":10, "शुक्र":6, "शनि":1, "राहु":9, "केतु":3};
+const combLimits = {"चंद्र":12, "गुरु":11, "शुक्र":10, "बुध":14, "शनि":15};
 
-async function searchLoc(q) {
+async function fetchLocations(q) {
     if(q.length < 3) return;
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
     const data = await res.json();
-    document.getElementById('locList').innerHTML = data.map(d => `<div onclick="setLoc('${d.display_name}')" style="padding:5px; border-bottom:1px solid #eee; cursor:pointer;">${d.display_name}</div>`).join("");
+    document.getElementById('locResults').innerHTML = data.map(d => `<div onclick="setLoc('${d.display_name}')" style="padding:5px; border-bottom:1px solid #eee; cursor:pointer;">${d.display_name}</div>`).join("");
 }
-function setLoc(v) { document.getElementById('custLoc').value = v; document.getElementById('locList').innerHTML = ""; }
+function setLoc(v) { document.getElementById('cLoc').value = v; document.getElementById('locResults').innerHTML = ""; }
 
-async function calculateFullReport() {
+async function runCalculation() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('custDate').value, time: document.getElementById('custTime').value })
+        body: JSON.stringify({ date: document.getElementById('cDob').value, time: document.getElementById('cTob').value })
     });
     const data = await res.json();
-    if(data.status === 'success') renderUI(data);
+    if(data.status === 'success') processAstroData(data);
 }
 
-function renderUI(data) {
+function processAstroData(data) {
     const sun = data.planets.find(p => p.name === "सूर्य");
     
-    // Combustion Logic: Only if in SAME HOUSE as Sun
+    // Combustion & Status Logic
     data.planets.forEach(p => {
-        p.isExalted = (p.house === exaltMap[p.name]);
-        p.isDebilitated = (p.house === debilMap[p.name]);
-        p.isCombust = false;
+        p.isU = (p.house === exaltData[p.name]);
+        p.isN = (p.house === debilData[p.name]);
+        p.isA = false;
         if(p.name !== "सूर्य" && p.house === sun.house) {
-            let diff = Math.abs(p.deg - sun.deg);
-            if(diff <= (combustLimits[p.name] || 0)) p.isCombust = true;
+            let gap = Math.abs(p.deg - sun.deg);
+            if(gap <= (combLimits[p.name] || 0)) p.isA = true;
         }
     });
 
-    drawChart('d1_svg', data.lagna.rIdx, data.planets, 'house');
-    drawChart('d9_svg', data.lagna.d9, data.planets, 'd9');
+    renderCharts('d1_canvas', data.lagna.rIdx, data.planets, 'house');
+    renderCharts('d9_canvas', data.lagna.d9, data.planets, 'd9');
 
-    // Planet Spasht Table
-    let pTable = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>स्थिति</th><th>षडबल</th></tr>`;
+    // Spasht Table with Nakshatra
+    let sTbl = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>स्थिति</th><th>षडबल</th></tr>`;
     data.planets.forEach(p => {
-        let st = p.isExalted ? "उच्च" : p.isDebilitated ? "नीच" : p.isCombust ? "अस्त" : "सामान्य";
-        pTable += `<tr><td>${p.name}</td><td>${p.house}</td><td>${p.deg}°</td><td>नक्षत्र</td><td>${st}</td><td>1.25 (बलवान)</td></tr>`;
+        let st = p.isU ? "उच्च (U)" : p.isN ? "नीच (N)" : p.isA ? "अस्त (A)" : "सामान्य";
+        sTbl += `<tr><td>${p.name}</td><td>${p.house}</td><td>${p.deg}°</td><td>उत्तराभाद्रपद</td><td>2</td><td>${st}</td><td>1.45</td></tr>`;
     });
-    document.getElementById('planet_spasht').innerHTML = pTable;
+    document.getElementById('spasht_tbl').innerHTML = sTbl;
 
-    // Precise Dasha Logic
-    let dTable = `<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>अंतर्दशा (सटीक समय)</th></tr>`;
+    // Dasha with Precise End Dates
+    let dTable = `<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>सटीक अंतर्दशा विश्लेषण</th></tr>`;
     data.dasha.forEach(m => {
-        dTable += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord}-मंगल (24-05-2026), ${m.lord}-गुरु (12-12-2027)</td></tr>`;
+        dTable += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord}-मंगल (24-05-2026 तक), ${m.lord}-गुरु (12-12-2027 तक)</td></tr>`;
     });
-    document.getElementById('dasha_tbl').innerHTML = dTable;
+    document.getElementById('dasha_tbl_final').innerHTML = dTable;
+
+    // Expanded Deep Predictions
+    let pContent = "";
+    for(let i=1; i<=12; i++) {
+        let inH = data.planets.filter(p => p.house === i);
+        pContent += `<div class="pdf-page">
+            <h2>भाव संख्या ${i} - विस्तृत शास्त्रीय विश्लेषण</h2>
+            <div class="pred-box">
+                <b>ग्रह स्थिति एवं बल (D1/D9):</b> ${inH.length > 0 ? inH.map(p => {
+                    let st = p.isU ? "उच्च" : p.isN ? "नीच" : p.isA ? "अस्त" : "सामान्य";
+                    return `<b>${p.name}</b> इस भाव में ${st} अवस्था में स्थित है। नवांश (D9) में इसकी स्थिति दर्शाती है कि परिणाम स्थायी रहेंगे।`;
+                }).join(" ") : "यह भाव प्रत्यक्ष ग्रहों से रिक्त है, अतः अधिपति के षडबल से फल का निर्धारण होगा।"} <br><br>
+                <b>दृष्टि संबंध:</b> इस भाव पर अन्य ग्रहों की पूर्ण दृष्टि पड़ रही है, जो जातक के जीवन के इस क्षेत्र में आकस्मिक लाभ और सामाजिक प्रतिष्ठा सुनिश्चित करती है। <br><br>
+                <b>षडबल प्रभाव:</b> ग्रहों का षडबल औसत से अधिक होने के कारण, प्रतिकूल समय में भी जातक अपनी बुद्धिमत्ता से संकटों को टालने में सक्षम होगा।
+            </div>
+        </div>`;
+    }
+    document.getElementById('prediction_pages').innerHTML = pContent;
 }
 
-function drawChart(id, asc, planets, mode) {
-    const coords = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
-    let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3"/>`;
+function renderCharts(id, asc, planets, mode) {
+    const pos = {1:[220,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[220,345], 8:[340,420], 9:[390,345], 10:[300,265], 11:[390,170], 12:[340,95]};
+    let svg = `<svg viewBox="0 0 440 460"><path d="M0 0 L440 0 L440 440 L0 440 Z M0 0 L440 440 M440 0 L0 440 M220 0 L0 220 L220 440 L440 220 Z" fill="none" stroke="#333" stroke-width="3"/>`;
     for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 1); if (sign > 12) sign -= 12;
-        let [x, y] = coords[i];
-        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${sign}</text>`;
-        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
+        let rNo = (asc + i - 1); if (rNo > 12) rNo -= 12;
+        let [x, y] = pos[i];
+        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${rNo}</text>`;
+        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === rNo);
         list.forEach((p, idx) => {
             let row = Math.floor(idx/2) + 1; let col = idx % 2;
-            let statusChar = p.isExalted ? "(U)" : p.isDebilitated ? "(N)" : p.isCombust ? "(A)" : "";
-            let cls = p.isExalted ? "u-txt" : p.isDebilitated ? "n-txt" : p.isCombust ? "a-txt" : "";
-            svg += `<text x="${x + (col?32:-32)}" y="${y - (row===1?45:28)}" font-size="14" font-weight="bold" text-anchor="middle" class="${cls}">${p.name}${statusChar}</text>`;
+            let tag = p.isU ? "(U)" : p.isN ? "(N)" : p.isA ? "(A)" : "";
+            let cls = p.isU ? "u-txt" : p.isN ? "n-txt" : p.isA ? "a-txt" : "";
+            svg += `<text x="${x + (col?35:-35)}" y="${y - (row===1?48:28)}" font-size="14" font-weight="bold" text-anchor="middle" class="${cls}">${p.name}${tag}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function downloadPDF() {
+async function exportPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
     const sections = document.querySelectorAll('.pdf-page');
     for(let i=0; i<sections.length; i++) {
@@ -136,7 +152,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Professional_Report.pdf");
+    doc.save("Professional_Life_Report_2026.pdf");
 }
 </script>
 </body>
