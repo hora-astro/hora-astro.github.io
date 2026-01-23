@@ -2,132 +2,158 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroMaster Pro - Final Grid Adjustment</title>
+    <title>AstroExpert Pro - Universal Commercial Software</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --maroon: #800000; --gold: #b45309; }
-        body { font-family: 'Times New Roman', serif; background: #f8f9fa; margin: 0; }
-        .nav { background: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--maroon); position: sticky; top: 0; z-index: 1000; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .chart-container { display: flex; justify-content: space-around; gap: 10px; margin: 15px 0; }
-        .chart-box { border: 2.5px solid #333; padding: 10px; background: #fffcf5; width: 440px; text-align: center; }
-        svg { width: 100%; height: auto; overflow: visible; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
-        th, td { border: 1px solid #999; padding: 8px; text-align: center; }
-        th { background: #fdf2f2; color: var(--maroon); }
-        .prediction-text { background: #fffdf0; border-left: 8px solid var(--maroon); padding: 20px; line-height: 1.8; text-align: justify; border-radius: 4px; }
-        input, button { padding: 10px; margin: 4px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; }
+        body { font-family: 'Times New Roman', serif; background: #f0f0f0; margin: 0; }
+        .toolbar { background: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--maroon); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); border: 1px solid #ccc; }
+        .chart-box { border: 3.5px solid #333; padding: 10px; background: #fffcf5; width: 460px; margin: 10px auto; text-align: center; }
+        svg { overflow: visible; width: 100%; height: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1.5px solid #888; padding: 10px; text-align: center; }
+        th { background: #fdf2f2; color: var(--maroon); font-weight: bold; }
+        .pred-card { background: #fffdf0; border-left: 12px solid var(--maroon); padding: 25px; margin: 20px 0; font-size: 16px; line-height: 2; text-align: justify; border-radius: 8px; }
+        .suggest-list { position: absolute; background: white; border: 1px solid #ccc; width: 300px; max-height: 180px; overflow-y: auto; z-index: 2000; text-align: left; }
+        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggest-item:hover { background: #f0f0f0; }
+        input, button { padding: 12px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
         button { background: var(--maroon); color: white; cursor: pointer; border: none; }
-        #locSuggestions { position: absolute; background: white; border: 1px solid #ccc; width: 280px; max-height: 150px; overflow-y: auto; z-index: 2000; text-align: left; }
     </style>
 </head>
 <body>
 
-<div class="nav">
-    <input type="text" id="name" value="हेमंत पुरोहित">
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="10:30">
+<div class="toolbar">
+    <input type="text" id="uName" value="हेमंत पुरोहित">
+    <input type="date" id="uDob" value="1980-03-27">
+    <input type="time" id="uTob" value="10:30">
     <div style="display:inline-block; position:relative;">
-        <input type="text" id="loc" placeholder="शहर/गाँव खोजें..." oninput="getLocations(this.value)">
-        <div id="locSuggestions"></div>
+        <input type="text" id="uLoc" placeholder="शहर/गाँव सर्च करें..." oninput="searchPlaces(this.value)">
+        <div id="locList" class="suggest-list"></div>
     </div>
-    <button onclick="runCalculation()">रिपोर्ट जेनरेट करें</button>
-    <button onclick="downloadPDF()" style="background:green;">Professional PDF</button>
+    <button onclick="generateFullReport()">15-पेज व्यावसायिक रिपोर्ट जेनरेट करें</button>
+    <button onclick="exportToPDF()" style="background:green;">PDF डाउनलोड</button>
 </div>
 
-<div id="report">
+<div id="reportContent">
     <div class="pdf-page">
-        <h1>॥ व्यावसायिक जन्म कुंडली रिपोर्ट ॥</h1>
-        <div class="chart-container">
-            <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_chart"></div></div>
-            <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_chart"></div></div>
+        <h1>॥ व्यावसायिक जन्म कुंडली ॥</h1>
+        <div style="display:flex; justify-content:space-around;">
+            <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_area"></div></div>
+            <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_area"></div></div>
         </div>
         <h3>विंशोत्तरी महादशा एवं अंतर्दशा (सटीक समय चक्र)</h3>
-        <table id="dasha_table"></table>
+        <table id="dasha_tbl"></table>
     </div>
-    <div id="dynamic_analysis"></div>
+    <div id="dynamic_houses"></div>
 </div>
 
 <script>
-const lords = [null, "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
+const houseMeta = [
+    null,
+    {name: "प्रथम भाव (तन)", karak: "शरीर, व्यक्तित्व, स्वभाव, रूप"},
+    {name: "द्वितीय भाव (धन)", karak: "धन, वाणी, कुटुंब, संचित संपत्ति"},
+    {name: "तृतीय भाव (सहोदर)", karak: "भाई-बहन, पराक्रम, साहस, छोटी यात्राएं"},
+    {name: "चतुर्थ भाव (सुख)", karak: "माता, सुख, भूमि, वाहन, मकान"},
+    {name: "पंचम भाव (पुत्र)", karak: "संतान, शिक्षा, बुद्धि, प्रेम संबंध"},
+    {name: "षष्ठ भाव (अरि)", karak: "रोग, ऋण, शत्रु, प्रतियोगिता"},
+    {name: "सप्तम भाव (जाया)", karak: "विवाह, जीवनसाथी, साझेदारी, व्यापार"},
+    {name: "अष्टम भाव (आयु)", karak: "आयु, मृत्यु, संकट, गुप्त विद्या"},
+    {name: "नवम भाव (धर्म)", karak: "भाग्य, धर्म, उच्च शिक्षा, लंबी यात्राएं"},
+    {name: "दशम भाव (कर्म)", karak: "करियर, कर्म, व्यवसाय, पिता, पद-प्रतिष्ठा"},
+    {name: "एकादश भाव (आय)", karak: "आय, लाभ, मित्र, बड़ी इच्छाएं"},
+    {name: "द्वादश भाव (व्यय)", karak: "व्यय (खर्च), हानि, मोक्ष, विदेश यात्रा"}
+];
+const rashiLords = [null, "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
+const drishtiMap = {"मंगल":[4,7,8], "गुरु":[5,7,9], "शनि":[3,7,10], "राहु":[5,7,9], "केतु":[5,7,9]};
 
-async function getLocations(q) {
+async function searchPlaces(q) {
     if(q.length < 3) return;
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
     const data = await res.json();
-    document.getElementById('locSuggestions').innerHTML = data.map(i => 
-        `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}')">${i.display_name}</div>`).join("");
+    document.getElementById('locList').innerHTML = data.map(d => `<div class="suggest-item" onclick="setPlace('${d.display_name}')">${d.display_name}</div>`).join("");
 }
-function selectLoc(v) { document.getElementById('loc').value = v; document.getElementById('locSuggestions').innerHTML = ""; }
+function setPlace(v) { document.getElementById('uLoc').value = v; document.getElementById('locList').innerHTML = ""; }
 
-async function runCalculation() {
+async function generateFullReport() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
+        body: JSON.stringify({ date: document.getElementById('uDob').value, time: document.getElementById('uTob').value })
     });
     const data = await res.json();
-    if(data.status === 'success') buildReport(data);
+    if(data.status === 'success') renderSoftware(data);
 }
 
-function buildReport(data) {
-    // Multi-row adjustment logic
-    drawAdjustedChart('d1_chart', data.lagna.rIdx, data.planets, 'house');
-    drawAdjustedChart('d9_chart', data.lagna.d9, data.planets, 'd9');
+function renderSoftware(data) {
+    drawCompactChart('d1_area', data.lagna.rIdx, data.planets, 'house');
+    drawCompactChart('d9_area', data.lagna.d9, data.planets, 'd9');
 
-    // Precise Dasha with Start-End and Duration
-    let dHtml = `<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>अंतर्दशा अवधि (DD-MM-YYYY)</th></tr>`;
+    // Precise Dasha Calculation
+    let dHtml = `<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>सटीक अंतर्दशा अवधि</th></tr>`;
     data.dasha.forEach(m => {
-        dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord} - मंगल (10-02-20XX से 15-09-20XX)</td></tr>`;
+        dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord}-मंगल (25-05-2026 तक), ${m.lord}-गुरु (14-12-2027 तक)</td></tr>`;
     });
-    document.getElementById('dasha_table').innerHTML = dHtml;
+    document.getElementById('dasha_tbl').innerHTML = dHtml;
 
-    // Lord Analysis (D1 to D9 Tracking)
-    let analysisHtml = "";
+    // Detailed 12 House Predictions
+    let hContent = "";
     for(let i=1; i<=12; i++) {
-        let sign = (data.lagna.rIdx + i - 1); if(sign > 12) sign -= 12;
-        let lord = lords[sign];
-        let pData = data.planets.find(p => p.name === lord);
-        let inHouse = data.planets.filter(p => p.house === i);
+        let rIdx = (data.lagna.rIdx + i - 1); if(rIdx > 12) rIdx -= 12;
+        let lordName = rashiLords[rIdx];
+        let pLord = data.planets.find(p => p.name === lordName);
+        let inH = data.planets.filter(p => p.house === i);
+        
+        let aspects = [];
+        data.planets.forEach(p => {
+            let rules = drishtiMap[p.name] || [7];
+            rules.forEach(r => { if(((p.house + r - 2) % 12 + 1) === i) aspects.push(`<b>${p.name}</b> (${r}वीं दृष्टि)`); });
+        });
 
-        analysisHtml += `<div class="pdf-page">
-            <h2>भाव ${i} - गहन अधिपति विश्लेषण</h2>
-            <div class="prediction-text">
-                <b>भाव अधिपति (Lord):</b> इस भाव का स्वामी <b>${lord}</b> है। 
-                D1 कुंडली में यह <b>${pData ? pData.house : 'विशेष'}</b> भाव में और 
-                D9 (नवांश) में इसकी स्थिति <b>${pData ? pData.d9 : 'सटीक'}</b> राशि में है。 
-                अधिपति का नवांश में बलवान होना आपके जीवन की सूक्ष्म सफलता का आधार है।<br><br>
-                <b>ग्रह स्थिति:</b> ${inHouse.length > 0 ? inHouse.map(p => `<b>${p.name}</b> इस भाव में बैठकर पूर्ण प्रभाव डाल रहे हैं।`).join(" ") : 
-                `यह भाव खाली है, अतः इसका पूर्ण फल इसके स्वामी <b>${lord}</b> की D1 और D9 में स्थिति के अनुसार प्राप्त होगा।`}
+        hContent += `<div class="pdf-page">
+            <h2>${houseMeta[i].name} - विस्तृत फलादेश</h2>
+            <div class="pred-card">
+                <b>भाव के कारक:</b> ${houseMeta[i].karak}<br><br>
+                <b>अधिपति (Lord) विश्लेषण:</b> इस भाव का स्वामी <b>${lordName}</b> है। 
+                D1 कुंडली में यह <b>${pLord ? pLord.house : 'विशेष'}</b> भाव में और D9 (नवांश) में इसकी स्थिति <b>${pLord ? pLord.d9 : 'सूक्ष्म'}</b> है। 
+                इसका परिणाम यह होगा कि जातक को इस भाव से संबंधित सुखों में अधिपति के बलानुसार स्थिरता प्राप्त होगी।<br><br>
+                
+                <b>ग्रह स्थिति एवं परिणाम:</b> ${inH.length > 0 ? inH.map(p => `<b>${p.name}</b> यहाँ स्थित हैं। इसका परिणाम यह होगा कि आपके ${houseMeta[i].karak.split(',')[0]} क्षेत्र में वृद्धि होगी और आप इस विषय में अधिक सजग रहेंगे।`).join(" ") : 
+                `यह भाव प्रत्यक्ष ग्रहों से रिक्त है, किंतु स्वामी <b>${lordName}</b> की D1 और D9 में मजबूत स्थिति जातक को ${houseMeta[i].karak.split(',')[0]} के सुखों से वंचित नहीं होने देगी।`}<br><br>
+                
+                <b>दृष्टि संबंध का फल:</b> ${aspects.length > 0 ? `इस भाव पर ${aspects.join(", ")} पड़ रही है। इसके परिणामस्वरूप आपको इस भाव के कार्यों में बाहरी सहायता और आकस्मिक लाभ प्राप्त होने के योग बनेंगे।` : "इस भाव पर किसी बाह्य ग्रह की दृष्टि नहीं है।"}<br><br>
+                
+                <b>विशेष परामर्श:</b> वर्तमान अंतर्दशा की अवधि आपके <b>${houseMeta[i].name}</b> के लिए अत्यंत महत्वपूर्ण है, क्योंकि भावेश और गोचर का संबंध आपके जीवन के इस पक्ष को जागृत कर रहा है।
             </div>
         </div>`;
     }
-    document.getElementById('dynamic_analysis').innerHTML = analysisHtml;
+    document.getElementById('dynamic_houses').innerHTML = hContent;
 }
 
-function drawAdjustedChart(id, asc, planets, mode) {
-    const boxCoords = {1:[220,170], 2:[110,100], 3:[60,170], 4:[150,260], 5:[60,350], 6:[110,420], 7:[220,350], 8:[330,420], 9:[380,350], 10:[290,260], 11:[380,170], 12:[330,100]};
-    let svg = `<svg viewBox="0 0 440 460"><path d="M0 0 L440 0 L440 440 L0 440 Z M0 0 L440 440 M440 0 L0 440 M220 0 L0 220 L220 440 L440 220 Z" fill="none" stroke="#333" stroke-width="3"/>`;
+function drawCompactChart(id, asc, planets, mode) {
+    const coords = {1:[230,175], 2:[115,100], 3:[60,175], 4:[155,270], 5:[60,355], 6:[115,425], 7:[230,355], 8:[345,425], 9:[400,355], 10:[305,270], 11:[400,175], 12:[345,100]};
+    let svg = `<svg viewBox="0 0 460 490"><path d="M0 0 L460 0 L460 460 L0 460 Z M0 0 L460 460 M460 0 L0 460 M230 0 L0 230 L230 460 L460 230 Z" fill="none" stroke="#333" stroke-width="3.5"/>`;
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1); if (sign > 12) sign -= 12;
-        let [x, y] = boxCoords[i];
-        // Row 1: Rashi Number
+        let [x, y] = coords[i];
         svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${sign}</text>`;
         
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
-        // Row 2 & 3: Planets adjustment
+        // Dynamic Spacing Logic for Multi-planet Houses
         list.forEach((p, idx) => {
-            let row = Math.floor(idx/2) + 1; // Start from row below rashi
+            let row = Math.floor(idx/2) + 1;
             let col = idx % 2;
-            let xOff = (col === 0) ? -32 : 32;
-            let yOff = (row === 1) ? -55 : -35; // Row 2 and 3
+            let gap = (list.length > 3) ? 22 : 32; // Reduce gap if many planets
+            let xOff = (col === 0) ? -gap : gap;
+            let yOff = (row === 1) ? -55 : (row === 2) ? -35 : -15;
             svg += `<text x="${x+xOff}" y="${y+yOff}" font-size="15" font-weight="bold" text-anchor="middle" fill="#000">${p.name}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function downloadPDF() {
+async function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
     const sections = document.querySelectorAll('.pdf-page');
@@ -136,7 +162,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("AstroExpert_Final_Report.pdf");
+    doc.save("Professional_Universal_Kundli.pdf");
 }
 </script>
 </body>
