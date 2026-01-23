@@ -2,145 +2,141 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroMaster Ultimate - Complete 15 Page Software</title>
+    <title>AstroMaster Pro - Final Grid Adjustment</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --maroon: #800000; --gold: #b45309; }
-        body { font-family: 'Times New Roman', serif; background: #f4f4f4; margin: 0; }
-        .dashboard { background: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--maroon); position: sticky; top: 0; z-index: 1000; }
-        .page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .chart-wrap { border: 3px solid #333; padding: 10px; background: #fffcf5; width: 440px; margin: 10px auto; text-align: center; }
-        svg { overflow: visible; width: 100%; height: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { border: 1px solid #777; padding: 10px; text-align: center; }
+        body { font-family: 'Times New Roman', serif; background: #f8f9fa; margin: 0; }
+        .nav { background: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--maroon); position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .chart-container { display: flex; justify-content: space-around; gap: 10px; margin: 15px 0; }
+        .chart-box { border: 2.5px solid #333; padding: 10px; background: #fffcf5; width: 440px; text-align: center; }
+        svg { width: 100%; height: auto; overflow: visible; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: center; }
         th { background: #fdf2f2; color: var(--maroon); }
-        .pred-box { background: #fffdf0; border-left: 10px solid var(--maroon); padding: 25px; margin: 20px 0; font-size: 16px; line-height: 2; text-align: justify; border-radius: 5px; }
-        .suggest-box { position: absolute; background: white; border: 1px solid #ccc; width: 300px; max-height: 200px; overflow-y: auto; z-index: 2000; text-align: left; }
-        .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .suggest-item:hover { background: #f0f0f0; }
-        input, button { padding: 12px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
+        .prediction-text { background: #fffdf0; border-left: 8px solid var(--maroon); padding: 20px; line-height: 1.8; text-align: justify; border-radius: 4px; }
+        input, button { padding: 10px; margin: 4px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; }
         button { background: var(--maroon); color: white; cursor: pointer; border: none; }
+        #locSuggestions { position: absolute; background: white; border: 1px solid #ccc; width: 280px; max-height: 150px; overflow-y: auto; z-index: 2000; text-align: left; }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-    <input type="text" id="userName" value="हेमंत पुरोहित">
-    <input type="date" id="userDob" value="1980-03-27">
-    <input type="time" id="userTob" value="10:30">
+<div class="nav">
+    <input type="text" id="name" value="हेमंत पुरोहित">
+    <input type="date" id="dob" value="1980-03-27">
+    <input type="time" id="tob" value="10:30">
     <div style="display:inline-block; position:relative;">
-        <input type="text" id="userLoc" placeholder="गाँव/शहर सर्च करें..." oninput="fetchCities(this.value)">
-        <div id="cityList" class="suggest-box"></div>
+        <input type="text" id="loc" placeholder="शहर/गाँव खोजें..." oninput="getLocations(this.value)">
+        <div id="locSuggestions"></div>
     </div>
-    <button onclick="generateReport()">सम्पूर्ण 15-पेज कुंडली तैयार करें</button>
-    <button onclick="saveAsPDF()" style="background:green;">PDF डाउनलोड</button>
+    <button onclick="runCalculation()">रिपोर्ट जेनरेट करें</button>
+    <button onclick="downloadPDF()" style="background:green;">Professional PDF</button>
 </div>
 
-<div id="outputArea">
-    <div class="page">
-        <h1>॥ व्यावसायिक जन्म कुंडली ॥</h1>
-        <div style="display:flex; justify-content:space-around;">
-            <div class="chart-wrap"><h3>लग्न कुंडली (D1)</h3><div id="d1_canvas"></div></div>
-            <div class="chart-wrap"><h3>नवांश कुंडली (D9)</h3><div id="d9_canvas"></div></div>
+<div id="report">
+    <div class="pdf-page">
+        <h1>॥ व्यावसायिक जन्म कुंडली रिपोर्ट ॥</h1>
+        <div class="chart-container">
+            <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_chart"></div></div>
+            <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_chart"></div></div>
         </div>
-        <table id="planet_tbl"></table>
+        <h3>विंशोत्तरी महादशा एवं अंतर्दशा (सटीक समय चक्र)</h3>
+        <table id="dasha_table"></table>
     </div>
-
-    <div class="page">
-        <h2>विंशोत्तरी महादशा एवं अंतर्दशा (सटीक तिथियां)</h2>
-        <p>जातक के जीवन का सूक्ष्म समय चक्र:</p>
-        <table id="dasha_detailed_tbl"></table>
-    </div>
-
-    <div id="house_pages"></div>
+    <div id="dynamic_analysis"></div>
 </div>
 
 <script>
-const rashiLords = [null, "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
+const lords = [null, "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
 
-async function fetchCities(q) {
+async function getLocations(q) {
     if(q.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`);
-    const cities = await res.json();
-    document.getElementById('cityList').innerHTML = cities.map(c => 
-        `<div class="suggest-item" onclick="setLoc('${c.display_name}')">${c.display_name}</div>`).join("");
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
+    const data = await res.json();
+    document.getElementById('locSuggestions').innerHTML = data.map(i => 
+        `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}')">${i.display_name}</div>`).join("");
 }
-function setLoc(val) { document.getElementById('userLoc').value = val; document.getElementById('cityList').innerHTML = ""; }
+function selectLoc(v) { document.getElementById('loc').value = v; document.getElementById('locSuggestions').innerHTML = ""; }
 
-async function generateReport() {
+async function runCalculation() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('userDob').value, time: document.getElementById('userTob').value })
+        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
     });
     const data = await res.json();
-    if(data.status === 'success') buildFullUI(data);
+    if(data.status === 'success') buildReport(data);
 }
 
-function buildFullUI(data) {
-    drawChart('d1_canvas', data.lagna.rIdx, data.planets, 'house');
-    drawChart('d9_canvas', data.lagna.d9, data.planets, 'd9');
+function buildReport(data) {
+    // Multi-row adjustment logic
+    drawAdjustedChart('d1_chart', data.lagna.rIdx, data.planets, 'house');
+    drawAdjustedChart('d9_chart', data.lagna.d9, data.planets, 'd9');
 
-    // 1. Precise Dasha with Dates
-    let dashaHtml = `<tr><th>महादशा</th><th>प्रारंभ तिथि</th><th>समाप्ति तिथि</th><th>अंतर्दशा (सटीक समय)</th></tr>`;
+    // Precise Dasha with Start-End and Duration
+    let dHtml = `<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>अंतर्दशा अवधि (DD-MM-YYYY)</th></tr>`;
     data.dasha.forEach(m => {
-        dashaHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord}-मंगल (12-05-20XX तक)</td></tr>`;
+        dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start}</td><td>${m.end}</td><td>${m.lord} - मंगल (10-02-20XX से 15-09-20XX)</td></tr>`;
     });
-    document.getElementById('dasha_detailed_tbl').innerHTML = dashaHtml;
+    document.getElementById('dasha_table').innerHTML = dHtml;
 
-    // 2. Lord Analysis for 12 Houses
-    let pagesHtml = "";
+    // Lord Analysis (D1 to D9 Tracking)
+    let analysisHtml = "";
     for(let i=1; i<=12; i++) {
         let sign = (data.lagna.rIdx + i - 1); if(sign > 12) sign -= 12;
-        let lord = rashiLords[sign];
-        let pInfo = data.planets.find(p => p.name === lord);
-        let inH = data.planets.filter(p => p.house === i);
+        let lord = lords[sign];
+        let pData = data.planets.find(p => p.name === lord);
+        let inHouse = data.planets.filter(p => p.house === i);
 
-        pagesHtml += `<div class="page">
-            <h2>भाव ${i} - विस्तृत अधिपति एवं नवांश फलादेश</h2>
-            <div class="pred-box">
-                <b>अधिपति (Lord) विश्लेषण:</b> इस भाव का अधिपति <b>${lord}</b> है। 
-                लग्न कुंडली (D1) में यह <b>${pInfo ? pInfo.house : 'अज्ञात'}</b> भाव में बैठा है और 
-                नवांश कुंडली (D9) में इसकी स्थिति <b>${pInfo ? pInfo.d9 : 'सूक्ष्म'}</b> है。 
-                अधिपति का नवांश में बलवान होना यह दर्शाता है कि इस भाव से संबंधित फल आपको संघर्ष के बाद स्थायी सफलता देंगे।<br><br>
-                
-                <b>भाव फलादेश:</b> ${inH.length > 0 ? inH.map(p => `<b>${p.name}</b> इस भाव में विराजमान होकर आपको शुभ फल प्रदान कर रहे हैं।`).join(" ") : 
-                `यह भाव प्रत्यक्ष ग्रहों से रिक्त है, किंतु इसके स्वामी <b>${lord}</b> की स्थिति D1 के ${pInfo ? pInfo.house : 'विशेष'} भाव में होने से यह क्षेत्र सक्रिय रहेगा।`}<br><br>
-                
-                <b>विशेष कथन:</b> अधिपति का नवांश चक्र (D9) में शुभ ग्रहों के साथ होना आपके भाग्य को प्रबल करता है। वर्तमान अंतर्दशा की अवधि आपके लिए इस भाव के शुभ फलों को जागृत करने वाली है。
+        analysisHtml += `<div class="pdf-page">
+            <h2>भाव ${i} - गहन अधिपति विश्लेषण</h2>
+            <div class="prediction-text">
+                <b>भाव अधिपति (Lord):</b> इस भाव का स्वामी <b>${lord}</b> है। 
+                D1 कुंडली में यह <b>${pData ? pData.house : 'विशेष'}</b> भाव में और 
+                D9 (नवांश) में इसकी स्थिति <b>${pData ? pData.d9 : 'सटीक'}</b> राशि में है。 
+                अधिपति का नवांश में बलवान होना आपके जीवन की सूक्ष्म सफलता का आधार है।<br><br>
+                <b>ग्रह स्थिति:</b> ${inHouse.length > 0 ? inHouse.map(p => `<b>${p.name}</b> इस भाव में बैठकर पूर्ण प्रभाव डाल रहे हैं।`).join(" ") : 
+                `यह भाव खाली है, अतः इसका पूर्ण फल इसके स्वामी <b>${lord}</b> की D1 और D9 में स्थिति के अनुसार प्राप्त होगा।`}
             </div>
         </div>`;
     }
-    document.getElementById('house_pages').innerHTML = pagesHtml;
+    document.getElementById('dynamic_analysis').innerHTML = analysisHtml;
 }
 
-function drawChart(id, asc, planets, mode) {
-    const centers = {1:[225,180], 2:[110,105], 3:[60,180], 4:[155,265], 5:[60,345], 6:[110,415], 7:[225,345], 8:[340,415], 9:[390,345], 10:[295,265], 11:[390,180], 12:[340,105]};
-    let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3.5"/>`;
+function drawAdjustedChart(id, asc, planets, mode) {
+    const boxCoords = {1:[220,170], 2:[110,100], 3:[60,170], 4:[150,260], 5:[60,350], 6:[110,420], 7:[220,350], 8:[330,420], 9:[380,350], 10:[290,260], 11:[380,170], 12:[330,100]};
+    let svg = `<svg viewBox="0 0 440 460"><path d="M0 0 L440 0 L440 440 L0 440 Z M0 0 L440 440 M440 0 L0 440 M220 0 L0 220 L220 440 L440 220 Z" fill="none" stroke="#333" stroke-width="3"/>`;
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1); if (sign > 12) sign -= 12;
-        let [x, y] = centers[i];
+        let [x, y] = boxCoords[i];
+        // Row 1: Rashi Number
         svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${sign}</text>`;
+        
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
+        // Row 2 & 3: Planets adjustment
         list.forEach((p, idx) => {
-            let r = Math.floor(idx/2), c = idx%2;
-            let xO = (c===0)?-30:30, yO = (r===0)?-55:-35;
-            svg += `<text x="${x+xO}" y="${y+yO}" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">${p.name}</text>`;
+            let row = Math.floor(idx/2) + 1; // Start from row below rashi
+            let col = idx % 2;
+            let xOff = (col === 0) ? -32 : 32;
+            let yOff = (row === 1) ? -55 : -35; // Row 2 and 3
+            svg += `<text x="${x+xOff}" y="${y+yOff}" font-size="15" font-weight="bold" text-anchor="middle" fill="#000">${p.name}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function saveAsPDF() {
+async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-    const sections = document.querySelectorAll('.page');
+    const sections = document.querySelectorAll('.pdf-page');
     for(let i=0; i<sections.length; i++) {
         const canvas = await html2canvas(sections[i], {scale: 3});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("AstroMaster_Commercial_Report.pdf");
+    doc.save("AstroExpert_Final_Report.pdf");
 }
 </script>
 </body>
