@@ -2,23 +2,24 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Sateek Astro - सटीक कुंडली एवं महा-फलादेश</title>
+    <title>Sateek Astro - सटीक कुंडली सॉफ्टवेयर</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --main: #7c2d12; --gold: #b45309; }
-        body { font-family: 'Arial', sans-serif; background: #fefaf0; margin: 0; }
-        .no-print { background: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--main); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #fdfaf4; margin: 0; }
+        .no-print { background: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--main); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        .section-title { background: var(--main); color: white; padding: 12px; margin: 20px 0 10px; border-radius: 4px; font-weight: bold; font-size: 18px; }
+        .section-title { background: var(--main); color: white; padding: 12px; margin: 25px 0 10px; border-radius: 4px; font-weight: bold; font-size: 18px; }
         .chart-box { display: flex; justify-content: space-around; gap: 10px; margin: 20px 0; }
-        svg { width: 340px; height: 340px; border: 1px solid #ddd; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        svg { width: 340px; height: 340px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; }
         th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; }
         th { background: #fff7ed; color: var(--main); }
-        .house-pred { border-left: 6px solid var(--gold); background: #fff9db; padding: 15px; margin-bottom: 12px; text-align: justify; line-height: 1.8; font-size: 15px; border-radius: 4px; }
-        input, button { padding: 12px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; }
+        .house-pred { border-left: 6px solid var(--gold); background: #fffcf0; padding: 18px; margin-bottom: 15px; text-align: justify; line-height: 1.8; font-size: 15px; border-radius: 4px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
+        input, button { padding: 12px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
         button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #5d220e; }
     </style>
 </head>
 <body>
@@ -31,7 +32,7 @@
     <button onclick="downloadPDF()" style="background:green;">PDF डाउनलोड</button>
 </div>
 
-<div id="reportContainer">
+<div id="reportArea">
     <div class="pdf-page">
         <h2 align="center" style="color:var(--main); margin:0;">॥ श्री गणेशाय नमः ॥</h2>
         <h3 align="center" id="bioHeader">जन्म कुंडली एवं ग्रह गोचर विश्लेषण</h3>
@@ -41,101 +42,112 @@
             <div><h4 align="center">नवांश कुंडली (D9)</h4><div id="d9Chart"></div></div>
         </div>
 
-        <div class="section-title">ग्रह स्पष्टीकरण (Planetary Degrees)</div>
-        <table id="planetTable"></table>
+        <div class="section-title">ग्रह स्पष्टीकरण (Siderial Lahiri)</div>
+        <table id="pTable"></table>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">द्वादश भाव (12 Houses) सूक्ष्म विश्लेषण</div>
-        <div id="houseDetails"></div>
+        <div class="section-title">द्वादश भाव (12 Houses) विस्तृत फलादेश</div>
+        <div id="hDetails"></div>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">विंशोत्तरी महादशा चक्र</div>
-        <div id="dashaList"></div>
-        
-        <div class="section-title">व्यापार, स्वास्थ्य एवं विशेष ज्योतिषीय उपाय</div>
-        <div class="house-pred" id="specialRemedies"></div>
+        <div class="section-title">विंशोत्तरी महादशा एवं समय चक्र</div>
+        <div id="dList"></div>
+        <div class="section-title">व्यापार, करियर एवं विशेष उपाय</div>
+        <div class="house-pred" id="specialRem"></div>
     </div>
 </div>
 
 <script>
 async function fetchData() {
-    const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
     });
-    const data = await response.json();
-    if(data.status === 'success') renderReport(data);
+    const data = await res.json();
+    if(data.status === 'success') render(data);
 }
 
-function renderReport(data) {
-    document.getElementById('bioHeader').innerText = `${document.getElementById('uname').value} | DOB: ${document.getElementById('dob').value} | TOB: ${document.getElementById('tob').value}`;
+function render(data) {
+    document.getElementById('bioHeader').innerText = `${document.getElementById('uname').value} | जन्म: ${document.getElementById('dob').value} | समय: ${document.getElementById('tob').value}`;
     
     // Planet Table
-    let pRows = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th></tr>`;
+    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th></tr>`;
     data.planets.forEach(p => {
-        pRows += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
     });
-    document.getElementById('planetTable').innerHTML = pRows;
+    document.getElementById('pTable').innerHTML = table;
 
-    // Drawing Accurate Charts
-    drawGridChart('d1Chart', data.lagna.rIdx, data.planets, 'house');
-    drawGridChart('d9Chart', data.lagna.d9, data.planets, 'd9');
+    // Charts with New "Sign-Next-to-Planet" Logic
+    drawInlineChart('d1Chart', data.lagna.rIdx, data.planets, 'house');
+    drawInlineChart('d9Chart', data.lagna.d9, data.planets, 'd9');
 
-    // House Predictions
-    const labels = ["प्रथम (तन)", "द्वितीय (धन)", "तृतीय (साहस)", "चतुर्थ (सुख)", "पंचम (संतान)", "षष्ठ (शत्रु)", "सप्तम (पत्नी/पति)", "अष्टम (मृत्यु/गुप्त)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (आय)", "द्वादश (व्यय)"];
+    // House-by-House Expansion
+    const labels = ["प्रथम (तन)", "द्वितीय (धन)", "तृतीय (साहस)", "चतुर्थ (सुख)", "पंचम (संतान)", "षष्ठ (शत्रु)", "सप्तम (पत्नी)", "अष्टम (मृत्यु)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (आय)", "द्वादश (व्यय)"];
     let hHtml = "";
     for(let i=1; i<=12; i++) {
         let pInH = data.planets.filter(p => p.house === i).map(p => p.name).join(", ");
-        hHtml += `<div class="house-pred"><b>${i}. ${labels[i-1]} भाव:</b><br>`;
-        if(pInH) hHtml += `इस भाव में <b>${pInH}</b> का प्रभाव है। यह आपके जीवन के इस क्षेत्र में विशेष तीव्रता लाता है। ग्रहों की यह युति आपको इस भाव से जुड़े फलों में संघर्ष के बाद बड़ी सफलता दिलाएगी।`;
-        else hHtml += `इस भाव का स्वामी शुभ अवस्था में है, जो आपके जीवन में स्थिरता और सकारात्मकता सुनिश्चित करेगा।`;
+        hHtml += `<div class="house-pred"><b>${i}. ${labels[i-1]} भाव विश्लेषण:</b><br>`;
+        if(pInH) {
+            hHtml += `इस भाव में <b>${pInH}</b> विराजमान हैं। यह स्थिति दर्शाती है कि जीवन के इस क्षेत्र में आपका प्रभाव गहरा रहेगा। ग्रहों की यह युति आपको इस भाव से संबंधित विषयों में प्रखर बुद्धि और सफलता प्रदान करेगी। वर्तमान ग्रहों के गोचर के अनुसार, आपको यहाँ सकारात्मक परिणाम मिलने की पूरी संभावना है।`;
+        } else {
+            hHtml += `इस भाव का स्वामी केंद्र या त्रिकोण में होने से आपके जीवन में स्थिरता और उन्नति के योग बनते हैं। यहाँ कोई नकारात्मक ग्रह न होना आपके लिए सुखद है।`;
+        }
         hHtml += `</div>`;
     }
-    document.getElementById('houseDetails').innerHTML = hHtml;
+    document.getElementById('hDetails').innerHTML = hHtml;
 
     // Dasha
-    let dHtml = "<table><tr><th>महादशा</th><th>समय सीमा</th></tr>";
-    data.dasha.forEach(m => { dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start} से ${m.end}</td></tr>`; });
-    document.getElementById('dashaList').innerHTML = dHtml + "</table>";
+    let dHtml = "<table><tr><th>महादशा</th><th>अवधि</th><th>फल</th></tr>";
+    data.dasha.forEach(m => { dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start} - ${m.end}</td><td>सामान्य शुभ</td></tr>`; });
+    document.getElementById('dList').innerHTML = dHtml + "</table>";
 
     // Remedies
-    document.getElementById('specialRemedies').innerHTML = `
-        <b>स्वास्थ्य एवं स्वभाव:</b> लग्न की स्थिति के अनुसार आपका व्यक्तित्व प्रभावशाली है। शनि और राहु की दृष्टि के कारण कभी-कभी भ्रम या तनाव हो सकता है। <br><br>
+    document.getElementById('specialRem').innerHTML = `
+        <b>करियर परामर्श:</b> दशम भाव और सूर्य की स्थिति के अनुसार, आप नेतृत्व या प्रशासनिक कार्यों में सफल होंगे। <br><br>
         <b>उपाय:</b> <br>
-        1. शनिवार को हनुमान चालीसा का पाठ करें। <br>
-        2. मछलियों को आटे की गोलियां खिलाएं। <br>
-        3. महामृत्युंजय मंत्र का यथाशक्ति जप करें।
+        1. प्रतिदिन 'ॐ घृणि सूर्याय नमः' का जप करें। <br>
+        2. पक्षियों को दाना डालें और शनिवार को पीपल के वृक्ष के नीचे दीपक जलाएं। <br>
+        3. गुरुवार को पीली वस्तुओं का दान करना लाभदायक रहेगा।
     `;
 }
 
-function drawGridChart(divId, lagnaSign, planets, type) {
-    // Exact Points for House Centers
-    const pos = {
-        1: [170, 140], 2: [85, 80],   3: [50, 140], 
-        4: [125, 205], 5: [50, 275],  6: [85, 335], 
-        7: [170, 275], 8: [255, 335], 9: [290, 275], 
-        10: [215, 205], 11: [290, 140], 12: [255, 80]
+function drawInlineChart(id, ascSign, planets, type) {
+    const centers = {
+        1: [170, 145], 2: [85, 85],   3: [50, 145], 
+        4: [125, 215], 5: [50, 285],  6: [85, 345], 
+        7: [170, 285], 8: [255, 345], 9: [290, 285], 
+        10: [215, 215], 11: [290, 145], 12: [255, 85]
     };
 
-    let svg = `<svg viewBox="0 0 340 360"><path d="M0 0 L340 0 L340 340 L0 340 Z M0 0 L340 340 M340 0 L0 340 M170 0 L0 170 L170 340 L340 170 Z" fill="none" stroke="#7c2d12" stroke-width="2.5"/>`;
+    let svg = `<svg viewBox="0 0 340 370">
+        <path d="M0 0 L340 0 L340 340 L0 340 Z M0 0 L340 340 M340 0 L0 340 M170 0 L0 170 L170 340 L340 170 Z" 
+              fill="none" stroke="#7c2d12" stroke-width="2.5"/>`;
 
     for (let i = 1; i <= 12; i++) {
-        let sign = (lagnaSign + i - 1); if (sign > 12) sign -= 12;
-        svg += `<text x="${pos[i][0]}" y="${pos[i][1] - 22}" fill="#b91c1c" font-weight="bold" font-size="17" text-anchor="middle">${sign}</text>`;
-
+        let sign = (ascSign + i - 1); if (sign > 12) sign -= 12;
         let list = (type === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
         
-        // GRID LOGIC: Prevents planets from going into the next house
+        // राशि संख्या और ग्रहों को एक साथ (Horizontal Flow)
+        let x = centers[i][0];
+        let y = centers[i][1];
+        
+        // राशि संख्या (Bold Red)
+        svg += `<text x="${x}" y="${y - 20}" fill="#b91c1c" font-weight="bold" font-size="18" text-anchor="middle">${sign}</text>`;
+
+        // ग्रहों की सूची (Horizontal stacking)
         list.forEach((p, idx) => {
-            let xOff = (idx >= 3) ? 20 : -5; // Move to 2nd column after 3 planets
-            let yOff = (idx % 3) * 15;      // Only stack up to 3 per column
-            svg += `<text x="${pos[i][0] + xOff}" y="${pos[i][1] + 5 + yOff}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
+            let row = Math.floor(idx / 2); // 2 ग्रह प्रति लाइन
+            let col = idx % 2;
+            let xPos = x + (col === 0 ? -18 : 18);
+            let yPos = y - 5 + (row * 15);
+            
+            svg += `<text x="${xPos}" y="${yPos}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
         });
     }
-    document.getElementById(divId).innerHTML = svg + `</svg>`;
+    document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
 async function downloadPDF() {
@@ -147,7 +159,7 @@ async function downloadPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Kundli_Report_Accurate.pdf");
+    doc.save("Kundli_Professional_Report.pdf");
 }
 </script>
 </body>
