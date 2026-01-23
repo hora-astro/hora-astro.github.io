@@ -2,24 +2,22 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Sateek Astro - सटीक कुंडली सॉफ्टवेयर</title>
+    <title>AstroCenter - सटीक कुंडली सॉफ्टवेयर</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --main: #7c2d12; --gold: #b45309; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #fdfaf4; margin: 0; }
+        body { font-family: Arial, sans-serif; background: #fdfaf4; margin: 0; }
         .no-print { background: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--main); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        .section-title { background: var(--main); color: white; padding: 12px; margin: 25px 0 10px; border-radius: 4px; font-weight: bold; font-size: 18px; }
-        .chart-box { display: flex; justify-content: space-around; gap: 10px; margin: 20px 0; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; }
+        .section-title { background: var(--main); color: white; padding: 10px; margin: 20px 0; border-radius: 4px; font-weight: bold; }
+        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
         svg { width: 340px; height: 340px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; }
-        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; }
-        th { background: #fff7ed; color: var(--main); }
-        .house-pred { border-left: 6px solid var(--gold); background: #fffcf0; padding: 18px; margin-bottom: 15px; text-align: justify; line-height: 1.8; font-size: 15px; border-radius: 4px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
-        input, button { padding: 12px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .house-pred { border-left: 5px solid var(--gold); background: #fffcf0; padding: 15px; margin-bottom: 15px; line-height: 1.7; font-size: 15px; }
+        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
         button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #5d220e; }
     </style>
 </head>
 <body>
@@ -28,34 +26,27 @@
     <input type="text" id="uname" value="हेमंत पुरोहित">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="fetchData()">सम्पूर्ण फलादेश जेनरेट करें</button>
+    <button onclick="fetchData()">कुंडली जेनरेट करें</button>
     <button onclick="downloadPDF()" style="background:green;">PDF डाउनलोड</button>
 </div>
 
 <div id="reportArea">
     <div class="pdf-page">
         <h2 align="center" style="color:var(--main); margin:0;">॥ श्री गणेशाय नमः ॥</h2>
-        <h3 align="center" id="bioHeader">जन्म कुंडली एवं ग्रह गोचर विश्लेषण</h3>
+        <h3 align="center" id="bioHeader">सटीक जन्म कुंडली विश्लेषण</h3>
         
         <div class="chart-box">
             <div><h4 align="center">लग्न कुंडली (D1)</h4><div id="d1Chart"></div></div>
             <div><h4 align="center">नवांश कुंडली (D9)</h4><div id="d9Chart"></div></div>
         </div>
 
-        <div class="section-title">ग्रह स्पष्टीकरण (Siderial Lahiri)</div>
+        <div class="section-title">ग्रह स्थिति विवरण</div>
         <table id="pTable"></table>
     </div>
 
     <div class="pdf-page">
-        <div class="section-title">द्वादश भाव (12 Houses) विस्तृत फलादेश</div>
+        <div class="section-title">द्वादश भाव एवं फलादेश</div>
         <div id="hDetails"></div>
-    </div>
-
-    <div class="pdf-page">
-        <div class="section-title">विंशोत्तरी महादशा एवं समय चक्र</div>
-        <div id="dList"></div>
-        <div class="section-title">व्यापार, करियर एवं विशेष उपाय</div>
-        <div class="house-pred" id="specialRem"></div>
     </div>
 </div>
 
@@ -71,55 +62,34 @@ async function fetchData() {
 }
 
 function render(data) {
-    document.getElementById('bioHeader').innerText = `${document.getElementById('uname').value} | जन्म: ${document.getElementById('dob').value} | समय: ${document.getElementById('tob').value}`;
+    document.getElementById('bioHeader').innerText = `${document.getElementById('uname').value} | ${document.getElementById('dob').value} | ${document.getElementById('tob').value}`;
     
-    // Planet Table
-    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th></tr>`;
+    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th></tr>`;
     data.planets.forEach(p => {
-        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.house}</td></tr>`;
     });
     document.getElementById('pTable').innerHTML = table;
 
-    // Charts with New "Sign-Next-to-Planet" Logic
-    drawInlineChart('d1Chart', data.lagna.rIdx, data.planets, 'house');
-    drawInlineChart('d9Chart', data.lagna.d9, data.planets, 'd9');
+    // Drawing Charts with Center Logic
+    drawCenteredChart('d1Chart', data.lagna.rIdx, data.planets, 'house');
+    drawCenteredChart('d9Chart', data.lagna.d9, data.planets, 'd9');
 
-    // House-by-House Expansion
-    const labels = ["प्रथम (तन)", "द्वितीय (धन)", "तृतीय (साहस)", "चतुर्थ (सुख)", "पंचम (संतान)", "षष्ठ (शत्रु)", "सप्तम (पत्नी)", "अष्टम (मृत्यु)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (आय)", "द्वादश (व्यय)"];
+    // Basic House Logic
     let hHtml = "";
     for(let i=1; i<=12; i++) {
         let pInH = data.planets.filter(p => p.house === i).map(p => p.name).join(", ");
-        hHtml += `<div class="house-pred"><b>${i}. ${labels[i-1]} भाव विश्लेषण:</b><br>`;
-        if(pInH) {
-            hHtml += `इस भाव में <b>${pInH}</b> विराजमान हैं। यह स्थिति दर्शाती है कि जीवन के इस क्षेत्र में आपका प्रभाव गहरा रहेगा। ग्रहों की यह युति आपको इस भाव से संबंधित विषयों में प्रखर बुद्धि और सफलता प्रदान करेगी। वर्तमान ग्रहों के गोचर के अनुसार, आपको यहाँ सकारात्मक परिणाम मिलने की पूरी संभावना है।`;
-        } else {
-            hHtml += `इस भाव का स्वामी केंद्र या त्रिकोण में होने से आपके जीवन में स्थिरता और उन्नति के योग बनते हैं। यहाँ कोई नकारात्मक ग्रह न होना आपके लिए सुखद है।`;
-        }
-        hHtml += `</div>`;
+        hHtml += `<div class="house-pred"><b>भाव ${i}:</b> ${pInH ? "इस भाव में <b>" + pInH + "</b> स्थित हैं।" : "यह भाव रिक्त है, स्वामी शुभ स्थिति में है।"}</div>`;
     }
     document.getElementById('hDetails').innerHTML = hHtml;
-
-    // Dasha
-    let dHtml = "<table><tr><th>महादशा</th><th>अवधि</th><th>फल</th></tr>";
-    data.dasha.forEach(m => { dHtml += `<tr><td><b>${m.lord}</b></td><td>${m.start} - ${m.end}</td><td>सामान्य शुभ</td></tr>`; });
-    document.getElementById('dList').innerHTML = dHtml + "</table>";
-
-    // Remedies
-    document.getElementById('specialRem').innerHTML = `
-        <b>करियर परामर्श:</b> दशम भाव और सूर्य की स्थिति के अनुसार, आप नेतृत्व या प्रशासनिक कार्यों में सफल होंगे। <br><br>
-        <b>उपाय:</b> <br>
-        1. प्रतिदिन 'ॐ घृणि सूर्याय नमः' का जप करें। <br>
-        2. पक्षियों को दाना डालें और शनिवार को पीपल के वृक्ष के नीचे दीपक जलाएं। <br>
-        3. गुरुवार को पीली वस्तुओं का दान करना लाभदायक रहेगा।
-    `;
 }
 
-function drawInlineChart(id, ascSign, planets, type) {
+function drawCenteredChart(id, ascSign, planets, type) {
+    // बिलकुल सटीक सेंटर पॉइंट्स (Perfect Diamond Centers)
     const centers = {
-        1: [170, 145], 2: [85, 85],   3: [50, 145], 
-        4: [125, 215], 5: [50, 285],  6: [85, 345], 
-        7: [170, 285], 8: [255, 345], 9: [290, 285], 
-        10: [215, 215], 11: [290, 145], 12: [255, 85]
+        1: [170, 140], 2: [85, 75],   3: [55, 140], 
+        4: [125, 215], 5: [55, 280],  6: [85, 345], 
+        7: [170, 280], 8: [255, 345], 9: [285, 280], 
+        10: [215, 215], 11: [285, 140], 12: [255, 75]
     };
 
     let svg = `<svg viewBox="0 0 340 370">
@@ -130,22 +100,23 @@ function drawInlineChart(id, ascSign, planets, type) {
         let sign = (ascSign + i - 1); if (sign > 12) sign -= 12;
         let list = (type === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
         
-        // राशि संख्या और ग्रहों को एक साथ (Horizontal Flow)
-        let x = centers[i][0];
-        let y = centers[i][1];
+        let cx = centers[i][0];
+        let cy = centers[i][1];
         
-        // राशि संख्या (Bold Red)
-        svg += `<text x="${x}" y="${y - 20}" fill="#b91c1c" font-weight="bold" font-size="18" text-anchor="middle">${sign}</text>`;
+        // राशि नंबर (सेंटर में थोड़ा ऊपर)
+        svg += `<text x="${cx}" y="${cy - 12}" fill="#b91c1c" font-weight="bold" font-size="18" text-anchor="middle">${sign}</text>`;
 
-        // ग्रहों की सूची (Horizontal stacking)
-        list.forEach((p, idx) => {
-            let row = Math.floor(idx / 2); // 2 ग्रह प्रति लाइन
-            let col = idx % 2;
-            let xPos = x + (col === 0 ? -18 : 18);
-            let yPos = y - 5 + (row * 15);
-            
-            svg += `<text x="${xPos}" y="${yPos}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${p.name}</text>`;
-        });
+        // ग्रहों का समूह (सेंटर में राशि के ठीक नीचे)
+        let planetString = list.map(p => p.name).join(" ");
+        if (list.length > 2) {
+            // अगर 2 से ज्यादा ग्रह हैं, तो उन्हें दो लाइनों में सेंटर करें
+            let line1 = list.slice(0, 2).map(p => p.name).join(" ");
+            let line2 = list.slice(2).map(p => p.name).join(" ");
+            svg += `<text x="${cx}" y="${cy + 8}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${line1}</text>`;
+            svg += `<text x="${cx}" y="${cy + 22}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${line2}</text>`;
+        } else {
+            svg += `<text x="${cx}" y="${cy + 10}" font-size="11" font-weight="bold" text-anchor="middle" fill="#333">${planetString}</text>`;
+        }
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
@@ -153,13 +124,9 @@ function drawInlineChart(id, ascSign, planets, type) {
 async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 2.5});
-        if(i > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
-    }
-    doc.save("Kundli_Professional_Report.pdf");
+    const canvas = await html2canvas(document.querySelector('.pdf-page'), {scale: 2});
+    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+    doc.save("Kundli_Centered.pdf");
 }
 </script>
 </body>
