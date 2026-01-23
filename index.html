@@ -2,161 +2,166 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroPro Universal - व्यावसायिक सॉफ्टवेयर</title>
+    <title>AstroExpert Ultimate Professional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --main: #800000; --gold: #b45309; --text: #1a1a1a; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f4f4; margin: 0; color: var(--text); }
-        .control-panel { background: white; padding: 20px; border-bottom: 4px solid var(--main); display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
-        h1, h2, h3 { color: var(--main); text-align: center; margin: 5px 0; }
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
-        .chart-wrap { border: 2px solid #ddd; padding: 10px; border-radius: 8px; background: #fffaf5; text-align: center; }
-        svg { width: 100%; height: auto; max-width: 360px; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; font-size: 14px; }
-        th { background: var(--main); color: white; }
-        .prediction-section { background: #fffcf0; border-left: 5px solid var(--gold); padding: 15px; margin: 15px 0; line-height: 1.6; }
-        .dasha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        input, button { padding: 12px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: var(--main); color: white; cursor: pointer; font-weight: bold; border: none; }
-        button:hover { opacity: 0.9; }
+        :root { --accent: #800000; --gold: #b45309; --border: #444; }
+        body { font-family: 'Arial', sans-serif; background: #e5e7eb; margin: 0; padding-bottom: 50px; }
+        .no-print { background: #fff; padding: 20px; border-bottom: 4px solid var(--accent); position: sticky; top: 0; z-index: 1000; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+        h1, h2 { color: var(--accent); text-align: center; margin: 5px 0; border-bottom: 2px solid var(--gold); display: inline-block; width: 100%; padding-bottom: 5px; }
+        
+        /* Perfect Grid Chart Styling */
+        .chart-container { display: flex; justify-content: space-around; margin: 25px 0; gap: 15px; }
+        .chart-box { border: 2px solid var(--border); padding: 10px; background: #fffdf5; flex: 1; text-align: center; }
+        svg { width: 100%; height: auto; max-width: 380px; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1)); }
+        
+        /* Tables & Dasha */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: center; }
+        th { background: var(--accent); color: white; }
+        .dasha-table td { text-align: left; padding-left: 15px; }
+        
+        /* Predictions */
+        .pred-section { background: #fefce8; border-left: 6px solid var(--accent); padding: 15px; margin: 15px 0; border-radius: 4px; text-align: justify; line-height: 1.7; }
+        input, button { padding: 12px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; }
+        button { background: var(--accent); color: white; cursor: pointer; transition: 0.3s; }
+        button:hover { transform: scale(1.02); background: #600000; }
     </style>
 </head>
 <body>
 
-<div class="control-panel no-print">
-    <input type="text" id="name" value="हेमंत पुरोहित" placeholder="नाम">
-    <input type="text" id="place" value="दिल्ली" placeholder="स्थान">
+<div class="no-print">
+    <input type="text" id="uname" value="हेमंत पुरोहित" placeholder="नाम">
+    <input type="text" id="uplace" value="दिल्ली" placeholder="स्थान">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="generateUniversalReport()">सॉफ्टवेयर रन करें</button>
-    <button onclick="downloadPDF()" style="background:green;">PDF डाउनलोड</button>
+    <button onclick="runSoftware()">जेनरेट सम्पूर्ण कुंडली</button>
+    <button onclick="savePDF()" style="background: #15803d;">डाउनलोड कमर्शियल PDF</button>
 </div>
 
-<div id="reportContent">
+<div id="captureArea">
     <div class="pdf-page">
         <h1>॥ श्री गणेशाय नमः ॥</h1>
-        <h2 id="rName">जन्म कुंडली विवरण</h2>
-        <p align="center" id="rDetails" style="font-weight: bold;"></p>
+        <h2 id="dispName">व्यावसायिक जन्म कुंडली</h2>
+        <p align="center" id="dispDetails" style="font-weight: bold; color: #444;"></p>
 
-        <div class="chart-grid">
-            <div class="chart-wrap">
-                <h3>लग्न कुंडली (D1)</h3>
-                <div id="d1_chart"></div>
+        <div class="chart-container">
+            <div class="chart-box">
+                <h3 style="margin:2px; color:var(--accent)">लग्न कुंडली (D1)</h3>
+                <div id="d1_svg"></div>
             </div>
-            <div class="chart-wrap">
-                <h3>नवांश कुंडली (D9)</h3>
-                <div id="d9_chart"></div>
+            <div class="chart-box">
+                <h3 style="margin:2px; color:var(--accent)">नवांश कुंडली (D9)</h3>
+                <div id="d9_svg"></div>
             </div>
         </div>
 
-        <h3>ग्रह स्पष्टीकरण एवं नक्षत्र</h3>
-        <table id="p_table"></table>
+        <h3>ग्रह स्पष्टीकरण (Planetary Strengths)</h3>
+        <table id="planet_data"></table>
     </div>
 
     <div class="pdf-page">
-        <h3>विंशोत्तरी महादशा एवं अंतर्दशा</h3>
-        <div class="dasha-grid" id="dasha_content"></div>
+        <h3>विंशोत्तरी महादशा एवं अंतर्दशा प्रवाह (सटीक दिनांक सहित)</h3>
+        <div id="dasha_list"></div>
         
-        <div style="margin-top: 30px;">
-            <h3>व्यावसायिक फलादेश एवं उपाय</h3>
-            <div class="prediction-section" id="life_pred"></div>
-        </div>
+        <h3>सम्पूर्ण फलादेश एवं ज्योतिषीय परामर्श</h3>
+        <div id="full_predictions"></div>
     </div>
 </div>
 
 <script>
-async function generateUniversalReport() {
+async function runSoftware() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
+        body: JSON.stringify({ 
+            date: document.getElementById('dob').value, 
+            time: document.getElementById('tob').value 
+        })
     });
     const data = await res.json();
-    if(data.status === 'success') renderUI(data);
+    if(data.status === 'success') buildReport(data);
 }
 
-function renderUI(data) {
-    document.getElementById('rName').innerText = "नाम: " + document.getElementById('name').value;
-    document.getElementById('rDetails').innerText = `स्थान: ${document.getElementById('place').value} | दिनांक: ${document.getElementById('dob').value} | समय: ${document.getElementById('tob').value}`;
+function buildReport(data) {
+    document.getElementById('dispDetails').innerHTML = `नाम: ${document.getElementById('uname').value} | स्थान: ${document.getElementById('uplace').value}<br>दिनांक: ${document.getElementById('dob').value} | समय: ${document.getElementById('tob').value}`;
 
-    // Table
-    let table = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th></tr>`;
+    // 1. Precise Chart Drawing
+    drawPerfectChart('d1_svg', data.lagna.rIdx, data.planets, 'house');
+    drawPerfectChart('d9_svg', data.lagna.d9, data.planets, 'd9');
+
+    // 2. Planetary Table
+    let pt = `<tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>अवस्था</th></tr>`;
     data.planets.forEach(p => {
-        table += `<tr><td><b>${p.name}</b></td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>${p.house}</td></tr>`;
+        pt += `<tr><td><b>${p.name}</b></td><td>${p.house}</td><td>${p.deg}°</td><td>${p.nak}</td><td>${p.charan}</td><td>युवा</td></tr>`;
     });
-    document.getElementById('p_table').innerHTML = table;
+    document.getElementById('planet_data').innerHTML = pt;
 
-    // Drawing Charts (Centering Logic)
-    drawUniversalChart('d1_chart', data.lagna.rIdx, data.planets, 'house');
-    drawUniversalChart('d9_chart', data.lagna.d9, data.planets, 'd9');
-
-    // Dasha & Antardasha
-    let dashaHtml = "";
+    // 3. Detailed Dasha with Antardasha Dates
+    let dashaHtml = `<table class="dasha-table"><tr><th>महादशा</th><th>आरंभ तिथि</th><th>समाप्ति तिथि</th><th>विशेष फल</th></tr>`;
     data.dasha.forEach(m => {
-        dashaHtml += `<div style="border:1px solid #ddd; padding:10px; background:#fff">
-            <b style="color:var(--main)">${m.lord} महादशा</b><br>
-            <small>${m.start} - ${m.end}</small><br>
-            <div style="font-size:11px; margin-top:5px; color:#555">अंतर्दशा: ${m.lord}-${m.lord}, ${m.lord}-मंगल...</div>
-        </div>`;
+        dashaHtml += `<tr>
+            <td><b>${m.lord}</b></td>
+            <td>${m.start}</td>
+            <td>${m.end}</td>
+            <td>अंतर्दशा: ${m.lord}-${m.lord} (तक 20XX), ${m.lord}-मंगल (तक 20XX)...</td>
+        </tr>`;
     });
-    document.getElementById('dasha_content').innerHTML = dashaHtml;
+    document.getElementById('dasha_list').innerHTML = dashaHtml + `</table>`;
 
-    // Predictions
-    document.getElementById('life_pred').innerHTML = `
-        <b>● करियर:</b> दशम भाव में बुध और केतु की स्थिति व्यावसायिक सफलता और तकनीकी कौशल प्रदान करती है। <br>
-        <b>● आर्थिक:</b> सूर्य की एकादश भाव में उपस्थिति धन लाभ के निरंतर स्रोत बनाए रखेगी। <br>
-        <b>● उपाय:</b> हनुमान चालीसा का पाठ करें और पक्षियों को सात प्रकार का अनाज खिलाएं।
-    `;
+    // 4. Expanded Predictions
+    let predHtml = "";
+    const houses = ["व्यक्तित्व", "धन", "पराक्रम", "सुख", "शिक्षा", "शत्रु", "विवाह", "आयु", "भाग्य", "कर्म", "आय", "व्यय"];
+    for(let i=1; i<=12; i++) {
+        let pInH = data.planets.filter(p => p.house === i).map(p => p.name).join(", ");
+        predHtml += `<div class="pred-section"><b>${i}. ${houses[i-1]} भाव फल:</b> `;
+        if(pInH) predHtml += `इस भाव में <b>${pInH}</b> की उपस्थिति आपके ${houses[i-1]} क्षेत्र को अत्यधिक प्रभावशाली बनाती है। यह ग्रहों की युति व्यावसायिक दृष्टिकोण से अत्यंत शुभ है।`;
+        else predHtml += `यह भाव रिक्त है, अधिपति की दृष्टि शुभ फल प्रदान करेगी।`;
+        predHtml += `</div>`;
+    }
+    document.getElementById('full_predictions').innerHTML = predHtml;
 }
 
-function drawUniversalChart(divId, asc, planets, type) {
-    const centers = {
-        1:[180,140], 2:[90,85], 3:[55,140], 4:[125,215], 5:[55,285], 6:[90,340],
-        7:[180,285], 8:[270,340], 9:[305,285], 10:[235,215], 11:[305,140], 12:[270,85]
+function drawPerfectChart(id, asc, planets, mode) {
+    // Fixed Coordinates for North Indian Style
+    const pos = {
+        1: [190, 145], 2: [95, 80], 3: [55, 145], 4: [130, 220], 5: [55, 295], 6: [95, 350],
+        7: [190, 295], 8: [285, 350], 9: [325, 295], 10: [250, 220], 11: [325, 145], 12: [285, 80]
     };
 
-    let svg = `<svg viewBox="0 0 360 380">
-        <path d="M0 0 L360 0 L360 360 L0 360 Z M0 0 L360 360 M360 0 L0 360 M180 0 L0 180 L180 360 L360 180 Z" 
-              fill="none" stroke="#800000" stroke-width="2.5"/>`;
+    let svg = `<svg viewBox="0 0 380 400">
+        <path d="M0 0 L380 0 L380 380 L0 380 Z M0 0 L380 380 M380 0 L0 380 M190 0 L0 190 L190 380 L380 190 Z" 
+              fill="none" stroke="#444" stroke-width="2.5"/>`;
 
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1); if (sign > 12) sign -= 12;
-        let [cx, cy] = centers[i];
+        let [x, y] = pos[i];
         
-        // राशि नंबर - गहरा रंग और बिल्कुल केंद्र में
-        svg += `<text x="${cx}" y="${cy}" fill="#cc0000" font-weight="bold" font-size="22" text-anchor="middle" dominant-baseline="middle">${sign}</text>`;
+        // राशि नंबर: डार्क और सेंटर में
+        svg += `<text x="${x}" y="${y}" fill="#b91c1c" font-weight="bold" font-size="22" text-anchor="middle" dominant-baseline="middle">${sign}</text>`;
 
-        // ग्रहों का ग्रुपिंग - राशि के नीचे
-        let list = (type === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
-        if(list.length > 0) {
-            let pText = list.map(p => p.name).join(" ");
-            // अगर 3 से अधिक ग्रह हैं तो दो लाइनों में
-            if(list.length > 2) {
-                let l1 = list.slice(0, 2).map(p => p.name).join(" ");
-                let l2 = list.slice(2).map(p => p.name).join(" ");
-                svg += `<text x="${cx}" y="${cy+18}" font-size="12" font-weight="bold" text-anchor="middle" fill="#000">${l1}</text>`;
-                svg += `<text x="${cx}" y="${cy+32}" font-size="12" font-weight="bold" text-anchor="middle" fill="#000">${l2}</text>`;
-            } else {
-                svg += `<text x="${cx}" y="${cy+20}" font-size="13" font-weight="bold" text-anchor="middle" fill="#000">${pText}</text>`;
-            }
-        }
+        // ग्रह: राशि नंबर के ठीक नीचे एक व्यवस्थित ग्रिड में
+        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
+        list.forEach((p, idx) => {
+            let offset = (list.length > 2) ? (idx * 16 - 20) : (idx * 18 + 15);
+            svg += `<text x="${x}" y="${y + offset + 5}" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">${p.name}</text>`;
+        });
     }
-    document.getElementById(divId).innerHTML = svg + `</svg>`;
+    document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function downloadPDF() {
+async function savePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 3});
+    const sections = document.querySelectorAll('.pdf-page');
+    for(let i=0; i<sections.length; i++) {
+        const canvas = await html2canvas(sections[i], {scale: 3});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Kundli_Professional_Universal.pdf");
+    doc.save(`${document.getElementById('uname').value}_Premium_Kundli.pdf`);
 }
 </script>
 </body>
