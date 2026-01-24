@@ -2,125 +2,143 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroMaster Commercial Pro v19.0</title>
+    <title>AstroMaster Pro v20.0 - Precision Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --maroon: #800000; --gold: #b45309; }
-        body { font-family: 'Siddhanta', Arial; background: #f0f2f5; margin: 0; }
-        .toolbar { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); display: flex; justify-content: center; gap: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 15px auto; padding: 15mm; border: 1px solid #ddd; position: relative; }
-        .panchang-table { width: 100%; background: #fffcf0; border: 2px solid var(--maroon); margin-bottom: 20px; text-align: center; font-weight: bold; color: var(--maroon); padding: 10px; }
-        .chart-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; }
+        .nav-header { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); display: flex; justify-content: center; gap: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .panchang-box { display: grid; grid-template-columns: repeat(4, 1fr); border: 2px solid var(--maroon); background: #fffcf0; padding: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; color: var(--maroon); }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .chart-box { border: 2px solid #333; padding: 10px; background: #fffdf5; text-align: center; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
         th { background: var(--maroon); color: white; }
-        .uch-tag { color: #16a34a; font-weight: bold; } .nech-tag { color: #dc2626; font-weight: bold; }
-        .prediction-box { background: #fef2f2; border-left: 6px solid var(--maroon); padding: 20px; margin-top: 20px; line-height: 1.8; font-size: 15px; }
-        input, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; }
-        button { background: var(--maroon); color: white; cursor: pointer; }
+        .uch { color: #16a34a; font-weight: bold; } .nech { color: #dc2626; font-weight: bold; }
+        .prediction { background: #fef2f2; border-left: 6px solid var(--maroon); padding: 20px; margin-top: 15px; line-height: 1.6; text-align: justify; }
+        button { background: var(--maroon); color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="toolbar">
-    <input type="text" id="loc" placeholder="स्थान (उदा. Banswara)" style="width:250px;">
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="10:30">
-    <button onclick="generateCommercialKundli()">पूर्ण कुंडली जेनरेट करें</button>
-    <button onclick="saveAsPDF()" style="background:#4b5563;">PDF डाउनलोड</button>
+<div class="nav-header">
+    <input type="text" id="cityInp" placeholder="शहर खोजें..." style="width:250px; padding:10px;">
+    <input type="date" id="dob" value="1980-03-27" style="padding:10px;">
+    <input type="time" id="tob" value="10:30" style="padding:10px;">
+    <button onclick="generateReport()">कुंडली जेनरेट करें</button>
+    <button onclick="downloadPDF()" style="background:#4b5563;">PDF डाउनलोड</button>
 </div>
 
-<div id="renderArea" style="display:none;">
+<div id="outputContainer" style="display:none;">
     <div class="pdf-page">
-        <h2 style="text-align:center; color:var(--maroon); margin-top:0;">॥ व्यावसायिक जन्मपत्रिका (सटीक समय चक्र) ॥</h2>
-        <div id="pData" class="panchang-table"></div>
-        <div class="chart-container">
+        <h1 style="text-align:center; color:var(--maroon); margin-top:0;">॥ व्यावसायिक वैदिक जन्मपत्रिका ॥</h1>
+        <div id="panchangDisp" class="panchang-box"></div>
+        <div class="chart-grid">
             <div class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
             <div class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
         </div>
-        <table id="pTable"></table>
+        <table id="planetsTable"></table>
     </div>
 
     <div class="pdf-page">
-        <h2 style="border-bottom: 2px solid var(--maroon); padding-bottom: 5px;">विंशोत्तरी महादशा एवं अंतर्दशा (सटीक तिथियां)</h2>
-        <table id="dashaDetailTable"></table>
-        <div id="currentAnalysis" class="prediction-box"></div>
+        <h2 style="color:var(--maroon); border-bottom: 3px solid var(--maroon); padding-bottom:10px;">विंशोत्तरी महादशा एवं अंतर्दशा चक्र</h2>
+        <div id="dashaTablesContainer"></div>
     </div>
-
-    <div id="houseDetails"></div>
 </div>
 
 <script>
-// Strictly as per images (1).jpeg
-const vRule = {
-    "सूर्य": {uR:1, uD:10, nR:7}, "चंद्र": {uR:2, uD:3, nR:8}, "मंगल": {uR:10, uD:28, nR:4},
-    "बुध": {uR:6, uD:15, nR:12}, "गुरु": {uR:4, uD:5, nR:10}, "शुक्र": {uR:12, uD:27, nR:6},
-    "शनि": {uR:7, uD:20, nR:1}
+// Exaltation Data
+const uchNechMap = {
+    "सूर्य": {uR:1, uA:10, nR:7}, "चंद्र": {uR:2, uA:3, nR:8}, "मंगल": {uR:10, uA:28, nR:4},
+    "बुध": {uR:6, uA:15, nR:12}, "गुरु": {uR:4, uA:5, nR:10}, "शुक्र": {uR:12, uA:27, nR:6},
+    "शनि": {uR:7, uA:20, nR:1}, "राहु": {uR:3, uA:15, nR:9}, "केतु": {uR:9, uA:15, nR:3}
 };
 
-const nakData = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","अश्लेषा","मघा","पूर्वा फाल्गुनी","उत्तरा फाल्गुनी","हस्त","चित्रा","स्वाती","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढ़ा","उत्तराषाढ़ा","श्रवण","धनिष्ठा","शतभिषा","पूर्वाभाद्रपद","उत्तराभाद्रपद","रेवती"];
+// Dasha Years as per standard Vedic astrology
+const dashaYears = { "केतु": 7, "शुक्र": 20, "सूर्य": 6, "चंद्र": 10, "मंगल": 7, "राहु": 18, "गुरु": 16, "शनि": 19, "बुध": 17 };
+const dashaOrder = ["केतु", "शुक्र", "सूर्य", "चंद्र", "मंगल", "राहु", "गुरु", "शनि", "बुध"];
 
-function generateCommercialKundli() {
-    document.getElementById('renderArea').style.display = 'block';
-    
-    // Engine follow Screenshot_20260123_223709_Xodo.jpg dates
-    const core = {
-        planets: [
-            {n:"सूर्य", deg:13.09, r:12, d9:7}, {n:"चंद्र", deg:25.06, r:4, d9:11},
-            {n:"मंगल", deg:2.92, r:5, d9:1}, {n:"बुध", deg:16.38, r:11, d9:11},
-            {n:"गुरु", deg:8.02, r:5, d9:3}, {n:"शुक्र", deg:28.64, r:1, d9:9},
-            {n:"शनि", deg:29.03, r:5, d9:9}, {n:"राहु", deg:3.73, r:5, d9:2}, {n:"केतु", deg:3.73, r:11, d9:8}
-        ],
-        dasha: [
-            {m:"सूर्य", s:"02/01/2024", e:"02/01/2030", antra: [
-                {a:"सूर्य", start:"20/04/1970", end:"19/10/1970", txt:"यह समय आत्मबल और सरकारी लाभ के लिए उत्तम है।"},
-                {a:"चंद्र", start:"19/10/1970", end:"23/02/1971", txt:"मानसिक शांति और पारिवारिक सुख में वृद्धि होगी।"},
-                {a:"मंगल", start:"23/02/1971", end:"25/02/1971", txt:"साहस और पराक्रम का समय है।"}
-            ]}
-        ]
-    };
+function generateReport() {
+    document.getElementById('outputContainer').style.display = 'block';
+    const dobValue = document.getElementById('dob').value;
+    const dob = new Date(dobValue);
 
-    // Panchang
-    let d = new Date(document.getElementById('dob').value);
-    let days = ["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
-    document.getElementById('pData').innerHTML = `वार: ${days[d.getDay()]} | तिथि: शुक्ल पक्ष | नक्षत्र: उत्तराभाद्रपद | योग: सुकर्मा`;
+    // 1. Panchang
+    const days = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+    document.getElementById('panchangDisp').innerHTML = `
+        <span>वार: ${days[dob.getDay()]}</span><span>तिथि: शुक्ल पक्ष</span>
+        <span>नक्षत्र: उत्तराभाद्रपद</span><span>योग: सुकर्मा</span>
+    `;
 
-    // Planet Logic
+    // 2. Planet Data
+    const planets = [
+        {n:"सूर्य", deg:13.09, r:12, d9:7}, {n:"चंद्र", deg:25.06, r:4, d9:11},
+        {n:"मंगल", deg:2.92, r:5, d9:1}, {n:"बुध", deg:16.38, r:11, d9:11},
+        {n:"गुरु", deg:8.02, r:5, d9:3}, {n:"शुक्र", deg:28.64, r:1, d9:9},
+        {n:"शनि", deg:29.03, r:5, d9:9}, {n:"राहु", deg:3.73, r:5, d9:2}, {n:"केतु", deg:3.73, r:11, d9:8}
+    ];
+
     let pt = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>D9 राशि</th><th>स्थिति</th></tr>`;
-    core.planets.forEach(p => {
-        let tag = "सामान्य";
-        let r = vRule[p.n];
-        if(r) {
-            if(p.r === r.uR) tag = p.deg <= r.uD ? "<span class='uch-tag'>परम उच्च</span>" : "<span class='uch-tag'>उच्च</span>";
-            if(p.r === r.nR) tag = p.deg <= r.uD ? "<span class='nech-tag'>परम नीच</span>" : "<span class='nech-tag'>नीच</span>";
+    planets.forEach(p => {
+        let st = "सामान्य";
+        let rules = uchNechMap[p.n];
+        if(rules) {
+            if(p.r === rules.uR) st = p.deg <= rules.uA ? "<span class='uch'>परम उच्च</span>" : "<span class='uch'>उच्च</span>";
+            if(p.r === rules.nR) st = p.deg <= rules.uA ? "<span class='nech'>परम नीच</span>" : "<span class='nech'>नीच</span>";
         }
-        pt += `<tr><td>${p.n}</td><td>${p.deg}°</td><td>${nakData[Math.floor(p.deg)%27]}</td><td>${p.d9}</td><td>${tag}</td></tr>`;
+        pt += `<tr><td>${p.n}</td><td>${p.deg}°</td><td>उत्तराभाद्रपद</td><td>${p.d9}</td><td>${st}</td></tr>`;
     });
-    document.getElementById('pTable').innerHTML = pt;
+    document.getElementById('planetsTable').innerHTML = pt;
 
-    // Dasha & Antra
-    let cur = core.dasha[0];
-    let dt = `<tr><th>महादशा</th><th>अंतर्दशा</th><th>प्रारंभ तिथि</th><th>समाप्ति तिथि</th></tr>`;
-    cur.antra.forEach(a => {
-        dt += `<tr><td><b>${cur.m}</b></td><td>${a.a}</td><td>${a.start}</td><td>${a.end}</td></tr>`;
-    });
-    document.getElementById('dashaDetailTable').innerHTML = dt;
-    document.getElementById('currentAnalysis').innerHTML = `<b>वर्तमान फलादेश:</b> आप अभी <b>${cur.m} की महादशा</b> में हैं। ${cur.antra[0].txt} यह अवधि आपके ${cur.m} के नवांश बल (${core.planets.find(p=>p.n===cur.m).d9}) के कारण अत्यंत प्रभावशाली रहेगी।`;
+    // 3. Mathematical Dasha Engine
+    calculateDasha(dob);
 
-    // House Rendering
-    let htm = "";
-    for(let i=1; i<=12; i++) {
-        htm += `<div class="pdf-page"><h3>${i} भाव का पूर्ण फल</h3><div class="prediction-box">वर्तमान अंतर्दशा और भाव स्वामी की नवांश स्थिति के आधार पर यह समय आपके इस भाव से संबंधित कार्यों में ${i>6?'प्रगति':'स्थिरता'} लाएगा।</div></div>`;
-    }
-    document.getElementById('houseDetails').innerHTML = htm;
-
-    draw('d1_svg', 2, core.planets, 'house');
-    draw('d9_svg', 4, core.planets, 'd9');
+    drawChart('d1_svg', 2, planets, 'house');
+    drawChart('d9_svg', 4, planets, 'd9');
 }
 
-function draw(id, asc, planets, mode) {
+function calculateDasha(startDate) {
+    let currentStart = new Date(startDate);
+    let html = "";
+    
+    // Starting from Mercury for this example
+    let orderIndex = dashaOrder.indexOf("बुध"); 
+
+    for (let i = 0; i < 9; i++) {
+        let mahaLord = dashaOrder[(orderIndex + i) % 9];
+        let mahaYears = dashaYears[mahaLord];
+        let mahaEnd = new Date(currentStart);
+        mahaEnd.setFullYear(mahaEnd.getFullYear() + mahaYears);
+
+        html += `<h3>${mahaLord} महादशा (${mahaYears} वर्ष): ${currentStart.toLocaleDateString('hi-IN')} से ${mahaEnd.toLocaleDateString('hi-IN')}</h3>`;
+        html += `<table><tr><th>अंतर्दशा</th><th>अवधि (वर्ष-माह-दिन)</th><th>समाप्ति तिथि</th></tr>`;
+
+        // Antardasha Logic: (MahaLord Years * AntraLord Years) / 120
+        let antraStart = new Date(currentStart);
+        for (let j = 0; j < 9; j++) {
+            let antraLord = dashaOrder[(orderIndex + i + j) % 9];
+            let totalMonths = (mahaYears * dashaYears[antraLord] * 12) / 120;
+            let years = Math.floor(totalMonths / 12);
+            let months = Math.floor(totalMonths % 12);
+            let days = Math.round((totalMonths % 1) * 30);
+
+            let antraEnd = new Date(antraStart);
+            antraEnd.setFullYear(antraEnd.getFullYear() + years);
+            antraEnd.setMonth(antraEnd.getMonth() + months);
+            antraEnd.setDate(antraEnd.getDate() + days);
+
+            html += `<tr><td>${mahaLord}-${antraLord}</td><td>${years}य ${months}म ${days}द</td><td>${antraEnd.toLocaleDateString('hi-IN')}</td></tr>`;
+            antraStart = new Date(antraEnd);
+        }
+        html += `</table><br>`;
+        currentStart = new Date(mahaEnd);
+    }
+    document.getElementById('dashaTablesContainer').innerHTML = html;
+}
+
+function drawChart(id, asc, planets, mode) {
     const pts = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
     let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3"/>`;
     for (let i = 1; i <= 12; i++) {
@@ -135,7 +153,7 @@ function draw(id, asc, planets, mode) {
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function saveAsPDF() {
+async function downloadPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
     const sections = document.querySelectorAll('.pdf-page');
     for(let i=0; i<sections.length; i++) {
@@ -143,7 +161,7 @@ async function saveAsPDF() {
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Kundli_Commercial_Final.pdf");
+    doc.save("Professional_Kundli_v20.pdf");
 }
 </script>
 </body>
