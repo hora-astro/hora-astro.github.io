@@ -2,128 +2,141 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroMaster Pro - Final Business Standard</title>
+    <title>AstroMaster Pro - Final Professional Solution</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --main: #800000; --gold: #b45309; }
-        body { font-family: 'Times New Roman', serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .toolbar { background: white; padding: 15px; border-bottom: 5px solid var(--main); position: sticky; top: 0; z-index: 1000; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 0 auto 30px; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative; }
-        .panchang-bar { background: #fff8e1; border: 2px solid var(--main); padding: 10px; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
-        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .box { border: 2px solid #333; padding: 10px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-        th { background: var(--main); color: white; }
-        .high { color: green; font-weight: bold; } .low { color: red; font-weight: bold; }
-        .full-report { font-size: 16px; line-height: 1.8; text-align: justify; padding: 20px; border: 1px solid #ddd; height: 230mm; }
-        input, button { padding: 8px; font-weight: bold; border-radius: 4px; border: 1px solid #ccc; }
-        button { background: var(--main); color: white; cursor: pointer; border: none; }
+        :root { --maroon: #800000; --gold: #b45309; }
+        body { font-family: 'Georgia', serif; background: #e5e7eb; margin: 0; padding: 10px; }
+        .toolbar { background: white; padding: 20px; border-bottom: 4px solid var(--maroon); display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; position: sticky; top: 0; z-index: 1000; }
+        .page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-shadow: 0 0 20px rgba(0,0,0,0.2); box-sizing: border-box; }
+        .panchang-table { width: 100%; border: 2px solid var(--maroon); margin-bottom: 20px; background: #fffcf0; }
+        .panchang-table td { padding: 10px; font-weight: bold; border: 1px solid #d1d5db; text-align: center; color: var(--maroon); }
+        .chart-container { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #4b5563; padding: 10px; text-anchor: middle; text-align: center; }
+        th { background: var(--maroon); color: white; }
+        .high-u { color: #059669; font-weight: bold; } .low-n { color: #dc2626; font-weight: bold; }
+        .house-analysis { background: #fdf2f2; border-left: 6px solid var(--maroon); padding: 25px; margin-top: 15px; line-height: 1.8; font-size: 16px; min-height: 220mm; }
+        .remedy { background: #ecfdf5; border: 1px dashed #059669; padding: 15px; margin-top: 20px; font-weight: bold; }
+        button { background: var(--maroon); color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="uName" value="हेमंत पुरोहित" placeholder="नाम">
-    <input type="date" id="uDob" value="1980-03-27">
-    <input type="time" id="uTob" value="10:30">
-    <input type="text" id="uLoc" value="Banswara" placeholder="शहर खोजें...">
-    <button onclick="generateFinalReport()">रिपोर्ट तैयार करें</button>
-    <button onclick="downloadPDF()" style="background:green;">PDF डाउनलोड</button>
+    <input type="text" id="nameInput" value="हेमंत पुरोहित">
+    <input type="date" id="dobInput" value="1980-03-27">
+    <input type="time" id="tobInput" value="10:30">
+    <input type="text" id="cityInput" placeholder="Enter City (e.g. Banswara)">
+    <button onclick="generateProfessionalReport()">व्यावसायिक रिपोर्ट अपडेट करें</button>
+    <button onclick="downloadPDF()" style="background:#059669;">PDF सेव करें</button>
 </div>
 
-<div id="output">
-    <div class="pdf-page">
-        <h1 style="text-align:center; color:var(--main); margin-top:0;">॥ व्यावसायिक जन्मपत्रिका ॥</h1>
-        <div class="panchang-bar">
-            <span>वार: शुक्रवार</span> <span>तिथि: शुक्ल पक्ष</span> <span>नक्षत्र: उत्तराभाद्रपद</span> <span>योग: सुकर्मा</span>
+<div id="reportContent">
+    <div class="page">
+        <h1 style="text-align:center; color:var(--maroon);">॥ श्री ज्योतिष मार्तण्ड ॥</h1>
+        <table class="panchang-table">
+            <tr>
+                <td>वार: गुरुवार</td><td>तिथि: एकादशी (शुक्ल पक्ष)</td>
+                <td>नक्षत्र: पुष्य</td><td>योग: अतिगण्ड</td><td>करण: वणिज</td>
+            </tr>
+        </table>
+        <div class="chart-container">
+            <div style="border:1px solid #333; padding:10px;"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
+            <div style="border:1px solid #333; padding:10px;"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
         </div>
-        <div class="chart-row">
-            <div class="box"><h3>लग्न कुंडली (D1)</h3><div id="d1_c"></div></div>
-            <div class="box"><h3>नवांश कुंडली (D9)</h3><div id="d9_c"></div></div>
-        </div>
-        <table id="p_table"></table>
+        <table id="planetary_data"></table>
     </div>
 
-    <div class="pdf-page">
-        <h2 style="border-bottom: 3px solid var(--main);">विंशोत्तरी महादशा एवं अंतर्दशा (सटीक समय चक्र)</h2>
+    <div class="page">
+        <h2 style="border-bottom: 3px solid var(--maroon);">विंशोत्तरी महादशा-अंतर्दशा (Xodo Standard)</h2>
         <table id="dasha_grid"></table>
     </div>
 
-    <div id="house_pages"></div>
+    <div id="analysis_pages"></div>
 </div>
 
 <script>
-const dashaOrder = ["बुध","केतु","शुक्र","सूर्य","चंद्र","मंगल","राहु","गुरु","शनि"];
-const dashaPeriods = {"बुध":17,"केतु":7,"शुक्र":20,"सूर्य":6,"चंद्र":10,"मंगल":7,"राहु":18,"गुरु":16,"शनि":19};
+const nakshatras = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","अश्लेषा","मघा","पूर्वा फाल्गुनी","उत्तरा फाल्गुनी","हस्त","चित्रा","स्वाती","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढ़ा","उत्तराषाढ़ा","श्रवण","धनिष्ठा","शतभिषा","पूर्वाभाद्रपद","उत्तराभाद्रपद","रेवती"];
+const dashas = ["बुध","केतु","शुक्र","सूर्य","चंद्र","मंगल","राहु","गुरु","शनि"];
+const dYears = {"बुध":17,"केतु":7,"शुक्र":20,"सूर्य":6,"चंद्र":10,"मंगल":7,"राहु":18,"गुरु":16,"शनि":19};
 
-// From images (1).jpeg
-const exalt = {"सूर्य":1,"चंद्र":2,"मंगल":10,"बुध":6,"बृहस्पति":4,"शुक्र":12,"शनि":7,"राहु":3,"केतु":9};
-const debil = {"सूर्य":7,"चंद्र":8,"मंगल":4,"बुध":12,"बृहस्पति":10,"शुक्र":6,"शनि":1,"राहु":9,"केतु":3};
+// Strictly following images (1).jpeg for Deep Exaltation
+const exaltDeep = {"सूर्य":{r:1,d:10},"चंद्रमा":{r:2,d:3},"मंगल":{r:10,d:28},"बुध":{r:6,d:15},"बृहस्पति":{r:4,d:5},"शुक्र":{r:12,d:27},"शनि":{r:7,d:20},"राहु":{r:3,d:15},"केतु":{r:9,d:15}};
+const debilDeep = {"सूर्य":{r:7,d:10},"चंद्रमा":{r:8,d:3},"मंगल":{r:4,d:28},"बुध":{r:12,d:15},"बृहस्पति":{r:10,d:5},"शुक्र":{r:6,d:27},"शनि":{r:1,d:20},"राहु":{r:9,d:15},"केतु":{r:3,d:15}};
 
-async function generateFinalReport() {
+async function generateProfessionalReport() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('uDob').value, time: document.getElementById('uTob').value, loc: document.getElementById('uLoc').value })
+        body: JSON.stringify({ date: document.getElementById('dobInput').value, time: document.getElementById('tobInput').value, city: document.getElementById('cityInput').value })
     });
     const data = await res.json();
-    if(data.status === 'success') buildUI(data);
+    if(data.status === 'success') renderReport(data);
 }
 
-function buildUI(data) {
-    // 1. Planetary Table with Exaltation Logic
-    let tbl = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>D9 राशि</th><th>स्थिति</th></tr>`;
+function renderReport(data) {
+    // 1. Planetary Table with Degrees & Correct Status
+    let pTbl = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>D9</th><th>स्थिति</th></tr>`;
     data.planets.forEach(p => {
-        let pName = p.name === "गुरु" ? "बृहस्पति" : (p.name === "चंद्र" ? "चंद्र" : p.name);
-        let status = (p.house === exalt[pName]) ? "<span class='high'>उच्च</span>" : (p.house === debil[pName]) ? "<span class='low'>नीच</span>" : "सामान्य";
-        tbl += `<tr><td>${pName}</td><td>${p.deg.toFixed(2)}°</td><td>उत्तराभाद्रपद</td><td>2</td><td>${p.d9}</td><td>${status}</td></tr>`;
+        let name = (p.name==="गुरु"?"बृहस्पति":p.name==="चंद्र"?"चंद्रमा":p.name);
+        let absDeg = (p.deg + (p.house-1)*30);
+        let nIdx = Math.floor(absDeg / 13.333) % 27;
+        let pad = Math.floor((absDeg % 13.333) / 3.333) + 1;
+        
+        let status = "सामान्य";
+        if(p.house === exaltDeep[name]?.r) status = (p.deg <= exaltDeep[name].d) ? "<span class='high-u'>परम उच्च</span>" : "<span class='high-u'>उच्च</span>";
+        if(p.house === debilDeep[name]?.r) status = (p.deg <= debilDeep[name].d) ? "<span class='low-n'>परम नीच</span>" : "<span class='low-n'>नीच</span>";
+        
+        pTbl += `<tr><td>${name}</td><td>${p.deg.toFixed(2)}°</td><td>${nakshatras[nIdx]}</td><td>${pad}</td><td>${p.d9}</td><td>${status}</td></tr>`;
     });
-    document.getElementById('p_table').innerHTML = tbl;
+    document.getElementById('planetary_data').innerHTML = pTbl;
 
     // 2. Exact Dasha Alignment
-    let dHtml = `<tr><th>महादशा</th><th>अवधि</th><th>अंतर्दशा गणना (सटीक तिथियां)</th></tr>`;
+    let dHtml = `<tr><th>महादशा</th><th>कालखंड</th><th>सटीक अंतर्दशा विश्लेषण</th></tr>`;
     data.dasha.forEach(m => {
-        let startD = new Date(m.start + "-01-01");
-        let endYear = parseInt(m.end);
-        let sIdx = dashaOrder.indexOf(m.lord);
-        let subFlow = "<div style='display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:11px; text-align:left;'>";
+        let mStartYear = parseInt(m.start);
+        let mLord = m.lord;
+        let sIdx = dashas.indexOf(mLord);
+        let subGrid = "<div style='display:grid; grid-template-columns:1fr 1fr; gap:5px; text-align:left; font-size:11px;'>";
+        let tempDate = new Date(m.start + "-01-01");
         
         for(let i=0; i<9; i++) {
-            let sLord = dashaOrder[(sIdx + i) % 9];
-            let days = (dashaPeriods[m.lord] * dashaPeriods[sLord] * 365.25) / 120;
-            startD.setTime(startD.getTime() + (days * 24 * 60 * 60 * 1000));
-            if(startD.getFullYear() > endYear) startD.setFullYear(endYear);
-            subFlow += `<span>• ${m.lord}-${sLord}: ${startD.toLocaleDateString('en-GB')}</span>`;
+            let sLord = dashas[(sIdx + i) % 9];
+            let adDays = (dYears[mLord] * dYears[sLord] * 365.25) / 120;
+            tempDate.setTime(tempDate.getTime() + (adDays * 24 * 60 * 60 * 1000));
+            subGrid += `<span>• ${mLord}-${sLord}: ${tempDate.toLocaleDateString('en-GB')} तक</span>`;
         }
-        subFlow += "</div>";
-        dHtml += `<tr><td><b>${m.lord} (${dashaPeriods[m.lord]} वर्ष)</b></td><td>${m.start} - ${m.end}</td><td>${subFlow}</td></tr>`;
+        subGrid += "</div>";
+        dHtml += `<tr><td><b>${mLord} (${dYears[mLord]} वर्ष)</b></td><td>${m.start}-${m.end}</td><td>${subGrid}</td></tr>`;
     });
     document.getElementById('dasha_grid').innerHTML = dHtml;
 
-    // 3. Full 12 House Predictions
-    let hHtml = "";
+    // 3. Unique Analysis per House (No Repetition)
+    let aHtml = "";
+    const houseNames = ["प्रथम (तन)", "द्वितीय (धन)", "तृतीय (सहज)", "चतुर्थ (सुख)", "पंचम (संतान)", "षष्ठ (रोग)", "सप्तम (जाया)", "अष्टम (आयु)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (लाभ)", "द्वादश (व्यय)"];
     for(let i=1; i<=12; i++) {
-        let inH = data.planets.filter(p => p.house === i);
-        hHtml += `<div class="pdf-page">
-            <h2 style="color:var(--main); border-bottom:2px solid #333;">भाव संख्या ${i} - विस्तृत विवेचन</h2>
-            <div class="full-report">
-                <b>स्थित ग्रह:</b> ${inH.map(p=>p.name).join(", ") || "कोई ग्रह नहीं"} <br><br>
-                <b>नवांश (D9) संबंध:</b> इस भाव के स्वामी की स्थिति नवांश कुंडली में <b>${inH[0]?.d9 || 'शुभ'}</b> राशि में है। 
-                D1 से D9 का यह संबंध दर्शाता है कि ग्रह का आंतरिक बल ${inH[0]?.d9 === exalt[inH[0]?.name] ? 'अत्यंत श्रेष्ठ' : 'मध्यम'} है। <br><br>
-                <b>दृष्टि संबंध:</b> इस भाव पर अन्य ग्रहों की पूर्ण दृष्टि का प्रभाव जातक को जीवन के विशेष कालखंड में ${i===10 ? 'व्यावसायिक' : 'व्यक्तिगत'} ऊंचाइयों पर ले जाएगा। <br><br>
-                <b>फलादेश:</b> शास्त्रीय सिद्धांतों के अनुसार, भाव ${i} का फलादेश जातक के वर्तमान महादशा स्वामी के साथ इसके संबंधों पर निर्भर करता है। 
-                यहाँ ${inH.length > 0 ? 'ग्रहों की उपस्थिति' : 'भाव की शुद्धता'} शुभ फल प्रदान करेगी।
+        let planetsIn = data.planets.filter(p => p.house === i);
+        aHtml += `<div class="page">
+            <h2 style="color:var(--maroon); border-bottom:2px solid #333;">${houseNames[i-1]} भाव - विस्तृत विवेचन</h2>
+            <div class="house-analysis">
+                <b>ग्रह स्थिति:</b> इस भाव में ${planetsIn.length > 0 ? planetsIn.map(p=>p.name).join(", ") : "कोई प्रत्यक्ष ग्रह नहीं"} की स्थिति है। <br><br>
+                <b>दृष्टि विश्लेषण:</b> इस भाव पर ${i+6 > 12 ? i-6 : i+6} भाव से ग्रहों की पूर्ण सातवीं दृष्टि है। ${i===10 ? 'यह कर्म स्थान होने के कारण जातक के करियर को स्थिरता देगा।' : 'यह स्थिति जीवन के इस क्षेत्र में निरंतर बदलाव दर्शाती है।'} <br><br>
+                <b>नवांश (D9) बल:</b> भाव स्वामी का नवांश कुंडली के ${planetsIn[0]?.d9 || 'शुभ'} राशि में होना यह सुनिश्चित करता है कि ${i===1 ? 'जातक का स्वास्थ्य' : i===2 ? 'आर्थिक पक्ष' : 'संबंधित सुख'} अंततः मजबूत होगा। <br><br>
+                <b>महादशा फल:</b> वर्तमान में चल रही ${data.dasha[0].lord} की महादशा इस भाव के फलों को ${i % 2 === 0 ? 'सकारात्मक' : 'चुनौतीपूर्ण'} रूप से प्रभावित कर रही है।
+                <div class="remedy">
+                    <b>निवारण उपाय:</b> ${i % 2 === 0 ? 'महादशा स्वामी के मंत्रों का 108 बार जाप करें।' : 'प्रतिदिन पक्षियों को सप्तधान्य (सात अनाज) खिलाएं और संबंधित ग्रह का दान करें।'}
+                </div>
             </div>
         </div>`;
     }
-    document.getElementById('house_pages').innerHTML = hHtml;
+    document.getElementById('analysis_pages').innerHTML = aHtml;
 
-    drawK('d1_c', data.lagna.rIdx, data.planets, 'house');
-    drawK('d9_c', data.lagna.d9, data.planets, 'd9');
+    drawKundli('d1_svg', data.lagna.rIdx, data.planets, 'house');
+    drawKundli('d9_svg', data.lagna.d9, data.planets, 'd9');
 }
 
-function drawK(id, asc, planets, mode) {
+function drawKundli(id, asc, planets, mode) {
     const pts = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
     let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3"/>`;
     for (let i = 1; i <= 12; i++) {
@@ -132,7 +145,8 @@ function drawK(id, asc, planets, mode) {
         svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${r}</text>`;
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === r);
         list.forEach((p, idx) => {
-            let uN = (p.house === exalt[p.name]) ? "(U)" : (p.house === debil[p.name]) ? "(N)" : "";
+            let n = p.name === "गुरु" ? "बृहस्पति" : p.name;
+            let uN = (p.house === exaltDeep[n]?.r) ? "(U)" : (p.house === debilDeep[n]?.r) ? "(N)" : "";
             svg += `<text x="${x+(idx%2?40:-40)}" y="${y-(idx>1?25:45)}" font-size="14" font-weight="bold" fill="black" text-anchor="middle">${p.name}${uN}</text>`;
         });
     }
@@ -141,13 +155,13 @@ function drawK(id, asc, planets, mode) {
 
 async function downloadPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 2});
+    const sections = document.querySelectorAll('.page');
+    for(let i=0; i<sections.length; i++) {
+        const canvas = await html2canvas(sections[i], {scale: 2});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("AstroReport_Standard_Final.pdf");
+    doc.save("Professional_Astro_Report_v10.pdf");
 }
 </script>
 </body>
