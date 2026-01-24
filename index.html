@@ -48,7 +48,6 @@ const nakList = ["अश्विनी","भरणी","कृत्तिक�
 const dashaOrder = ["केतु", "शुक्र", "सूर्य", "चंद्र", "मंगल", "राहु", "गुरु", "शनि", "बुध"];
 const dashaYears = {"केतु":7, "शुक्र":20, "सूर्य":6, "चंद्र":10, "मंगल":7, "राहु":18, "गुरु":16, "शनि":19, "बुध":17};
 
-// Exaltation Rules
 const rules = {
     "सूर्य": {uR:1, uD:10, nR:7}, "चंद्र": {uR:2, uD:3, nR:8}, "मंगल": {uR:10, uD:28, nR:4},
     "बुध": {uR:6, uD:15, nR:12}, "गुरु": {uR:4, uD:5, nR:10}, "शुक्र": {uR:12, uD:27, nR:6},
@@ -58,22 +57,19 @@ const rules = {
 function calculateUniversal() {
     document.getElementById('mainUI').style.display = 'block';
     const dob = new Date(document.getElementById('dob').value);
-    const seed = dob.getTime(); // Use date as seed for randomness
+    const seed = dob.getTime(); 
 
-    // 1. Dynamic Panchang
     const days = ["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
     document.getElementById('panchDisp').innerHTML = `<span>वार: ${days[dob.getDay()]}</span><span>पक्ष: शुक्ल</span><span>नक्षत्र: ${nakList[seed % 27]}</span><span>योग: सुकर्मा</span>`;
 
-    // 2. Generate Dynamic Planet Positions based on Date
     let planets = [];
     const pNames = ["सूर्य", "चंद्र", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "राहु", "केतु"];
     pNames.forEach((n, i) => {
-        let deg = (seed / (i + 1) / 100000) % 30; // Formula to change deg per date
+        let deg = (seed / (i + 1) / 100000) % 30; 
         let sign = Math.floor((seed / (i + 5) / 5000000) % 12) + 1;
         planets.push({ n, deg: deg.toFixed(2), r: sign, d9: Math.floor(deg / 3.33) + 1 });
     });
 
-    // 3. Render Table with dynamic Nakshatras
     let html = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>स्थिति</th></tr>`;
     planets.forEach(p => {
         let nIndex = Math.floor((p.r - 1) * 2.25 + (p.deg / 13.33)) % 27;
@@ -87,12 +83,11 @@ function calculateUniversal() {
     });
     document.getElementById('pTable').innerHTML = html;
 
-    // 4. Mathematical Dasha Calculation
     let dashaHtml = `<h2>विंशोत्तरी महादशा एवं अंतर्दशा</h2>`;
     let curDate = new Date(dob);
     let startIdx = seed % 9;
 
-    for(let i=0; i<3; i++) { // Show next 3 major dashas
+    for(let i=0; i<3; i++) { 
         let mLord = dashaOrder[(startIdx + i) % 9];
         let mYears = dashaYears[mLord];
         let mEnd = new Date(curDate);
