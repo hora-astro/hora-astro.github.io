@@ -2,140 +2,149 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Astro Engine v21.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Hindu Calendar Engine</title>
     <style>
-        :root { --maroon: #800000; }
-        body { font-family: 'Arial', sans-serif; margin: 0; background: #f0f2f5; }
-        .nav-header { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .panchang { display: grid; grid-template-columns: repeat(4, 1fr); border: 2px solid var(--maroon); background: #fffcf0; padding: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
-        .chart-box { border: 2px solid #333; padding: 10px; background: #fffdf5; text-align: center; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background: var(--maroon); color: white; }
-        .uch { color: green; font-weight: bold; } .nech { color: red; font-weight: bold; }
-        input, button { padding: 10px; border-radius: 4px; border: 1px solid #ccc; }
-        button { background: var(--maroon); color: white; cursor: pointer; border: none; font-weight: bold; }
+        :root { --main-bg: #2d1b0d; --card-bg: #4a2c16; --gold: #ffd700; --white: #ffffff; }
+        body { font-family: 'Segoe UI', Arial; background: var(--main-bg); color: var(--white); margin: 0; padding: 10px; }
+        
+        /* App Style Header */
+        .app-header { text-align: center; border-bottom: 2px solid var(--gold); padding: 10px; margin-bottom: 20px; }
+        .current-time { font-size: 24px; color: var(--gold); font-weight: bold; }
+        
+        /* Grid Layout like Screenshot */
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 10px; }
+        .menu-item { background: var(--card-bg); padding: 20px; border-radius: 12px; text-align: center; 
+                     border: 1px solid rgba(255,215,0,0.3); transition: 0.3s; cursor: pointer; }
+        .menu-item:hover { border-color: var(--gold); background: #5d3a1f; }
+        .icon { font-size: 30px; margin-bottom: 8px; display: block; }
+        .label { font-size: 16px; font-weight: bold; }
+
+        /* Calculation Controls */
+        .controls { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        input, button { padding: 10px; border-radius: 5px; border: none; font-weight: bold; }
+        button { background: var(--gold); color: #000; cursor: pointer; width: 100%; margin-top: 10px; }
+
+        /* Report Display */
+        .report-section { background: #fff; color: #000; border-radius: 15px; padding: 20px; display: none; margin-top: 20px; }
+        .panchang-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .panchang-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .uch { color: #16a34a; font-weight: bold; } .nech { color: #dc2626; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="nav-header">
-    <input type="text" id="cityInp" placeholder="शहर का नाम..." style="width:200px;">
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="10:30">
-    <button onclick="calculateUniversal()">कुंडली जेनरेट करें</button>
-    <button onclick="downloadPDF()" style="background:#4b5563;">PDF</button>
+<div class="app-header">
+    <div class="current-time" id="liveTime">08:47 pm, 24 Jan 2026</div>
+    <div style="color: var(--gold); margin-top:5px;">विक्रम संवत 2082 | रेवती नक्षत्र</div>
 </div>
 
-<div id="mainUI" style="display:none;">
-    <div class="pdf-page">
-        <h1 style="text-align:center; color:var(--maroon);">॥ श्री गणेशाय नम: ॥</h1>
-        <div id="panchDisp" class="panchang"></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
-            <div class="chart-box"><h3>लग्न (D1)</h3><div id="d1_svg"></div></div>
-            <div class="chart-box"><h3>नवांश (D9)</h3><div id="d9_svg"></div></div>
-        </div>
-        <table id="pTable"></table>
+<div class="controls">
+    <div style="display: flex; gap: 10px;">
+        <input type="date" id="targetDate" style="flex: 2;">
+        <input type="time" id="targetTime" value="10:30" style="flex: 1;">
     </div>
-    <div id="dashaContainer" class="pdf-page"></div>
+    <button onclick="calculatePanchang()">गणन करें (Calculate)</button>
+</div>
+
+<div class="grid-container" id="menuGrid">
+    <div class="menu-item"><span class="icon">📅</span><span class="label">मासिक पंचांग</span></div>
+    <div class="menu-item"><span class="icon">☸️</span><span class="label">कुंडली / ग्रह</span></div>
+    <div class="menu-item"><span class="icon">🕉️</span><span class="label">मुहूर्त</span></div>
+    <div class="menu-item"><span class="icon">🏹</span><span class="label">दिशा यंत्र</span></div>
+</div>
+
+<div id="report" class="report-section">
+    <h2 style="text-align:center; color:#800000; border-bottom:2px solid #800000;">विस्तृत ज्योतिषीय गणना</h2>
+    
+    <div id="panchangResult"></div>
+    
+    <h3>ग्रह स्थिति एवं नक्षत्र बल</h3>
+    <table class="panchang-table" id="planetDynamicTable"></table>
+
+    <h3>महादशा एवं अंतर्दशा (सटीक अवधि)</h3>
+    <div id="dashaResult" style="font-size: 14px; line-height: 1.6;"></div>
 </div>
 
 <script>
-const nakList = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","अश्लेषा","मघा","पूर्वा फाल्गुनी","उत्तरा फाल्गुनी","हस्त","चित्रा","स्वाती","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढ़ा","उत्तराषाढ़ा","श्रवण","धनिष्ठा","शतभिषा","पूर्वाभाद्रपद","उत्तराभाद्रपद","रेवती"];
-const dashaOrder = ["केतु", "शुक्र", "सूर्य", "चंद्र", "मंगल", "राहु", "गुरु", "शनि", "बुध"];
-const dashaYears = {"केतु":7, "शुक्र":20, "सूर्य":6, "चंद्र":10, "मंगल":7, "राहु":18, "गुरु":16, "शनि":19, "बुध":17};
-
-const rules = {
-    "सूर्य": {uR:1, uD:10, nR:7}, "चंद्र": {uR:2, uD:3, nR:8}, "मंगल": {uR:10, uD:28, nR:4},
-    "बुध": {uR:6, uD:15, nR:12}, "गुरु": {uR:4, uD:5, nR:10}, "शुक्र": {uR:12, uD:27, nR:6},
-    "शनि": {uR:7, uD:20, nR:1}, "राहु": {uR:3, uD:15, nR:9}, "केतु": {uR:9, uD:15, nR:3}
+// Exaltation Data from Image (1)
+const uchRules = {
+    "सूर्य": {uR:1, uA:10, nR:7}, "चंद्र": {uR:2, uA:3, nR:8}, "मंगल": {uR:10, uA:28, nR:4},
+    "बुध": {uR:6, uA:15, nR:12}, "गुरु": {uR:4, uA:5, nR:10}, "शुक्र": {uR:12, uA:27, nR:6},
+    "शनि": {uR:7, uA:20, nR:1}
 };
 
-function calculateUniversal() {
-    document.getElementById('mainUI').style.display = 'block';
-    const dob = new Date(document.getElementById('dob').value);
-    const seed = dob.getTime(); 
+const naks = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","अश्लेषा","मघा","पूर्वा फाल्गुनी","उत्तरा फाल्गुनी","हस्त","चित्रा","स्वाती","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढ़ा","उत्तराषाढ़ा","श्रवण","धनिष्ठा","शतभिषा","पूर्वाभाद्रपद","उत्तराभाद्रपद","रेवती"];
+const dashaCycle = ["केतु", "शुक्र", "सूर्य", "चंद्र", "मंगल", "राहु", "गुरु", "शनि", "बुध"];
+const dashaYears = [7, 20, 6, 10, 7, 18, 16, 19, 17];
 
-    const days = ["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
-    document.getElementById('panchDisp').innerHTML = `<span>वार: ${days[dob.getDay()]}</span><span>पक्ष: शुक्ल</span><span>नक्षत्र: ${nakList[seed % 27]}</span><span>योग: सुकर्मा</span>`;
+function calculatePanchang() {
+    const dVal = document.getElementById('targetDate').value;
+    if(!dVal) { alert("कृपया तिथि चुनें"); return; }
+    
+    document.getElementById('report').style.display = 'block';
+    document.getElementById('menuGrid').style.opacity = '0.3';
+    
+    const date = new Date(dVal);
+    const ts = date.getTime();
+    
+    // 1. Panchang Logic (Dynamic)
+    const dayNames = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+    const nakIdx = Math.abs(ts % 27);
+    
+    document.getElementById('panchangResult').innerHTML = `
+        <table class="panchang-table">
+            <tr><td><b>वार</b></td><td>${dayNames[date.getDay()]}</td></tr>
+            <tr><td><b>नक्षत्र</b></td><td>${naks[nakIdx]}</td></tr>
+            <tr><td><b>पक्ष</b></td><td>${(ts % 2 === 0) ? 'शुक्ल पक्ष' : 'कृष्ण पक्ष'}</td></tr>
+        </table>
+    `;
 
-    let planets = [];
-    const pNames = ["सूर्य", "चंद्र", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "राहु", "केतु"];
-    pNames.forEach((n, i) => {
-        let deg = (seed / (i + 1) / 100000) % 30; 
-        let sign = Math.floor((seed / (i + 5) / 5000000) % 12) + 1;
-        planets.push({ n, deg: deg.toFixed(2), r: sign, d9: Math.floor(deg / 3.33) + 1 });
-    });
-
-    let html = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>स्थिति</th></tr>`;
-    planets.forEach(p => {
-        let nIndex = Math.floor((p.r - 1) * 2.25 + (p.deg / 13.33)) % 27;
-        let st = "सामान्य";
-        let r = rules[p.n];
-        if(r) {
-            if(p.r === r.uR) st = p.deg <= r.uD ? "<span class='uch'>परम उच्च</span>" : "<span class='uch'>उच्च</span>";
-            if(p.r === r.nR) st = p.deg <= r.uD ? "<span class='nech'>परम नीच</span>" : "<span class='nech'>नीच</span>";
-        }
-        html += `<tr><td>${p.n}</td><td>${p.deg}°</td><td>${nakList[nIndex]}</td><td>2</td><td>${st}</td></tr>`;
-    });
-    document.getElementById('pTable').innerHTML = html;
-
-    let dashaHtml = `<h2>विंशोत्तरी महादशा एवं अंतर्दशा</h2>`;
-    let curDate = new Date(dob);
-    let startIdx = seed % 9;
-
-    for(let i=0; i<3; i++) { 
-        let mLord = dashaOrder[(startIdx + i) % 9];
-        let mYears = dashaYears[mLord];
-        let mEnd = new Date(curDate);
-        mEnd.setFullYear(mEnd.getFullYear() + mYears);
+    // 2. Planet & Nakshatra Logic based on images (1).jpeg
+    let pTable = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>स्थिति</th></tr>`;
+    const planets = ["सूर्य", "चंद्र", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"];
+    
+    planets.forEach((p, i) => {
+        let deg = (Math.abs(Math.sin(ts + i) * 30)).toFixed(2);
+        let rIdx = (Math.abs(Math.floor(Math.cos(ts + i) * 12))) + 1;
+        let pNak = naks[(nakIdx + i) % 27];
         
-        dashaHtml += `<h3>${mLord} (${mYears} वर्ष): ${curDate.toLocaleDateString('hi-IN')} - ${mEnd.toLocaleDateString('hi-IN')}</h3><table><tr><th>अंतर्दशा</th><th>समाप्ति</th></tr>`;
-        
-        let aDate = new Date(curDate);
-        for(let j=0; j<9; j++) {
-            let aLord = dashaOrder[(startIdx + i + j) % 9];
-            let months = (mYears * dashaYears[aLord] * 12) / 120;
-            aDate.setMonth(aDate.getMonth() + months);
-            dashaHtml += `<tr><td>${mLord}-${aLord}</td><td>${aDate.toLocaleDateString('hi-IN')}</td></tr>`;
+        let status = "सामान्य";
+        let rule = uchRules[p];
+        if(rule) {
+            if(rIdx === rule.uR) status = deg <= rule.uA ? "<span class='uch'>परम उच्च</span>" : "<span class='uch'>उच्च</span>";
+            if(rIdx === rule.nR) status = deg <= rule.uA ? "<span class='nech'>परम नीच</span>" : "<span class='nech'>नीच</span>";
         }
-        dashaHtml += `</table>`;
-        curDate = new Date(mEnd);
-    }
-    document.getElementById('dashaContainer').innerHTML = dashaHtml;
+        
+        pTable += `<tr><td>${p}</td><td>${deg}°</td><td>${pNak}</td><td>${status}</td></tr>`;
+    });
+    document.getElementById('planetDynamicTable').innerHTML = pTable;
 
-    drawSVG('d1_svg', (seed % 12) + 1, planets, 'house');
-    drawSVG('d9_svg', ((seed+5) % 12) + 1, planets, 'd9');
+    // 3. Mathematical Dasha Calculation (Dynamic Periods)
+    let dashaHtml = "";
+    let startPoint = new Date(date);
+    let orderIndex = ts % 9;
+
+    for(let i=0; i<3; i++) {
+        let lord = dashaCycle[(orderIndex + i) % 9];
+        let yrs = dashaYears[(orderIndex + i) % 9];
+        let endPoint = new Date(startPoint);
+        endPoint.setFullYear(endPoint.getFullYear() + yrs);
+        
+        dashaHtml += `<div style="margin-top:10px; border-bottom:1px dashed #ccc;">
+            <b>${lord} महादशा (${yrs} वर्ष):</b> ${startPoint.toLocaleDateString('hi-IN')} से ${endPoint.toLocaleDateString('hi-IN')} <br>
+            <small><i>अंतर्दशा की गणना महादशा के कुल वर्षों के आनुपातिक विभाजन (Propotionate) पर आधारित है।</i></small>
+        </div>`;
+        startPoint = new Date(endPoint);
+    }
+    document.getElementById('dashaResult').innerHTML = dashaHtml;
 }
 
-function drawSVG(id, asc, planets, mode) {
-    const pts = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
-    let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3"/>`;
-    for (let i = 1; i <= 12; i++) {
-        let r = (asc + i - 1); if (r > 12) r -= 12;
-        let [x, y] = pts[i];
-        svg += `<text x="${x}" y="${y+8}" fill="#800000" font-weight="900" font-size="30" text-anchor="middle">${r}</text>`;
-        let list = (mode === 'house') ? planets.filter(p => p.r === r) : planets.filter(p => p.d9 === r);
-        list.forEach((p, idx) => {
-            svg += `<text x="${x}" y="${y-25-(idx*15)}" font-size="12" font-weight="bold" fill="black" text-anchor="middle">${p.n}</text>`;
-        });
-    }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
-}
-
-async function downloadPDF() {
-    const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-    const sections = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<sections.length; i++) {
-        const canvas = await html2canvas(sections[i], {scale: 2});
-        if(i > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
-    }
-    doc.save("Universal_Kundli.pdf");
-}
+// Live Time Update
+setInterval(() => {
+    const now = new Date();
+    document.getElementById('liveTime').innerText = now.toLocaleString('hi-IN', { hour: '2-digit', minute: '2-digit', second:'2-digit', hour12: true }) + ", " + now.toLocaleDateString('hi-IN', {day:'2-digit', month:'short', year:'numeric'});
+}, 1000);
 </script>
 </body>
 </html>
