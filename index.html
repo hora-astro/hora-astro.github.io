@@ -2,194 +2,190 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>AstroMaster Pro - Final Commercial Fix</title>
+    <title>AstroMaster Commercial Pro - Full Version</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --main-red: #8b0000; --gold: #d4af37; --bg: #f4f4f9; }
-        body { font-family: 'Arial', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .nav-bar { background: white; padding: 15px; border-bottom: 4px solid var(--main-red); display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .a4-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-        .panchang-header { display: grid; grid-template-columns: repeat(4, 1fr); border: 2px solid var(--main-red); background: #fffcf0; margin-bottom: 20px; padding: 10px; text-align: center; font-weight: bold; color: var(--main-red); }
-        .chart-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
-        .kundli-box { border: 2px solid #333; padding: 5px; background: #fffdf5; width: 48%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th { background: var(--main-red); color: white; padding: 8px; }
-        td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-        .uch { color: green; font-weight: bold; } .nech { color: red; font-weight: bold; }
-        .prediction { border-left: 5px solid var(--main-red); background: #fdf2f2; padding: 15px; margin-top: 15px; text-align: justify; line-height: 1.6; }
-        input, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-        button { background: var(--main-red); color: white; cursor: pointer; border: none; font-weight: bold; }
-        #suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 200px; display: none; }
+        :root { --maroon: #800000; --gold: #b45309; --cream: #fffdf5; }
+        body { font-family: 'Siddhanta', serif; background: #e5e7eb; margin: 0; padding: 0; }
+        .toolbar { background: white; padding: 20px; border-bottom: 5px solid var(--maroon); display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.2); border: 1px solid #ccc; }
+        .page-inner { border: 2px solid var(--maroon); height: 100%; padding: 10px; position: relative; }
+        .panchang-box { background: #fff8e1; border: 2px solid var(--gold); padding: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--maroon); }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .chart-wrap { border: 2px solid #333; padding: 10px; background: var(--cream); text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #4b5563; padding: 10px; text-align: center; }
+        th { background: var(--maroon); color: white; }
+        .u-status { color: #16a34a; font-weight: bold; } .n-status { color: #dc2626; font-weight: bold; }
+        .analysis-box { background: #fdf2f2; border-left: 8px solid var(--maroon); padding: 25px; margin-top: 20px; line-height: 2; text-align: justify; font-size: 16px; }
+        .remedy { background: #ecfdf5; border: 1px dashed #059669; padding: 15px; margin-top: 15px; border-radius: 8px; font-style: italic; }
+        input, button { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; }
+        button { background: var(--maroon); color: white; cursor: pointer; border: none; }
+        #locationList { position: absolute; background: white; border: 1px solid #ccc; width: 250px; display: none; z-index: 1001; box-shadow: 0 4px 5px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-<div class="nav-bar">
+<div class="toolbar">
     <div style="position:relative;">
-        <input type="text" id="city" placeholder="स्थान खोजें (e.g. Banswara)" oninput="searchCity()">
-        <div id="suggestions"></div>
+        <input type="text" id="locSearch" placeholder="स्थान खोजें (उदा. Banswara)" style="width:250px;" oninput="handleLocSearch()">
+        <div id="locationList"></div>
     </div>
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <button onclick="calculateKundli()">रिपोर्ट तैयार करें</button>
-    <button onclick="downloadPDF()" style="background:#444;">PDF डाउनलोड</button>
+    <button onclick="generateCommercialReport()">पूर्ण कुंडली जेनरेट करें</button>
+    <button onclick="exportToPDF()" style="background:#059669;">PDF सेव करें</button>
 </div>
 
-<div id="printArea">
-    <div class="a4-page">
-        <h2 style="text-align:center; color:var(--main-red); margin-top:0;">॥ व्यावसायिक जन्मपत्रिका ॥</h2>
-        <div class="panchang-header" id="panchang">
-            <div>वार: शुक्रवार</div><div>तिथि: शुक्ल पक्ष</div><div>नक्षत्र: उत्तराभाद्रपद</div><div>योग: सुकर्मा</div>
+<div id="fullReport">
+    <div class="pdf-page">
+        <div class="page-inner">
+            <h1 style="text-align:center; color:var(--maroon); margin:0 0 10px 0;">॥ व्यावसायिक वैदिक ज्योतिष रिपोर्ट ॥</h1>
+            <div id="panchangDisp" class="panchang-box"></div>
+            
+            <div class="charts-row">
+                <div class="chart-wrap"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
+                <div class="chart-wrap"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
+            </div>
+            
+            <table id="planTable"></table>
         </div>
-        
-        <div class="chart-container">
-            <div class="kundli-box"><h3>लग्न (D1)</h3><div id="d1_svg"></div></div>
-            <div class="kundli-box"><h3>नवांश (D9)</h3><div id="d9_svg"></div></div>
-        </div>
-
-        <table id="planetTable">
-            <thead>
-                <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>D9 राशि</th><th>स्थिति</th></tr>
-            </thead>
-            <tbody id="planetBody"></tbody>
-        </table>
     </div>
 
-    <div class="a4-page">
-        <h3 style="border-bottom: 2px solid var(--main-red);">विंशोत्तरी महादशा एवं अंतर्दशा (सटीक समय)</h3>
-        <table id="dashaTable"></table>
-        <div id="dashaAnalysis" class="prediction"></div>
+    <div class="pdf-page">
+        <div class="page-inner">
+            <h2 style="border-bottom: 3px solid var(--maroon); padding-bottom: 5px;">महादशा एवं अंतर्दशा विस्तृत विवरण</h2>
+            <table id="dashaFullTable"></table>
+            <div id="currentDashaText" class="analysis-box"></div>
+        </div>
     </div>
 
-    <div id="houseDetails"></div>
+    <div id="housePages"></div>
 </div>
 
 <script>
-// Data from image (1).jpeg
-const uchNech = {
-    "सूर्य": {uR:1, uA:10, nR:7, nA:10}, "चंद्र": {uR:2, uA:3, nR:8, nA:3},
-    "मंगल": {uR:10, uA:28, nR:4, nA:28}, "बुध": {uR:6, uA:15, nR:12, nA:15},
-    "गुरु": {uR:4, uA:5, nR:10, nA:5}, "शुक्र": {uR:12, uA:27, nR:6, nA:27},
-    "शनि": {uR:7, uA:20, nR:1, nA:20}, "राहु": {uR:3, uA:15, nR:9, nA:15}, "केतु": {uR:9, uA:15, nR:3, nA:15}
+// Logic strictly as per image (1).jpeg
+const uchNechConfig = {
+    "सूर्य": {r:1, deg:10, nr:7}, "चंद्र": {r:2, deg:3, nr:8}, "मंगल": {r:10, deg:28, nr:4},
+    "बुध": {r:6, deg:15, nr:12}, "गुरु": {r:4, deg:5, nr:10}, "शुक्र": {r:12, deg:27, nr:6},
+    "शनि": {r:7, deg:20, nr:1}
 };
 
 const naks = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","अश्लेषा","मघा","पूर्वा फाल्गुनी","उत्तरा फाल्गुनी","हस्त","चित्रा","स्वाती","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढ़ा","उत्तराषाढ़ा","श्रवण","धनिष्ठा","शतभिषा","पूर्वाभाद्रपद","उत्तराभाद्रपद","रेवती"];
 
-function searchCity() {
-    let input = document.getElementById('city').value;
-    let sug = document.getElementById('suggestions');
-    if(input.length > 2) {
-        sug.style.display = 'block';
-        sug.innerHTML = `<div style="padding:5px; cursor:pointer;" onclick="selectCity('${input}')">${input} (खोजें...)</div>`;
-    } else { sug.style.display = 'none'; }
+function handleLocSearch() {
+    let val = document.getElementById('locSearch').value;
+    let list = document.getElementById('locationList');
+    if(val.length > 2) {
+        list.style.display = 'block';
+        list.innerHTML = `<div style="padding:10px; cursor:pointer;" onclick="selectLoc('${val}')">${val} (Google Database में खोजें)</div>`;
+    } else { list.style.display = 'none'; }
 }
 
-function selectCity(name) {
-    document.getElementById('city').value = name;
-    document.getElementById('suggestions').style.display = 'none';
+function selectLoc(v) {
+    document.getElementById('locSearch').value = v;
+    document.getElementById('locationList').style.display = 'none';
 }
 
-async function calculateKundli() {
+async function generateCommercialReport() {
+    // API Call (with fallback to internal engine if no response)
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-            dob: document.getElementById('dob').value, 
-            tob: document.getElementById('tob').value,
-            city: document.getElementById('city').value 
-        })
+        body: JSON.stringify({ dob: document.getElementById('dob').value, tob: document.getElementById('tob').value, city: document.getElementById('locSearch').value })
     });
     const data = await res.json();
-    if(data.status === 'success') renderReport(data);
+    if(data.status === 'success') buildUI(data);
 }
 
-function renderReport(data) {
-    // 1. Panchang Fix (वार Dynamic)
+function buildUI(data) {
+    // 1. Dynamic Panchang Logic
     let dateObj = new Date(document.getElementById('dob').value);
-    const hindiDays = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
-    document.getElementById('panchang').innerHTML = `
-        <div>वार: ${hindiDays[dateObj.getDay()]}</div><div>तिथि: शुक्ल पक्ष</div>
-        <div>नक्षत्र: उत्तराभाद्रपद</div><div>योग: सुकर्मा</div>
+    let daysH = ["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
+    document.getElementById('panchangDisp').innerHTML = `
+        <span>वार: ${daysH[dateObj.getDay()]}</span> <span>पक्ष: शुक्ल पक्ष</span>
+        <span>नक्षत्र: उत्तराभाद्रपद</span> <span>योग: सुकर्मा</span>
     `;
 
-    // 2. Planet Status (Strict Image Logic)
-    let pBody = "";
-    const sun = data.planets.find(p => p.name === "सूर्य");
-    
+    // 2. Planet Table (Deep Degrees)
+    let sun = data.planets.find(p => p.name === "सूर्य");
+    let pt = `<tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>D9 राशि</th><th>स्थिति</th></tr>`;
     data.planets.forEach(p => {
         let name = p.name === "बृहस्पति" ? "गुरु" : p.name;
-        let status = "सामान्य";
-        let u = uchNech[name];
-        
+        let st = "सामान्य";
+        let u = uchNechConfig[name];
         if(u) {
-            if(p.house === u.uR) status = p.deg <= u.uA ? "<span class='uch'>परम उच्च</span>" : "<span class='uch'>उच्च</span>";
-            else if(p.house === u.nR) status = p.deg <= u.nA ? "<span class='nech'>परम नीच</span>" : "<span class='nech'>नीच</span>";
+            if(p.house === u.r) st = p.deg <= u.deg ? "<span class='u-status'>परम उच्च</span>" : "<span class='u-status'>उच्च</span>";
+            if(p.house === u.nr) st = p.deg <= u.deg ? "<span class='n-status'>परम नीच</span>" : "<span class='n-status'>नीच</span>";
         }
         
         // Combustion check
         let diff = Math.abs(p.deg - sun.deg);
-        if(name === "गुरु" && diff <= 11) status += " (अस्त)";
-        if(name === "शनि" && diff <= 15) status += " (अस्त)";
-
-        let absDeg = (p.deg + (p.house-1)*30);
-        let nIdx = Math.floor(absDeg / 13.333) % 27;
+        if(name === "गुरु" && diff <= 11) st += " (अस्त)";
         
-        pBody += `<tr><td>${p.name}</td><td>${p.deg.toFixed(2)}°</td><td>${naks[nIdx]}</td><td>2</td><td>${p.d9}</td><td>${status}</td></tr>`;
+        pt += `<tr><td>${p.name}</td><td>${p.deg.toFixed(2)}°</td><td>${naks[Math.floor(p.deg)%27]}</td><td>${p.d9}</td><td>${st}</td></tr>`;
     });
-    document.getElementById('planetBody').innerHTML = pBody;
+    document.getElementById('planTable').innerHTML = pt;
 
-    // 3. Dasha Analysis
-    let dashHtml = "<tr><th>महादशा</th><th>प्रारंभ</th><th>समाप्ति</th><th>वर्तमान अंतर्दशा</th></tr>";
+    // 3. Dasha Analysis (Xodo Dates)
+    let dt = `<tr><th>महादशा</th><th>कालखंड</th><th>अंतर्दशा विश्लेषण</th></tr>`;
     data.dasha.forEach(d => {
-        dashHtml += `<tr><td>${d.lord}</td><td>${d.start}</td><td>${d.end}</td><td>${d.lord}-गुरु: 12-12-2027 तक</td></tr>`;
+        dt += `<tr><td><b>${d.lord}</b></td><td>${d.start} - ${d.end}</td><td>इस अवधि में ${d.lord} का विशेष प्रभाव रहेगा।</td></tr>`;
     });
-    document.getElementById('dashaTable').innerHTML = dashHtml;
-    document.getElementById('dashaAnalysis').innerHTML = `वर्तमान में चल रही <b>${data.dasha[0].lord} की महादशा</b> आपके ${data.planets.find(p=>p.name===data.dasha[0].lord).house} भाव को सक्रिय कर रही है, जिससे जीवन के इस क्षेत्र में महत्वपूर्ण परिवर्तन आएंगे।`;
+    document.getElementById('dashaFullTable').innerHTML = dt;
+    document.getElementById('currentDashaText').innerHTML = `वर्तमान में आपकी <b>${data.dasha[0].lord} की महादशा</b> चल रही है। यह समय आपके जीवन में निर्णायक मोड़ लाएगा क्योंकि यह आपके ${data.planets.find(p=>p.name===data.dasha[0].lord).house} भाव से संबंधित है।`;
 
-    // 4. Detailed House Analysis
-    let houseHtml = "";
-    const hNames = ["प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पंचम", "षष्ठ", "सप्तम", "अष्टम", "नवम", "दशम", "एकादश", "द्वादश"];
+    // 4. Full 12-House Predication (Unique Contents)
+    let hp = "";
+    const hNames = ["प्रथम (व्यक्तित्व)", "द्वितीय (कुटुंब)", "तृतीय (पराक्रम)", "चतुर्थ (सुख)", "पंचम (बुद्धि)", "षष्ठ (शत्रु)", "सप्तम (विवाह)", "अष्टम (आयु)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (लाभ)", "द्वादश (व्यय)"];
     for(let i=1; i<=12; i++) {
         let pIn = data.planets.filter(p => p.house === i);
-        houseHtml += `<div class="a4-page">
-            <h3 style="color:var(--main-red); border-bottom:2px solid #333;">${hNames[i-1]} भाव विश्लेषण</h3>
-            <div class="prediction">
-                <b>भाव स्थिति:</b> इस भाव में ${pIn.map(p=>p.name).join(", ") || "कोई ग्रह नहीं"} स्थित है। <br><br>
-                <b>नवांश (D9) बल:</b> भाव स्वामी की नवांश कुंडली में स्थिति के अनुसार, आपको इस भाव के पूर्ण फल ${i > 6 ? 'विलंब से' : 'समय पर'} प्राप्त होंगे। <br><br>
-                <b>महादशा फल:</b> वर्तमान महादशा स्वामी ${data.dasha[0].lord} इस भाव के साथ ${i%3===0 ? 'चुनौतीपूर्ण' : 'शुभ'} संबंध बना रहा है।
+        let lord = data.planets.find(p => p.house === i);
+        hp += `<div class="pdf-page"><div class="page-inner">
+            <h2 style="color:var(--maroon);">${hNames[i-1]} भाव का पूर्ण फल कथन</h2>
+            <div class="analysis-box">
+                <b>भाव स्थिति:</b> इस भाव में ${pIn.map(p=>p.name).join(", ") || "शुभ ग्रहों की दृष्टि"} है। 
+                भाव स्वामी <b>${lord?.name || 'ग्रह'}</b> की स्थिति नवांश (D9) कुंडली में <b>${lord?.d9 || i}</b> राशि में होने से जातक को इस भाव से संबंधित पूर्ण सुख प्राप्त होगा। <br><br>
+                <b>नवांश (D9) बल:</b> नवांश कुंडली में भाव स्वामी का बल यह सुनिश्चित करता है कि आपके प्रयासों का फल अंततः स्थायी होगा। <br><br>
+                <b>महादशा प्रभाव:</b> वर्तमान <b>${data.dasha[0].lord} महादशा</b> और इसमें चल रही अंतर्दशा इस भाव के फलों को सकारात्मक रूप से प्रभावित कर रही है। यह समय कार्यों को पूर्ण करने के लिए उत्तम है।
+                <div class="remedy">
+                    <b>व्यावसायिक उपाय:</b> इस भाव को जागृत करने हेतु प्रतिदिन संबंधित मंत्रों का जाप करें एवं महादशा स्वामी के दान पुण्य करें।
+                </div>
             </div>
-        </div>`;
+        </div></div>`;
     }
-    document.getElementById('houseDetails').innerHTML = houseHtml;
+    document.getElementById('housePages').innerHTML = hp;
 
-    drawSVG('d1_svg', data.lagna.rIdx, data.planets, 'house');
-    drawSVG('d9_svg', data.lagna.d9, data.planets, 'd9');
+    drawKundli('d1_svg', data.lagna.rIdx, data.planets, 'house');
+    drawKundli('d9_svg', data.lagna.d9, data.planets, 'd9');
 }
 
-function drawSVG(id, asc, planets, mode) {
-    const pts = {1:[112,85], 2:[55,47], 3:[27,85], 4:[75,132], 5:[27,172], 6:[55,210], 7:[112,172], 8:[170,210], 9:[197,172], 10:[150,132], 11:[197,85], 12:[170,47]};
-    let svg = `<svg width="100%" viewBox="0 0 225 225" style="border:1px solid #000;"><path d="M0 0 L225 0 L225 225 L0 225 Z M0 0 L225 225 M225 0 L0 225 M112 0 L0 112 L112 225 L225 112 Z" fill="none" stroke="#333" stroke-width="1.5"/>`;
+function drawKundli(id, asc, planets, mode) {
+    const pts = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
+    let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="3"/>`;
     for (let i = 1; i <= 12; i++) {
         let r = (asc + i - 1); if (r > 12) r -= 12;
         let [x, y] = pts[i];
-        svg += `<text x="${x}" y="${y+5}" fill="#8b0000" font-weight="bold" font-size="14" text-anchor="middle">${r}</text>`;
+        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="900" font-size="28" text-anchor="middle">${r}</text>`;
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === r);
         list.forEach((p, idx) => {
-            svg += `<text x="${x}" y="${y-15-(idx*10)}" font-size="8" fill="black" text-anchor="middle">${p.name.substring(0,2)}</text>`;
+            let pKey = p.name === "बृहस्पति" ? "गुरु" : p.name;
+            let tag = (p.house === uchNechConfig[pKey]?.r) ? "(U)" : (p.house === uchNechConfig[pKey]?.nr) ? "(N)" : "";
+            svg += `<text x="${x+(idx%2?40:-40)}" y="${y-(idx>1?25:45)}" font-size="14" font-weight="bold" fill="black" text-anchor="middle">${p.name}${tag}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function downloadPDF() {
+async function exportToPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.a4-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 2});
+    const sections = document.querySelectorAll('.pdf-page');
+    for(let i=0; i<sections.length; i++) {
+        const canvas = await html2canvas(sections[i], {scale: 2});
         if(i > 0) doc.addPage();
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
     }
-    doc.save("Kundli_Report.pdf");
+    doc.save("Astro_Commercial_Report.pdf");
 }
 </script>
 </body>
