@@ -2,115 +2,123 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Commercial Kundli Engine</title>
+    <title>Astro Professional Kundli Engine</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; background: #eee; padding: 15px; border-radius: 5px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .chart-box { border: 2px solid #800000; padding: 10px; background: #fffcf5; }
+        :root { --main: #800000; --ex: green; --db: red; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdfdfd; padding: 20px; }
+        .controls { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .exalted { color: var(--ex); font-weight: bold; }
+        .debilitated { color: var(--db); font-weight: bold; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .box { background: white; border: 2px solid var(--main); padding: 15px; border-radius: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        .exalted { color: green; font-weight: bold; }
-        .debilitated { color: red; font-weight: bold; }
-        .pred-box { border-left: 5px solid #800000; background: #fff8f8; padding: 15px; margin-top: 10px; line-height: 1.6; }
-        .dasha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .pred-text { border-left: 5px solid var(--main); padding-left: 15px; margin-bottom: 20px; line-height: 1.8; text-align: justify; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="controls">
-        <input type="date" id="dob" value="1990-01-01">
-        <input type="time" id="tob" value="12:00">
-        <button onclick="calculate()">कुंडली जनरेट करें</button>
+<div class="controls">
+    <input type="date" id="dob" value="1979-12-03">
+    <input type="time" id="tob" value="02:00">
+    <input type="text" id="lat" placeholder="Latitude (अक्षांश)" value="23.54">
+    <input type="text" id="lon" placeholder="Longitude (देशांतर)" value="74.47">
+    <button onclick="calculate()" style="background:var(--main); color:white; cursor:pointer;">कुंडली प्राप्त करें</button>
+</div>
+
+<div id="output" style="display:none;">
+    <div class="chart-grid">
+        <div class="box"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
+        <div class="box"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
     </div>
 
-    <div class="grid">
-        <div class="chart-box">
-            <h3>लग्न कुंडली (D1)</h3>
-            <div id="d1"></div>
-        </div>
-        <div class="chart-box">
-            <h3>नवांश कुंडली (D9)</h3>
-            <div id="d9"></div>
-        </div>
+    <div class="box" style="margin-top:20px;">
+        <h3>ग्रह स्थिति एवं विश्लेषण</h3>
+        <table id="pTable">
+            <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th><th>स्थिति</th></tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <h3>ग्रह स्थिति एवं बल</h3>
-    <table id="pTable">
-        <thead>
-            <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th><th>स्थिति</th></tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="box" style="margin-top:20px;">
+        <h3>सम्पूर्ण फलादेश</h3>
+        <div id="predArea"></div>
+    </div>
 
-    <h3>विस्तृत फलादेश</h3>
-    <div id="predictions"></div>
-
-    <h3>विंशोत्तरी महादशा एवं अंतर्दशा (All 9)</h3>
-    <div id="dashaArea" class="dasha-grid"></div>
+    <div class="box" style="margin-top:20px;">
+        <h3>विंशोत्तरी महादशा एवं 9 अंतर्दशाएं</h3>
+        <div id="dashaArea" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;"></div>
+    </div>
 </div>
 
 <script>
 async function calculate() {
-    const res = await fetch('http://localhost:5000/calculate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+    try {
+        const payload = {
             date: document.getElementById('dob').value,
             time: document.getElementById('tob').value,
-            lat: 23.54, lon: 74.47
-        })
-    });
-    const data = await res.json();
-    if(data.status === 'success') renderAll(data);
+            lat: document.getElementById('lat').value,
+            lon: document.getElementById('lon').value
+        };
+
+        const response = await fetch('http://localhost:5000/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        if(data.status === 'success') {
+            document.getElementById('output').style.display = 'block';
+            renderReport(data);
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (e) { alert("सर्वर से कनेक्ट नहीं हो सका। कृपया 'app.py' चलाएं।"); }
 }
 
-function renderAll(data) {
-    // 1. Render Planet Table with Colors
+function renderReport(data) {
+    // 1. Planet Table with Color Logic
     const tbody = document.querySelector('#pTable tbody');
-    tbody.innerHTML = '';
-    data.planets.forEach(p => {
-        const cls = p.status === 'exalted' ? 'exalted' : (p.status === 'debilitated' ? 'debilitated' : '');
-        tbody.innerHTML += `<tr><td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}</td><td>${p.house}</td><td class="${cls}">${p.status}</td></tr>`;
-    });
+    tbody.innerHTML = data.planets.map(p => `
+        <tr><td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}</td><td>${p.house}</td>
+        <td class="${p.status.toLowerCase()}">${p.status}</td></tr>
+    `).join('');
 
-    // 2. Draw Charts (Dynamic)
-    drawChart('d1', data.lagna, data.planets, 'rIdx');
-    drawChart('d9', (data.planets[1].d9Idx), data.planets, 'd9Idx'); // Approximate D9 Lagna from Moon
+    // 2. SVG Charts
+    drawSVG('d1_svg', data.lagna, data.planets, 'rIdx');
+    drawSVG('d9_svg', data.planets[1].d9Idx, data.planets, 'd9Idx');
 
-    // 3. Complete Predictions
-    const pred = document.getElementById('predictions');
-    pred.innerHTML = data.planets.map(p => `
-        <div class="pred-box">
-            <b>${p.name} फलादेश:</b> ${p.name} आपके ${p.house} भाव में ${p.rIdx} राशि में स्थित है। 
-            यह स्थिति दर्शाती है कि ${p.status === 'exalted' ? 'ग्रह अत्यंत बलवान है और शुभ फल देगा।' : (p.status === 'debilitated' ? 'ग्रह नीच का है, संघर्ष बढ़ सकता है।' : 'ग्रह सामान्य फल प्रदाता है।')}
+    // 3. Full Detailed Prediction
+    const predArea = document.getElementById('predArea');
+    predArea.innerHTML = data.planets.map(p => `
+        <div class="pred-text">
+            <b>${p.name} का फल:</b> ${p.name} आपके ${p.house} भाव में ${p.rIdx} राशि में स्थित है। 
+            यहाँ यह ${p.status === 'Exalted' ? '<span style="color:green">उच्च</span> का होकर प्रबल राजयोग' : (p.status === 'Debilitated' ? '<span style="color:red">नीच</span> का होकर संघर्ष' : 'सामान्य फल')} प्रदान कर रहा है। 
+            भावेश के रूप में यह आपके जीवन के ${p.house} संबंधित क्षेत्रों को गहराई से प्रभावित करेगा।
         </div>
     `).join('');
 
-    // 4. All 9 Dashas & Subs
+    // 4. Dashas with 9 Subs
     const dArea = document.getElementById('dashaArea');
     dArea.innerHTML = data.dasha.map(d => `
-        <div class="chart-box" style="font-size:12px">
-            <b>${d.lord} (${d.s} - ${d.e})</b><hr>
+        <div style="border:1px solid #ddd; padding:10px; font-size:12px;">
+            <b style="color:var(--main)">${d.lord} (${d.s} से ${d.e})</b><hr>
             ${d.subs.map(s => `<div>${s.lord}: ${s.e}</div>`).join('')}
         </div>
     `).join('');
 }
 
-function drawChart(divId, lagna, planets, type) {
-    let svg = `<svg viewBox="0 0 400 400" width="100%"><path d="M0 0 L400 0 L400 400 L0 400 Z M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="red" stroke-width="2"/>`;
-    const houseCoords = {1:[180,150], 2:[80,80], 3:[40,150], 4:[130,230], 5:[40,320], 6:[80,380], 7:[180,320], 8:[300,380], 9:[350,320], 10:[250,230], 11:[350,150], 12:[300,80]};
-    
+function drawSVG(id, lagna, planets, key) {
+    let svg = `<svg viewBox="0 0 400 400" width="100%"><path d="M0 0 L400 0 L400 400 L0 400 Z M0 0 L400 400 M400 0 L0 450 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="brown" stroke-width="2"/>`;
+    const coords = {1:[180,150], 2:[80,80], 3:[40,150], 4:[130,230], 5:[40,320], 6:[80,380], 7:[180,320], 8:[300,380], 9:[350,320], 10:[250,230], 11:[350,150], 12:[300,80]};
     for(let i=1; i<=12; i++) {
-        let rIdx = (lagna + i - 1) > 12 ? (lagna + i - 1) - 12 : (lagna + i - 1);
-        let [x,y] = houseCoords[i];
-        svg += `<text x="${x}" y="${y}" fill="blue" font-weight="bold">${rIdx}</text>`;
-        let pInHouse = planets.filter(p => p[type] === rIdx).map(p => p.name).join(', ');
-        svg += `<text x="${x}" y="${y+20}" font-size="10" fill="black">${pInHouse}</text>`;
+        let r = (lagna + i - 1) > 12 ? (lagna + i - 1) - 12 : (lagna + i - 1);
+        svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="blue" font-weight="bold">${r}</text>`;
+        let pNames = planets.filter(p => p[key] === r).map(p => p.name).join(' ');
+        svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" font-size="10">${pNames}</text>`;
     }
-    document.getElementById(divId).innerHTML = svg + `</svg>`;
+    document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 </script>
 </body>
