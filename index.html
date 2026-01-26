@@ -2,121 +2,117 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro Professional Kundli Engine</title>
+    <title>Universal Commercial Kundli Engine</title>
     <style>
-        :root { --main: #800000; --ex: green; --db: red; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fdfdfd; padding: 20px; }
-        .controls { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        .exalted { color: var(--ex); font-weight: bold; }
-        .debilitated { color: var(--db); font-weight: bold; }
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .box { background: white; border: 2px solid var(--main); padding: 15px; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        .pred-text { border-left: 5px solid var(--main); padding-left: 15px; margin-bottom: 20px; line-height: 1.8; text-align: justify; }
+        :root { --main: #800000; --ex: #28a745; --db: #dc3545; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; padding: 20px; color: #333; }
+        .controls { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        input, button { padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+        button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; }
+        .box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--main); }
+        .exalted { color: var(--ex); font-weight: bold; border: 1px solid var(--ex); padding: 2px 5px; border-radius: 4px; }
+        .debilitated { color: var(--db); font-weight: bold; border: 1px solid var(--db); padding: 2px 5px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        th { background: #fdf2f2; color: var(--main); }
+        .pred-text { background: #fffdf5; border-left: 4px solid var(--main); padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.6; }
+        .dasha-item { border: 1px solid #eee; padding: 10px; border-radius: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="controls">
+    <input type="text" id="lat" placeholder="अक्षांश (Lat) उदा: 23.54" value="23.54">
+    <input type="text" id="lon" placeholder="देशांतर (Lon) उदा: 74.47" value="74.47">
     <input type="date" id="dob" value="1979-12-03">
     <input type="time" id="tob" value="02:00">
-    <input type="text" id="lat" placeholder="Latitude (अक्षांश)" value="23.54">
-    <input type="text" id="lon" placeholder="Longitude (देशांतर)" value="74.47">
-    <button onclick="calculate()" style="background:var(--main); color:white; cursor:pointer;">कुंडली प्राप्त करें</button>
+    <button onclick="calculate()">कुंडली जनरेट करें</button>
 </div>
 
-<div id="output" style="display:none;">
-    <div class="chart-grid">
+<div id="result" style="display:none;">
+    <div class="grid">
         <div class="box"><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
         <div class="box"><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
     </div>
 
-    <div class="box" style="margin-top:20px;">
-        <h3>ग्रह स्थिति एवं विश्लेषण</h3>
+    <div class="box" style="margin-top:25px;">
+        <h3>ग्रह स्थिति एवं बल (अंशानुसार)</h3>
         <table id="pTable">
             <thead><tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>भाव</th><th>स्थिति</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <div class="box" style="margin-top:20px;">
-        <h3>सम्पूर्ण फलादेश</h3>
+    <div class="box" style="margin-top:25px;">
+        <h3>सम्पूर्ण फलादेश (Universal Analysis)</h3>
         <div id="predArea"></div>
     </div>
 
-    <div class="box" style="margin-top:20px;">
-        <h3>विंशोत्तरी महादशा एवं 9 अंतर्दशाएं</h3>
-        <div id="dashaArea" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;"></div>
+    <div class="box" style="margin-top:25px;">
+        <h3>विंशोत्तरी दशा एवं अंतर्दशा (All 9 Lords)</h3>
+        <div id="dashaArea" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px;"></div>
     </div>
 </div>
 
 <script>
 async function calculate() {
-    try {
-        const payload = {
-            date: document.getElementById('dob').value,
-            time: document.getElementById('tob').value,
-            lat: document.getElementById('lat').value,
-            lon: document.getElementById('lon').value
-        };
+    const lat = document.getElementById('lat').value;
+    const lon = document.getElementById('lon').value;
+    if(!lat || !lon) return alert("कृपया अक्षांश और देशांतर भरें।");
 
-        const response = await fetch('http://localhost:5000/calculate', {
+    try {
+        const res = await fetch('http://localhost:5000/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                date: document.getElementById('dob').value,
+                time: document.getElementById('tob').value,
+                lat: lat, lon: lon
+            })
         });
-        
-        const data = await response.json();
+        const data = await res.json();
         if(data.status === 'success') {
-            document.getElementById('output').style.display = 'block';
+            document.getElementById('result').style.display = 'block';
             renderReport(data);
-        } else {
-            alert("Error: " + data.message);
         }
-    } catch (e) { alert("सर्वर से कनेक्ट नहीं हो सका। कृपया 'app.py' चलाएं।"); }
+    } catch (e) { alert("सर्वर एरर: क्या आपने app.py को रन किया है?"); }
 }
 
 function renderReport(data) {
-    // 1. Planet Table with Color Logic
     const tbody = document.querySelector('#pTable tbody');
     tbody.innerHTML = data.planets.map(p => `
-        <tr><td>${p.name}</td><td>${p.rIdx}</td><td>${p.deg}</td><td>${p.house}</td>
-        <td class="${p.status.toLowerCase()}">${p.status}</td></tr>
+        <tr><td><b>${p.name}</b></td><td>${p.rIdx}</td><td>${p.deg}</td><td>${p.house}</td>
+        <td><span class="${p.status.toLowerCase()}">${p.status}</span></td></tr>
     `).join('');
 
-    // 2. SVG Charts
-    drawSVG('d1_svg', data.lagna, data.planets, 'rIdx');
-    drawSVG('d9_svg', data.planets[1].d9Idx, data.planets, 'd9Idx');
+    drawChart('d1_svg', data.lagna, data.planets, 'rIdx');
+    drawChart('d9_svg', data.planets[1].d9Idx, data.planets, 'd9Idx');
 
-    // 3. Full Detailed Prediction
-    const predArea = document.getElementById('predArea');
-    predArea.innerHTML = data.planets.map(p => `
+    document.getElementById('predArea').innerHTML = data.planets.map(p => `
         <div class="pred-text">
-            <b>${p.name} का फल:</b> ${p.name} आपके ${p.house} भाव में ${p.rIdx} राशि में स्थित है। 
-            यहाँ यह ${p.status === 'Exalted' ? '<span style="color:green">उच्च</span> का होकर प्रबल राजयोग' : (p.status === 'Debilitated' ? '<span style="color:red">नीच</span> का होकर संघर्ष' : 'सामान्य फल')} प्रदान कर रहा है। 
-            भावेश के रूप में यह आपके जीवन के ${p.house} संबंधित क्षेत्रों को गहराई से प्रभावित करेगा।
+            <b>${p.name} का प्रभाव:</b> यह ग्रह आपके ${p.house} भाव में ${p.rIdx} राशि में है। 
+            ${p.status === 'Exalted' ? 'यह उच्च का होकर अत्यंत शुभ फल देगा।' : (p.status === 'Debilitated' ? 'यह नीच का है, जो जीवन में संघर्ष का संकेत है।' : 'यह मध्यम फल प्रदान करेगा।')}
         </div>
     `).join('');
 
-    // 4. Dashas with 9 Subs
-    const dArea = document.getElementById('dashaArea');
-    dArea.innerHTML = data.dasha.map(d => `
-        <div style="border:1px solid #ddd; padding:10px; font-size:12px;">
-            <b style="color:var(--main)">${d.lord} (${d.s} से ${d.e})</b><hr>
+    document.getElementById('dashaArea').innerHTML = data.dasha.map(d => `
+        <div class="dasha-item">
+            <b style="color:var(--main)">${d.lord} (${d.s} - ${d.e})</b><hr>
             ${d.subs.map(s => `<div>${s.lord}: ${s.e}</div>`).join('')}
         </div>
     `).join('');
 }
 
-function drawSVG(id, lagna, planets, key) {
-    let svg = `<svg viewBox="0 0 400 400" width="100%"><path d="M0 0 L400 0 L400 400 L0 400 Z M0 0 L400 400 M400 0 L0 450 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="brown" stroke-width="2"/>`;
-    const coords = {1:[180,150], 2:[80,80], 3:[40,150], 4:[130,230], 5:[40,320], 6:[80,380], 7:[180,320], 8:[300,380], 9:[350,320], 10:[250,230], 11:[350,150], 12:[300,80]};
+function drawChart(id, lagna, planets, key) {
+    let svg = `<svg viewBox="0 0 400 400" width="100%"><path d="M0 0 L400 0 L400 400 L0 400 Z M0 0 L400 400 M400 0 L0 400 M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+    const coords = {1:[185,150], 2:[80,80], 3:[40,150], 4:[130,230], 5:[40,320], 6:[80,380], 7:[185,320], 8:[300,380], 9:[350,320], 10:[250,230], 11:[350,150], 12:[300,80]};
     for(let i=1; i<=12; i++) {
         let r = (lagna + i - 1) > 12 ? (lagna + i - 1) - 12 : (lagna + i - 1);
-        svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="blue" font-weight="bold">${r}</text>`;
-        let pNames = planets.filter(p => p[key] === r).map(p => p.name).join(' ');
-        svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" font-size="10">${pNames}</text>`;
+        svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="#007bff" font-weight="bold">${r}</text>`;
+        let pList = planets.filter(p => p[key] === r).map(p => p.name).join(' ');
+        svg += `<text x="${coords[i][0]}" y="${coords[i][1]+20}" font-size="11" fill="#444">${pList}</text>`;
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
