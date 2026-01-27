@@ -2,166 +2,135 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional 200-Page Astro Software</title>
+    <title>Advanced Kundli Software</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Arial', 'Times New Roman'; background: #555; margin: 0; padding: 0; }
-        .toolbar { background: #1a1a1a; color: gold; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid gold; }
-        #reportContainer { display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: #fffcf5; margin-bottom: 30px; padding: 25mm; box-sizing: border-box; position: relative; border: 1px solid #000; color: #333; }
-        .page-border { position: absolute; top: 10mm; left: 10mm; right: 10mm; bottom: 10mm; border: 2px double #800000; pointer-events: none; }
-        .header { text-align: center; color: #800000; border-bottom: 2px solid #800000; margin-bottom: 20px; }
-        .chart-svg { width: 350px; height: 350px; margin: 20px auto; display: block; }
-        .pred-text { font-size: 15px; line-height: 2; text-align: justify; padding: 10px; border-left: 4px solid #800000; background: #fff; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { border: 1px solid #800000; padding: 10px; text-align: center; }
+        body { font-family: 'Arial'; background: #f4f4f4; margin: 0; }
+        .toolbar { background: #1a1a1a; color: gold; padding: 20px; display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; box-sizing: border-box; border: 2px solid #800000; position: relative; }
+        .chart-row { display: flex; justify-content: space-around; margin: 20px 0; }
+        .svg-container { width: 300px; height: 300px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        th, td { border: 1px solid #800000; padding: 8px; text-align: center; }
         th { background: #800000; color: white; }
-        .footer { position: absolute; bottom: 15mm; width: 100%; text-align: center; font-size: 12px; color: #666; }
-        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: none; }
-        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
+        .pred-text { line-height: 1.8; text-align: justify; margin-top: 15px; border-left: 4px solid #800000; padding-left: 10px; }
+        #suggestionBox { position: absolute; background: white; border: 1px solid #ccc; width: 250px; z-index: 1001; color: black; }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay">
-    <h2>रिपोर्ट तैयार की जा रही है...</h2>
-    <p id="progress">0 / 200 पेज</p>
-</div>
-
 <div class="toolbar">
-    <input type="text" id="loc" placeholder="शहर" value="दिल्ली">
-    <input type="date" id="dob" value="1990-01-01">
-    <input type="time" id="tob" value="12:00">
-    <button onclick="processFullReport()" style="background: gold; color: black; font-weight: bold; cursor: pointer;">विस्तृत 200 पेज रिपोर्ट जेनरेट करें</button>
+    <div style="position:relative;">
+        <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)" style="padding:10px; width:250px;">
+        <div id="suggestionBox"></div>
+    </div>
+    <input type="date" id="dob" value="1990-01-01" style="padding:10px;">
+    <input type="time" id="tob" value="12:00" style="padding:10px;">
+    <input type="hidden" id="lat" value="23.32"><input type="hidden" id="lon" value="74.26">
+    <button onclick="generateReport()" style="padding:10px 20px; background:gold; border:none; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
+    <button onclick="downloadPDF()" style="padding:10px 20px; background:green; color:white; border:none; cursor:pointer;">PDF डाउनलोड</button>
 </div>
 
 <div id="reportContainer"></div>
 
 <script>
-const MASTER_CONFIG = {
-    1: { name: "मेष", yogi: ["सूर्य", "मंगल", "गुरु"], marak: ["शुक्र", "बुध", "शनि"], intro: "आप मेष लग्न के जातक हैं। मंगल आपका लग्नेश है।" },
-    2: { name: "वृष", yogi: ["शनि", "बुध", "शुक्र"], marak: ["गुरु", "चंद्र", "मंगल"], intro: "वृष लग्न के स्वामी शुक्र हैं, जो आपको सौंदर्य प्रेमी बनाते हैं।" },
-    3: { name: "मिथुन", yogi: ["शुक्र", "बुध", "शनि"], marak: ["मंगल", "गुरु", "सूर्य"], intro: "मिथुन लग्न के स्वामी बुध होने से आपकी बुद्धि तीव्र है।" },
-    4: { name: "कर्क", yogi: ["मंगल", "चंद्र", "गुरु"], marak: ["शुक्र", "बुध", "शनि"], intro: "कर्क लग्न के स्वामी चंद्रमा हैं, आप संवेदनशील स्वभाव के हैं।" },
-    5: { name: "सिंह", yogi: ["सूर्य", "मंगल", "गुरु"], marak: ["शुक्र", "बुध"], intro: "सिंह लग्न के स्वामी सूर्य हैं, आपमें नेतृत्व क्षमता है।" },
-    6: { name: "कन्या", yogi: ["बुध", "शुक्र", "शनि"], marak: ["मंगल", "गुरु", "चंद्र"], intro: "कन्या लग्न के जातक विश्लेषणात्मक होते हैं।" },
-    7: { name: "तुला", yogi: ["शनि", "शुक्र", "बुध"], marak: ["सूर्य", "मंगल", "गुरु"], intro: "तुला लग्न के स्वामी शुक्र हैं, आप संतुलित जीवन चाहते हैं।" },
-    8: { name: "वृश्चिक", yogi: ["चंद्र", "मंगल", "गुरु"], marak: ["बुध", "शुक्र", "शनि"], intro: "वृश्चिक लग्न के जातक दृढ़ निश्चयी और रहस्यमयी होते।" },
-    9: { name: "धनु", yogi: ["सूर्य", "गुरु", "मंगल"], marak: ["शुक्र", "बुध"], intro: "धनु लग्न के स्वामी गुरु हैं, आप ज्ञान के खोजी हैं।" },
-    10: { name: "मकर", yogi: ["शुक्र", "शनि", "बुध"], marak: ["मंगल", "गुरु", "चंद्र"], intro: "मकर लग्न के स्वामी शनि हैं, आप अत्यंत परिश्रमी हैं।" },
-    11: { name: "कुम्भ", yogi: ["शुक्र", "शनि", "बुध"], marak: ["गुरु", "मंगल", "चंद्र"], intro: "कुम्भ लग्न के जातक मानवतावादी और विचारक होते हैं।" },
-    12: { name: "मीन", yogi: ["चंद्र", "गुरु", "मंगल"], marak: ["शनि", "शुक्र", "बुध", "सूर्य"], intro: "मीन लग्न के जातक आध्यात्मिक और कल्पनाशील होते हैं।" }
-};
+// लोकेशन सर्च फंक्शन
+async function searchLoc(q) {
+    if(q.length < 3) return;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+    const data = await res.json();
+    let html = "";
+    data.forEach(i => {
+        html += `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
+    });
+    document.getElementById('suggestionBox').innerHTML = html;
+}
+function selectLoc(n, la, lo) {
+    document.getElementById('loc').value = n;
+    document.getElementById('lat').value = la;
+    document.getElementById('lon').value = lo;
+    document.getElementById('suggestionBox').innerHTML = "";
+}
 
-async function processFullReport() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
+async function generateReport() {
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value })
+    });
+    const data = await res.json();
+    if(data.status === 'success') renderPages(data);
+}
+
+function renderPages(data) {
     const container = document.getElementById('reportContainer');
     container.innerHTML = "";
 
-    try {
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: 28.61, lon: 77.20 })
-        });
-        const data = await res.json();
-        
-        const config = MASTER_CONFIG[data.lagna_idx];
-        let pageCount = 0;
+    // पेज 1: अवकहड़ा चक्र और मुख्य विवरण
+    let p1 = `<div class="pdf-page">
+        <h1 align="center" style="color:#800000;">॥ जन्म पत्रिका ॥</h1>
+        <div class="chart-row">
+            <div class="svg-container"><h3>D1 लग्न कुंडली</h3><div id="d1_box"></div></div>
+            <div class="svg-container"><h3>D9 नवांश कुंडली</h3><div id="d9_box"></div></div>
+        </div>
+        <h3>अवसहड़ा चक्र</h3>
+        <table>
+            <tr><th>नक्षत्र</th><td>${data.nak}</td><th>चरण</th><td>${data.charan}</td></tr>
+            <tr><th>वर्ण</th><td>${data.avk.वर्ण}</td><th>वश्य</th><td>${data.avk.वश्य}</td></tr>
+            <tr><th>योनि</th><td>${data.avk.योनि}</td><th>गण</th><td>${data.avk.गण}</td></tr>
+        </table>
+        <h3>ग्रह स्थिति एवं नक्षत्र</h3>
+        <table>
+            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>अवस्था</th></tr>
+            ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td><td><b>${p.status}</b></td></tr>`).join('')}
+        </table>
+    </div>`;
+    container.innerHTML += p1;
 
-        // पेज 1: आवरण पृष्ठ और लग्न विवरण
-        addPage(`
-            <div class="header"><h1>जन्म कुंडली विवरण</h1></div>
-            <div class="chart-svg" id="d1_svg"></div>
-            <h3>लग्न परिचय</h3>
-            <p class="pred-text">${config.intro}</p>
-            <table>
-                <tr><th>ग्रह</th><th>भाव</th><th>अंश</th><th>दृष्टि</th></tr>
-                ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.house}</td><td>${p.deg}</td><td>${p.aspects.join(', ')}</td></tr>`).join('')}
-            </table>
-        `, ++pageCount);
-
-        // पेज 2-100: ग्रहों का भाववार और दृष्टि वार विस्तृत फलादेश
-        data.planets.forEach(p => {
-            const isYog = config.yogi.includes(p.name);
-            for(let i=1; i<=10; i++) {
-                addPage(`
-                    <div class="header"><h2>${p.name} फलादेश - भाग ${i}</h2></div>
-                    <div class="pred-text">
-                        <b>FortuneWithStars विश्लेषण:</b> ${p.name} आपके ${p.house} भाव में स्थित है। 
-                        चूंकि आप ${config.name} लग्न के हैं, यह ग्रह आपके लिए ${isYog ? 'अत्यंत शुभ' : 'अशुभ'} फलदायी है।
-                        <br><br>
-                        <b>दृष्टि प्रभाव:</b> यह ग्रह ${p.aspects.join(', ')} भावों को देख रहा है। 
-                        ${p.aspects[0]} भाव पर इसकी दृष्टि होने से आपके पारिवारिक और व्यावसायिक जीवन में 
-                        ${isYog ? 'सकारात्मक ऊर्जा का संचार होगा और कार्यों में सफलता मिलेगी।' : 'कुछ बाधाओं का सामना करना पड़ सकता है, धैर्य से काम लें।'}
-                        <br><br>
-                        <b>उपाय:</b> ${isYog ? 'इस ग्रह का रत्न पहनने से भाग्य उदय होगा।' : 'प्रतिदिन इस ग्रह के बीज मंत्र का जप करें और शनिवार को दान दें।'}
-                        <br><br>
-                        <i>(यह विश्लेषण विस्तृत गणना और ग्रहों के बल के आधार पर किया गया है...)</i>
-                    </div>
-                `, ++pageCount);
-            }
-        });
-
-        // पेज 101-200: विंशोत्तरी दशा का महा-विस्तार
-        data.dasha.forEach(m => {
-            addPage(`
-                <div class="header"><h2>महादशा: ${m.lord}</h2></div>
-                <p>प्रारंभ: ${m.s} | अंत: ${m.e}</p>
-                <table>
-                    <tr><th>अंतर्दशा</th><th>समाप्ति तिथि</th><th>शुभ/अशुभ</th></tr>
-                    ${m.subs.map(s => `<tr><td>${s.lord}</td><td>${s.e}</td><td>${config.yogi.includes(s.lord)?'शुभ':'सावधानी'}</td></tr>`).join('')}
-                </table>
-                <div class="pred-text" style="margin-top:20px;">
-                    ${m.lord} की महादशा में ${config.name} लग्न के जातक को अपने करियर और स्वास्थ्य पर विशेष ध्यान देना चाहिए। 
-                    इस अवधि में किए गए उपाय आपको उन्नति प्रदान करेंगे।
+    // फलादेश पेज (200 पेज के लिए लूप)
+    data.planets.forEach(p => {
+        for(let i=1; i<=10; i++) {
+            let p_html = `<div class="pdf-page">
+                <h2>${p.name} का विस्तृत फलादेश - भाग ${i}</h2>
+                <div class="pred-text">
+                    ज्योतिषीय गणना के अनुसार ${p.name} आपके ${p.house} भाव में स्थित है और ${p.naks} नक्षत्र में गोचर कर रहा है। 
+                    इस ग्रह की ${p.status} अवस्था आपके जीवन में विशेष प्रभाव डालेगी। 
+                    <br><br>
+                    यह ग्रह आपके कर्म क्षेत्र और पारिवारिक सुख में महत्वपूर्ण भूमिका निभाएगा। इसकी स्थिति दर्शाती है कि आपको 
+                    आने वाले समय में अपने प्रयासों का उचित फल प्राप्त होगा। उपाय स्वरूप संबंधित ग्रह का दान व मंत्र जप लाभकारी रहेगा।
                 </div>
-            `, ++pageCount);
-        });
+            </div>`;
+            container.innerHTML += p_html;
+        }
+    });
 
-        drawChart('d1_svg', data.lagna_idx, data.planets);
-        setTimeout(() => downloadLargePDF(), 2000);
-
-    } catch(e) { alert("Error: " + e); }
+    drawChart('d1_box', data.lagna_idx, data.planets, 'house');
+    drawChart('d9_box', data.planets[0].d9, data.planets, 'd9'); // D9 Chart
 }
 
-function addPage(content, num) {
-    const container = document.getElementById('reportContainer');
-    const div = document.createElement('div');
-    div.className = 'pdf-page';
-    div.innerHTML = `<div class="page-border"></div>${content}<div class="footer">पेज संख्या: ${num}</div>`;
-    container.appendChild(div);
-    document.getElementById('progress').innerText = `${num} / 200 पेज तैयार`;
-}
-
-function drawChart(id, asc, planets) {
-    const pos = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
-    let svg = `<svg viewBox="0 0 450 450" style="width:100%"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+function drawChart(id, asc, planets, mode) {
+    const pos = {1:[150,115], 2:[75,50], 3:[35,115], 4:[100,180], 5:[35,245], 6:[75,310], 7:[150,245], 8:[225,310], 9:[265,245], 10:[200,180], 11:[265,115], 12:[225,50]};
+    let svg = `<svg viewBox="0 0 300 330" width="100%"><path d="M0 0 L300 0 L300 300 L0 300 Z M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
         let [x, y] = pos[i];
-        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="bold" font-size="20" text-anchor="middle">${sign}</text>`;
-        planets.filter(p => p.house === i).forEach((p, idx) => {
-            svg += `<text x="${x}" y="${y-15-(idx*15)}" font-size="10" text-anchor="middle" fill="#444">${p.name}</text>`;
-        });
+        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="bold" font-size="16" text-anchor="middle">${sign}</text>`;
+        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
+        list.forEach((p, idx) => { svg += `<text x="${x}" y="${y-10-(idx*12)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`; });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
 
-async function downloadLargePDF() {
+async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
     const pages = document.querySelectorAll('.pdf-page');
-    
     for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], { scale: 1.5, useCORS: true });
+        const canvas = await html2canvas(pages[i], {scale: 1.5});
         if(i > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL('image/jpeg', 0.75), 'JPEG', 0, 0, 210, 297);
-        document.getElementById('progress').innerText = `PDF तैयार हो रही है: ${i+1} / 200 पेज`;
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, 210, 297);
     }
-    
-    doc.save("Full_Vedic_Report_200_Pages.pdf");
-    document.getElementById('loadingOverlay').style.display = 'none';
+    doc.save("Kundli_Report_Complete.pdf");
 }
 </script>
 </body>
