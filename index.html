@@ -2,95 +2,88 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro Professional Kundli</title>
+    <title>Professional Kundli - FortuneWithStars</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --maroon: #800000; --gold: #daa520; }
-        body { font-family: 'Arial', sans-serif; background: #fdfaf4; margin: 0; padding: 0; }
-        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Arial', sans-serif; background: #fdfaf4; padding: 20px; }
+        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .pdf-page { width: 210mm; margin: 20px auto; background: white; padding: 15mm; box-shadow: 0 0 15px rgba(0,0,0,0.1); border: 1px solid #ddd; }
-        .header-box { border: 2px solid var(--maroon); padding: 10px; text-align: center; margin-bottom: 20px; background: #fffcf5; }
-        .location-bar { background: #f0f0f0; padding: 8px; font-size: 0.9em; text-align: center; border-radius: 4px; margin-bottom: 15px; }
-        .chart-container { display: flex; gap: 20px; justify-content: space-between; margin: 20px 0; }
-        .chart-box { border: 2px solid var(--maroon); padding: 10px; width: 48%; text-align: center; background: #fffdfa; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
-        th, td { border: 1px solid #999; padding: 10px; text-anchor: middle; text-align: center; }
+        .header { text-align: center; border: 2px solid var(--maroon); padding: 10px; background: #fffcf5; margin-bottom: 20px; }
+        .loc-box { background: #eee; padding: 10px; text-align: center; font-size: 0.9em; margin-bottom: 15px; border-radius: 4px; }
+        .chart-grid { display: flex; gap: 20px; justify-content: space-between; margin: 20px 0; }
+        .chart-box { border: 2px solid var(--maroon); width: 48%; text-align: center; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: center; }
         th { background: #fdf2f2; color: var(--maroon); }
-        .status-high { color: green; font-weight: bold; }
-        .status-low { color: red; font-weight: bold; }
-        .prediction-box { background: #fef9e7; border-left: 5px solid var(--gold); padding: 15px; margin: 15px 0; font-size: 1.1em; line-height: 1.6; }
-        #suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 250px; display: none; margin-top: 40px; }
+        .status-ex { color: green; font-weight: bold; }
+        .status-db { color: red; font-weight: bold; }
+        .pred-card { background: #fef9e7; border-left: 5px solid var(--gold); padding: 15px; margin: 15px 0; line-height: 1.6; }
+        #suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 200px; display: none; margin-top: 40px; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="custName" value="हेमंत पुरोहित" style="width:150px; padding:8px;">
+    <input type="text" id="custName" value="हेमंत पुरोहित" style="width:120px; padding:8px;">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
     <div style="position:relative">
-        <input type="text" id="cityInput" placeholder="शहर खोजें..." oninput="findCity(this.value)" style="padding:8px; width:180px;">
+        <input type="text" id="citySearch" placeholder="शहर..." oninput="findLoc(this.value)" style="padding:8px; width:150px;">
         <div id="suggestions"></div>
     </div>
     <input type="text" id="lat" placeholder="Lat" style="width:60px; padding:8px;">
     <input type="text" id="lon" placeholder="Lon" style="width:60px; padding:8px;">
-    <button onclick="generateReport()" style="background:var(--maroon); color:white; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
+    <button onclick="runApp()" style="background:var(--maroon); color:white; border:none; padding:10px 15px; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
 </div>
 
 <div id="printArea">
     <div class="pdf-page">
-        <div class="header-box">
-            <h1 style="color:var(--maroon); margin:0;">॥ [cite_start]जन्म कुंडली एवं फलादेश ॥ [cite: 1]</h1>
-            [cite_start]<p style="margin:5px 0;">FortuneWithStars सिद्धांतों पर आधारित विस्तृत प्रतिवेदन [cite: 1, 2]</p>
+        <div class="header">
+            <h1 style="margin:0; color:var(--maroon);">॥ जन्म कुंडली एवं फलादेश ॥</h1>
+            <p>FortuneWithStars सिद्धांतों पर आधारित सटीक गणना</p>
         </div>
+        <div id="locDetail" class="loc-box">विवरण के लिए कुंडली जेनरेट करें...</div>
         
-        <div id="locDisplay" class="location-bar">यहाँ स्थान और आयनांश का विवरण दिखेगा...</div>
-
-        <div class="chart-container">
-            [cite_start]<div class="chart-box"><h3>D1 लग्न कुंडली [cite: 2]</h3><div id="d1_svg"></div></div>
-            [cite_start]<div class="chart-box"><h3>D9 नवांश कुंडली [cite: 3]</h3><div id="d9_svg"></div></div>
+        <div class="chart-grid">
+            <div class="chart-box"><h3>D1 लग्न कुंडली</h3><div id="d1_svg"></div></div>
+            <div class="chart-box"><h3>D9 नवांश कुंडली</h3><div id="d9_svg"></div></div>
         </div>
-
-        <div id="planetTable"></div>
+        <div id="pTable"></div>
     </div>
-
-    <div id="predictionArea"></div>
-
-    <div class="pdf-page">
-        [cite_start]<h2 style="color:var(--maroon); border-bottom: 2px solid var(--maroon);">विंशोत्तरी महादशा [cite: 4]</h2>
-        <div id="dashaTable"></div>
-    </div>
+    <div id="pText"></div>
 </div>
 
 <script>
-const LAGNA_DATA = {
+const LAGNA_DB = {
     1: { name: "मेष", yog: ["सूर्य", "गुरु", "मंगल"], marak: ["शुक्र", "बुध", "शनि"], intro: "मेष लग्न का स्वामी मंगल है। यहाँ सूर्य पंचमेश होकर राजयोग कारक बनता है।" },
     2: { name: "वृष", yog: ["शनि", "बुध", "शुक्र"], marak: ["गुरु", "चंद्र", "मंगल"], intro: "वृष लग्न का स्वामी शुक्र है। यहाँ शनि भाग्येश और कर्मेश होकर राजयोग कारक है।" },
-    // इसी प्रकार 3 से 12 तक डेटा अपडेट करें...
-    10: { name: "मकर", yog: ["शुक्र", "शनि", "बुध"], marak: ["मंगल", "गुरु", "चंद्र"], intro: "मकर लग्न का स्वामी शनि है। यहाँ शुक्र राजयोग कारक है।" }
+    // अन्य लग्नों का डेटा इसी प्रकार जोड़ें...
 };
 
-async function findCity(q) {
+async function findLoc(q) {
     if(q.length < 3) return;
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
     const data = await res.json();
     const box = document.getElementById('suggestions');
     box.innerHTML = ""; box.style.display = "block";
-    data.slice(0, 5).forEach(c => {
+    data.slice(0,5).forEach(c => {
         let d = document.createElement('div');
-        d.style.padding = "8px"; d.style.cursor = "pointer"; d.innerText = c.display_name;
+        d.style.padding="8px"; d.style.cursor="pointer"; d.innerText=c.display_name;
         d.onclick = () => {
             document.getElementById('lat').value = c.lat;
             document.getElementById('lon').value = c.lon;
-            document.getElementById('cityInput').value = c.display_name.split(',')[0];
+            document.getElementById('citySearch').value = c.display_name.split(',')[0];
             box.style.display = "none";
         };
         box.appendChild(d);
     });
 }
 
-async function generateReport() {
+async function runApp() {
+    const area = document.getElementById('locDetail');
+    area.innerHTML = "गणना शुरू...";
     try {
         const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
@@ -103,42 +96,35 @@ async function generateReport() {
             })
         });
         const data = await res.json();
-        if(data.status === 'success') renderUI(data);
-    } catch(e) { alert("सर्वर त्रुटि: सुनिश्चित करें कि पायथन बैकएंड चालू है!"); }
+        if(data.status === 'success') {
+            area.innerHTML = `<b>स्थान:</b> ${document.getElementById('citySearch').value} | <b>Lat:</b> ${document.getElementById('lat').value} | <b>Lon:</b> ${document.getElementById('lon').value} | <b>आयनांश:</b> ${data.ayan}`;
+            renderHTML(data);
+        }
+    } catch(e) { alert("सर्वर त्रुटि! सुनिश्चित करें कि PythonAnywhere पर Web App 'Reload' किया गया है।"); }
 }
 
-function renderUI(data) {
-    const lData = LAGNA_DATA[data.lagna.rIdx] || {name: "अज्ञात", yog:[], marak:[], intro:""};
+function renderHTML(data) {
+    const lInfo = LAGNA_DB[data.lagna.rIdx] || {name: "अज्ञात", yog:[], marak:[], intro:""};
     
-    // 1. Location Bar
-    document.getElementById('locDisplay').innerHTML = `<b>अक्षांश:</b> ${data.location.lat} | <b>देशांतर:</b> ${data.location.lon} | <b>लहरी आयनांश:</b> ${data.ayanamsa}`;
-
-    // 2. Planet Table
     let pt = `<table><tr><th>ग्रह</th><th>अंश</th><th>भाव</th><th>प्रकृति</th><th>स्थिति</th></tr>`;
     data.planets.forEach(p => {
-        let role = lData.yog.includes(p.name) ? "शुभ" : (lData.marak.includes(p.name) ? "अशुभ" : "सम");
-        let sCls = p.status === "उच्च" ? "status-high" : (p.status === "नीच" ? "status-low" : "");
+        let role = lInfo.yog.includes(p.name) ? "शुभ" : (lInfo.marak.includes(p.name) ? "अशुभ" : "सम");
+        let sCls = p.status === "उच्च" ? "status-ex" : (p.status === "नीच" ? "status-db" : "");
         pt += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.house}</td><td>${role}</td><td class="${sCls}">${p.status || '-'}</td></tr>`;
     });
-    document.getElementById('planetTable').innerHTML = pt + `</table>`;
+    document.getElementById('pTable').innerHTML = pt + `</table>`;
 
-    // 3. Detailed Prediction Pages
-    let predHtml = `<div class="pdf-page"><h2>लग्न फलादेश विश्लेषण</h2><div class="prediction-box">${lData.intro}</div>`;
+    let pred = `<div class="pdf-page"><h2>${lInfo.name} लग्न विस्तृत फलादेश</h2><div class="pred-card">${lInfo.intro}</div>`;
     data.planets.forEach(p => {
-        predHtml += `<div class="prediction-box"><b>${p.name} फलादेश:</b> यह ग्रह आपकी कुंडली के ${p.house} वें भाव में ${p.deg} पर है। यह इस लग्न के लिए ${lData.yog.includes(p.name) ? 'शुभ' : 'सम/मारक'} फल प्रदान करेगा। ${p.status ? 'यह ग्रह ' + p.status + ' का होकर स्थित है।' : ''}</div>`;
+        pred += `<div class="pred-card"><b>${p.name} फलादेश:</b> यह ${p.house} वें भाव में ${p.deg} पर है। ${p.status ? 'यह यहाँ <b>' + p.status + '</b> का है।' : ''}</div>`;
     });
-    document.getElementById('predictionArea').innerHTML = predHtml + `</div>`;
+    document.getElementById('pText').innerHTML = pred + `</div>`;
 
-    // 4. Dasha
-    let dt = `<table><tr><th>ग्रह</th><th>आरंभ</th><th>समाप्ति</th></tr>`;
-    data.dasha.forEach(d => { dt += `<tr><td>${d.lord}</td><td>${d.s}</td><td>${d.e}</td></tr>`; });
-    document.getElementById('dashaTable').innerHTML = dt + `</table>`;
-
-    drawChart('d1_svg', data.lagna.rIdx, data.planets, 'house');
-    drawChart('d9_svg', data.lagna.d9, data.planets, 'd9');
+    drawSVG('d1_svg', data.lagna.rIdx, data.planets, 'house');
+    drawSVG('d9_svg', data.lagna.d9, data.planets, 'd9');
 }
 
-function drawChart(id, asc, planets, mode) {
+function drawSVG(id, asc, planets, mode) {
     const pos = {1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]};
     let svg = `<svg viewBox="0 0 450 480"><path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="2"/>`;
     for (let i = 1; i <= 12; i++) {
