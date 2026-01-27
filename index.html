@@ -86,85 +86,75 @@
     </div>
 </div>
 
+<style>
+    .status-ex { color: #1a73e8; font-weight: bold; } /* उच्च ग्रह के लिए नीला */
+    .status-db { color: #d93025; font-weight: bold; } /* नीच ग्रह के लिए लाल */
+    .lagna-intro { background: #fff8e1; border: 1px solid #ffe082; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+</style>
+
 <script>
-const signs_hi = ["मेष", "वृष", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुम्भ", "मीन"];
+// उच्च और नीच राशियों का डेटा
+const EX_DB_DATA = {
+    "सूर्य": { ex: 1, db: 7 }, "चंद्र": { ex: 2, db: 8 }, "मंगल": { ex: 10, db: 4 },
+    "बुध": { ex: 6, db: 12 }, "गुरु": { ex: 4, db: 10 }, "शुक्र": { ex: 12, db: 6 },
+    "शनि": { ex: 7, db: 1 }
+};
+
+// FortuneWithStars के आधार पर लग्न फलादेश डेटा
+const LAGNA_DATA = {
+    1: { name: "मेष", swami: "मंगल", phal: "मेष लग्न के लिए मंगल, सूर्य और गुरु अत्यंत शुभ होते हैं। शुक्र, बुध और शनि मारक प्रभाव दे सकते हैं।" },
+    2: { name: "वृष", swami: "शुक्र", phal: "वृष लग्न में शनि परम राजयोगकारक ग्रह है। बुध और शुक्र भी शुभ फल देते हैं, जबकि गुरु और मंगल अशुभ।" },
+    3: { name: "मिथुन", swami: "बुध", phal: "मिथुन लग्न के लिए बुध, शुक्र और शनि मित्र ग्रह हैं। मंगल और गुरु इस लग्न के लिए शुभ नहीं माने जाते।" },
+    4: { name: "कर्क", swami: "चंद्र", phal: "कर्क लग्न में मंगल योगकारक होकर जीवन में सफलता दिलाता है। गुरु और चंद्र भी शुभ होते हैं।" },
+    5: { name: "सिंह", swami: "सूर्य", phal: "सिंह लग्न के लिए सूर्य, मंगल और गुरु शुभ फलदायी हैं। शनि और शुक्र यहाँ मारक बन सकते हैं।" },
+    6: { name: "कन्या", swami: "बुध", phal: "कन्या लग्न के लिए बुध और शुक्र की युति राजयोग बनाती है। मंगल यहाँ सबसे अशुभ फल देता है।" },
+    7: { name: "तुला", swami: "शुक्र", phal: "तुला लग्न के लिए शनि सबसे बलवान योगकारक ग्रह है। बुध और शुक्र भी समृद्धिदायक होते हैं।" },
+    8: { name: "वृश्चिक", swami: "मंगल", phal: "वृश्चिक लग्न के लिए चंद्र और गुरु अत्यंत शुभ हैं। मंगल लग्नेश होकर सफलता प्रदान करता है।" },
+    9: { name: "धनु", swami: "गुरु", phal: "धनु लग्न के लिए सूर्य और मंगल राजयोग कारक हैं। गुरु स्वयं शुभ फल देता है।" },
+    10: { name: "मकर", swami: "शनि", phal: "मकर लग्न के लिए शुक्र सबसे बड़ा मित्र और योगकारक ग्रह है। बुध भी अनुकूल परिणाम देता है।" },
+    11: { name: "कुम्भ", swami: "शनि", phal: "कुम्भ लग्न के लिए शुक्र और बुध शुभ होते हैं। लग्नेश शनि स्वयं अनुशासन और उन्नति देता है।" },
+    12: { name: "मीन", swami: "गुरु", phal: "मीन लग्न के लिए मंगल और चंद्र अत्यंत शुभ हैं। गुरु लग्नेश होकर ज्ञान और समृद्धि देता है।" }
+};
 
 function generateLocalKundli() {
-    document.getElementById('report-area').style.display = 'block';
-    const name = document.getElementById('custName').value;
-    document.getElementById('out-name').innerText = name;
-    document.getElementById('out-date').innerText = document.getElementById('dob').value + " " + document.getElementById('tob').value;
-
-    // --- ज्योतिषीय गणित (Simplified Nirayana Logic) ---
-    // चूंकि हम सर्वर का उपयोग नहीं कर रहे, हम डेट के आधार पर ग्रहों का अनुमान लगा रहे हैं
-    // यह कमर्शियल उपयोग के लिए 95% सटीक परिणाम देगा
+    // ... पुरानी गणना का हिस्सा ... (पिछली बार वाला लॉजिक)
     
-    let birthDate = new Date(document.getElementById('dob').value);
-    let dayOfYear = Math.floor((birthDate - new Date(birthDate.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-    
-    // डमी लग्न गणना (समय के आधार पर)
-    let timeParts = document.getElementById('tob').value.split(':');
-    let totalMinutes = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
-    let lagna = Math.floor((totalMinutes / 120) % 12) + 1;
-
-    const planets = [
-        { n: "सूर्य", d: (dayOfYear + 280) % 360 },
-        { n: "चंद्र", d: (dayOfYear * 13.1) % 360 },
-        { n: "मंगल", d: (dayOfYear * 0.5) % 360 },
-        { n: "बुध", d: (dayOfYear * 1.2) % 360 },
-        { n: "गुरु", d: (dayOfYear * 0.08) % 360 },
-        { n: "शुक्र", d: (dayOfYear * 1.6) % 360 },
-        { n: "शनि", d: (dayOfYear * 0.03) % 360 },
-        { n: "राहु", d: (360 - (dayOfYear * 0.05)) % 360 },
-        { n: "केतु", d: (180 - (dayOfYear * 0.05)) % 360 }
-    ];
-
     let tableBody = "";
     let processedPlanets = planets.map(p => {
-        let signIdx = Math.floor(p.d / 30);
+        let signIdx = Math.floor(p.d / 30) + 1; // 1 to 12
         let house = (signIdx - lagna + 13) % 12;
         if(house === 0) house = 12;
+
+        // उच्च/नीच चेक करें
+        let status = "";
+        let statusClass = "";
+        if(EX_DB_DATA[p.n]) {
+            if(signIdx === EX_DB_DATA[p.n].ex) { status = "(उच्च)"; statusClass = "status-ex"; }
+            if(signIdx === EX_DB_DATA[p.n].db) { status = "(नीच)"; statusClass = "status-db"; }
+        }
         
-        tableBody += `<tr><td>${p.n}</td><td>${(p.d % 30).toFixed(2)}°</td><td>${house}</td><td>${signs_hi[signIdx]}</td></tr>`;
+        tableBody += `<tr><td>${p.n} <span class="${statusClass}">${status}</span></td><td>${(p.d % 30).toFixed(2)}°</td><td>${house}</td><td>${signs_hi[signIdx-1]}</td></tr>`;
         
         return { name: p.n, house: house, d9: Math.floor((p.d % 30) / (3.33)) + 1 };
     });
 
     document.querySelector("#p-table tbody").innerHTML = tableBody;
-    
-    // चार्ट ड्रा करें
+
+    // लग्न फलादेश सेक्शन अपडेट करें
+    const lData = LAGNA_DATA[lagna];
+    document.getElementById('predictions').innerHTML = `
+        <div class="lagna-intro">
+            <h3 style="margin-top:0; color:var(--maroon); border-bottom:1px solid #ccc;">${lData.name} लग्न फलादेश (FortuneWithStars सिद्धांतों पर आधारित)</h3>
+            <p><b>स्वामी:</b> ${lData.swami} | <b>प्रकृति:</b> ${lData.phal}</p>
+        </div>
+        <p>आपकी कुंडली के विश्लेषण के अनुसार, लग्नेश <b>${lData.swami}</b> की स्थिति और ग्रहों का गोचर आपके जीवन की दिशा तय करेगा।</p>
+    `;
+
+    // चार्ट ड्रॉ करें
     drawNorthChart("d1-svg", lagna, processedPlanets, 'house');
-    drawNorthChart("d9-svg", 5, processedPlanets, 'd9'); // Example D9
+    drawNorthChart("d9-svg", 5, processedPlanets, 'd9');
     
-    document.getElementById('predictions').innerHTML = `<b>फलादेश:</b> ${name} जी, आपकी कुंडली के अनुसार आपका जन्म <b>${signs_hi[lagna-1]}</b> लग्न में हुआ है। लग्नेश की स्थिति शुभ होने से आपका व्यक्तित्व प्रभावशाली रहेगा।`;
-}
-
-function drawNorthChart(id, asc, planets, mode) {
-    const coords = {
-        1:[225,170], 2:[110,95], 3:[55,170], 4:[150,265], 5:[55,345], 6:[110,420], 
-        7:[225,345], 8:[340,420], 9:[395,345], 10:[300,265], 11:[395,170], 12:[340,95]
-    };
-    let svg = `<svg viewBox="0 0 450 480" width="100%">
-        <path d="M0 0 L450 0 L450 450 L0 450 Z M0 0 L450 450 M450 0 L0 450 M225 0 L0 225 L225 450 L450 225 Z" fill="none" stroke="#333" stroke-width="2"/>`;
-    
-    for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 2) % 12 + 1;
-        svg += `<text x="${coords[i][0]}" y="${coords[i][1]+5}" fill="#800000" font-weight="bold" font-size="22" text-anchor="middle">${sign}</text>`;
-        
-        let inHouse = planets.filter(p => p.house === i);
-        inHouse.forEach((p, idx) => {
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]-20-(idx*15)}" font-size="12" text-anchor="middle" fill="#444">${p.name}</text>`;
-        });
-    }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
-}
-
-async function savePDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const canvas = await html2canvas(document.getElementById('capture-this'), { scale: 2 });
-    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
-    doc.save("Kundli_Report.pdf");
+    document.getElementById('report-area').style.display = 'block';
 }
 </script>
 </body>
