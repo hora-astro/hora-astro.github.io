@@ -137,12 +137,13 @@ async function generateKundli() {
 
     try {
         const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
+        method: 'POST',
+        mode: 'cors', // इसे ज़रूर जोड़ें
+        headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+    });
         const data = await response.json();
         
         if (data.status === 'success') {
