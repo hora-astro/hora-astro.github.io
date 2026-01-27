@@ -72,7 +72,7 @@ const ASHTAK_DATA = {
 const PLANET_NAMES = { "Sun": "सूर्य", "Moon": "चंद्र", "Mars": "मंगल", "Mercury": "बुध", "Jupiter": "गुरु", "Venus": "शुक्र", "Saturn": "शनि", "North Node": "राहु", "South Node": "केतु" };
 
 async function generateReport() {
-    const res = await fetch('http://localhost:5000/calculate', {
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
