@@ -64,7 +64,7 @@ async function getKundli() {
     area.innerHTML = "<h3>सर्वर से गणना प्राप्त की जा रही है...</h3>";
     
     try {
-        const response = await fetch('http://127.0.0.1:5000/calculate', {
+        const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
