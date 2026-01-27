@@ -2,104 +2,104 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Astro Professional Report</title>
+    <title>Professional Astro Software</title>
     <style>
-        :root { --maroon: #800000; --gold: #b8860b; }
-        body { font-family: 'Segoe UI', Arial; background: #fffcf5; margin: 0; padding: 20px; }
-        .config-panel { background: white; padding: 20px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; flex-wrap: wrap; box-shadow: 0 2px 5px rgba(0,0,0,0.1); sticky; top: 0; z-index: 100; }
-        .report-page { max-width: 900px; margin: 20px auto; background: white; padding: 40px; border: 1px solid #ddd; }
-        .prediction-card { border-left: 5px solid var(--gold); background: #fef9e7; padding: 15px; margin: 15px 0; border-radius: 4px; }
-        .high { color: green; font-weight: bold; }
-        .low { color: red; font-weight: bold; }
-        .suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 250px; display: none; margin-top: 40px; }
-        .suggestions div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        :root { --main: #800000; --bg: #fffcf2; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .toolbar { background: white; padding: 15px; border-bottom: 3px solid var(--main); display: flex; gap: 10px; flex-wrap: wrap; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .report { max-width: 850px; margin: 30px auto; background: white; padding: 30px; border: 1px solid #ddd; }
+        .pred-card { border-left: 5px solid gold; background: #fff9e6; padding: 15px; margin: 15px 0; border-radius: 5px; line-height: 1.6; }
+        .status-ex { color: green; font-weight: bold; }
+        .status-db { color: red; font-weight: bold; }
+        #results { position: absolute; background: white; border: 1px solid #ccc; width: 250px; display: none; cursor: pointer; }
+        #results div { padding: 8px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div class="config-panel">
-    <input type="text" id="cityName" placeholder="शहर खोजें..." oninput="fetchCities(this.value)">
-    <div id="cityList" class="suggestions"></div>
-    <input type="hidden" id="lat"> <input type="hidden" id="lon">
-    <input type="date" id="dob" value="1995-05-15">
-    <input type="time" id="tob" value="10:30">
-    <button onclick="startCalculation()" style="background:var(--maroon); color:white; border:none; padding:10px 20px; cursor:pointer;">कुंडली जेनरेट करें</button>
+<div class="toolbar">
+    <div style="position:relative">
+        <input type="text" id="cityInput" placeholder="शहर खोजें..." oninput="searchLocation(this.value)">
+        <div id="results"></div>
+    </div>
+    <input type="date" id="dob" value="1990-01-01">
+    <input type="time" id="tob" value="12:00">
+    <input type="hidden" id="lat" value="28.61">
+    <input type="hidden" id="lon" value="77.20">
+    <button onclick="getKundli()" style="background:var(--main); color:white; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">कुंडली जेनरेट करें</button>
 </div>
 
-<div id="output"></div>
+<div id="printArea"></div>
 
 <script>
-const LAGNA_WEBSITE_LOGIC = {
-    1: { name: "मेष", yog: ["Sun", "Jupiter", "Mars"], marak: ["Venus", "Mercury", "Saturn"], desc: "मेष लग्न के स्वामी मंगल देव हैं। सूर्य यहाँ पंचमेश होकर परम राजयोग कारक बनते हैं।" },
-    2: { name: "वृष", yog: ["Saturn", "Mercury", "Venus"], marak: ["Jupiter", "Moon", "Mars"], desc: "वृष लग्न का स्वामी शुक्र है। शनि यहाँ भाग्येश और कर्मेश होकर राजयोग कारक है।" },
-    10: { name: "मकर", yog: ["Venus", "Mercury", "Saturn"], marak: ["Moon", "Mars", "Jupiter"], desc: "मकर लग्न का स्वामी शनि है। यहाँ शुक्र राजयोग कारक माना जाता है।" }
+// वेबसाइट लॉजिक: कौन से ग्रह किस लग्न के लिए शुभ/अशुभ हैं
+const LAGNA_DATA = {
+    1: { name: "मेष", yog: ["सूर्य", "गुरु", "मंगल"], marak: ["शुक्र", "बुध", "शनि"], intro: "मेष लग्न का स्वामी मंगल है। सूर्य यहाँ पंचमेश होकर प्रबल राजयोग कारक है।" },
+    2: { name: "वृष", yog: ["शनि", "बुध", "शुक्र"], marak: ["गुरु", "चंद्र", "मंगल"], intro: "वृष लग्न का स्वामी शुक्र है। यहाँ शनि भाग्येश और कर्मेश होकर सबसे शुभ ग्रह है।" },
+    10: { name: "मकर", yog: ["शुक्र", "बुध", "शनि"], marak: ["मंगल", "गुरु", "चंद्र"], intro: "मकर लग्न का स्वामी शनि है। यहाँ शुक्र राजयोग कारक माना जाता है।" }
     // इसी तरह 3-9 और 11, 12 का डेटा जोड़ें
 };
 
-async function fetchCities(val) {
-    if(val.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}`);
+async function searchLocation(q) {
+    if(q.length < 3) return;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
     const data = await res.json();
-    const list = document.getElementById('cityList');
-    list.innerHTML = ""; list.style.display = "block";
-    data.forEach(c => {
-        let d = document.createElement('div');
-        d.innerText = c.display_name;
-        d.onclick = () => {
+    const div = document.getElementById('results');
+    div.innerHTML = ""; div.style.display = "block";
+    data.slice(0, 5).forEach(c => {
+        let item = document.createElement('div');
+        item.innerText = c.display_name;
+        item.onclick = () => {
             document.getElementById('lat').value = c.lat;
             document.getElementById('lon').value = c.lon;
-            document.getElementById('cityName').value = c.display_name.split(',')[0];
-            list.style.display = "none";
+            document.getElementById('cityInput').value = c.display_name.split(',')[0];
+            div.style.display = "none";
         };
-        list.appendChild(d);
+        div.appendChild(item);
     });
 }
 
-async function startCalculation() {
-    const output = document.getElementById('output');
-    output.innerHTML = "<h3>गणना हो रही है, कृपया प्रतीक्षा करें...</h3>";
-
+async function getKundli() {
+    const area = document.getElementById('printArea');
+    area.innerHTML = "<h3>सर्वर से गणना प्राप्त की जा रही है...</h3>";
+    
     try {
-        const response = await fetch('http://hemantpurohit27.pythonanywhere.com/calculate', { // यहाँ अपना URL बदलें
+        const response = await fetch('http://127.0.0.1:5000/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 date: document.getElementById('dob').value,
                 time: document.getElementById('tob').value,
-                lat: document.getElementById('lat').value || "28.61",
-                lon: document.getElementById('lon').value || "77.20"
+                lat: document.getElementById('lat').value,
+                lon: document.getElementById('lon').value
             })
         });
-
         const data = await response.json();
         if(data.status === 'success') renderReport(data);
-        else output.innerHTML = `<h3 style="color:red">त्रुटी: ${data.message}</h3>`;
     } catch (e) {
-        output.innerHTML = `<h3 style="color:red">सर्वर से संपर्क नहीं हो पाया। सुनिश्चित करें कि Backend चालू है।</h3>`;
+        area.innerHTML = `<h3 style="color:red">सर्वर से संपर्क नहीं हो पाया। कृपया सुनिश्चित करें कि आपने Python Script रन की है।</h3>`;
     }
 }
 
 function renderReport(data) {
-    const conf = LAGNA_WEBSITE_LOGIC[data.lagna.rIdx] || {name: "अज्ञात", desc: "", yog: [], marak: []};
-    
-    let html = `<div class="report-page">
-        <h1 style="text-align:center; color:var(--maroon);">जन्म कुंडली प्रतिवेदन</h1>
-        <p><b>लग्न:</b> ${conf.name} | <b>लहरी आयनांश:</b> ${data.ayanamsa}</p>
-        <div class="prediction-card"><b>लग्न परिचय:</b> ${conf.desc}</div>`;
+    const info = LAGNA_DATA[data.lagna.rIdx] || {name: "अज्ञात", yog:[], marak:[], intro:""};
+    let html = `<div class="report">
+        <h1 style="text-align:center; color:var(--main);">॥ जन्म कुंडली फलादेश ॥</h1>
+        <p><b>लग्न:</b> ${info.name} | <b>लहरी आयनांश:</b> ${data.ayanamsa}</p>
+        <div class="pred-card"><b>परिचय:</b> ${info.intro}</div>`;
 
     data.planets.forEach(p => {
-        let type = conf.yog.includes(p.id) ? "योगकारक" : (conf.marak.includes(p.id) ? "मारक" : "सम");
-        let statusText = p.status ? `<span class="${p.status === 'उच्च' ? 'high' : 'low'}">(${p.status})</span>` : "";
+        let role = info.yog.includes(p.name) ? "शुभ (योगकारक)" : (info.marak.includes(p.name) ? "अशुभ (मारक)" : "सम");
+        let statusTag = p.status === "उच्च" ? `<span class="status-ex">(उच्च का ग्रह)</span>` : (p.status === "नीच" ? `<span class="status-db">(नीच का ग्रह)</span>` : "");
         
-        html += `<div class="prediction-card">
-            <b>${p.id} ${statusText}:</b> यह आपके ${p.house} वें भाव में ${p.deg} पर स्थित है। <br>
-            यह इस लग्न के लिए <b>${type}</b> ग्रह है। 
-            ${p.status === 'उच्च' ? 'यह उच्च का होकर अत्यंत शुभ फल देगा।' : ''}
-            ${p.status === 'नीच' ? 'यह नीच का होने के कारण संबंधित भाव में कमी कर सकता है।' : ''}
+        html += `<div class="pred-card">
+            <b>${p.name} ${statusTag}:</b> यह कुंडली के <b>${p.house} वें भाव</b> में ${p.deg} पर स्थित है।<br>
+            <b>फलादेश:</b> ${info.name} लग्न के लिए यह ग्रह <b>${role}</b> है। 
+            ${p.status === 'उच्च' ? 'यह अपनी उच्च स्थिति के कारण अत्यंत श्रेष्ठ फल देगा।' : ''}
+            ${p.status === 'नीच' ? 'नीच राशि में होने के कारण इसके शुभ फलों में कमी आ सकती है।' : ''}
         </div>`;
     });
-
-    document.getElementById('output').innerHTML = html + `</div>`;
+    document.getElementById('printArea').innerHTML = html + "</div>";
 }
 </script>
 </body>
