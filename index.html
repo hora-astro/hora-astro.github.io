@@ -2,135 +2,91 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Kundli Software</title>
+    <title>50-Page Life Report Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Arial'; background: #f4f4f4; margin: 0; }
-        .toolbar { background: #1a1a1a; color: gold; padding: 20px; display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; box-sizing: border-box; border: 2px solid #800000; position: relative; }
-        .chart-row { display: flex; justify-content: space-around; margin: 20px 0; }
-        .svg-container { width: 300px; height: 300px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-        th, td { border: 1px solid #800000; padding: 8px; text-align: center; }
-        th { background: #800000; color: white; }
-        .pred-text { line-height: 1.8; text-align: justify; margin-top: 15px; border-left: 4px solid #800000; padding-left: 10px; }
-        #suggestionBox { position: absolute; background: white; border: 1px solid #ccc; width: 250px; z-index: 1001; color: black; }
+        .toolbar { background: #800000; color: white; padding: 15px; display: flex; gap: 10px; position: sticky; top:0; z-index:100; justify-content: center; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); page-break-after: always; position: relative;}
+        .prediction-box { border-left: 5px solid #daa520; background: #fffcf0; padding: 20px; margin: 20px 0; font-size: 17px; line-height: 1.8; }
+        h1, h2 { color: #800000; text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .age-tag { background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <div style="position:relative;">
-        <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)" style="padding:10px; width:250px;">
-        <div id="suggestionBox"></div>
-    </div>
-    <input type="date" id="dob" value="1990-01-01" style="padding:10px;">
-    <input type="time" id="tob" value="12:00" style="padding:10px;">
-    <input type="hidden" id="lat" value="23.32"><input type="hidden" id="lon" value="74.26">
-    <button onclick="generateReport()" style="padding:10px 20px; background:gold; border:none; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
-    <button onclick="downloadPDF()" style="padding:10px 20px; background:green; color:white; border:none; cursor:pointer;">PDF डाउनलोड</button>
+    <input type="text" id="name" value="हेमंत पुरोहित">
+    <input type="date" id="dob" value="1980-03-27">
+    <input type="time" id="tob" value="10:30">
+    <input type="text" id="lat" value="23.32" style="width:60px">
+    <input type="text" id="lon" value="74.26" style="width:60px">
+    <button onclick="generate50Page()">50 पेज रिपोर्ट जेनरेट करें</button>
 </div>
 
-<div id="reportContainer"></div>
+<div id="content"></div>
 
 <script>
-// लोकेशन सर्च फंक्शन
-async function searchLoc(q) {
-    if(q.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-    const data = await res.json();
-    let html = "";
-    data.forEach(i => {
-        html += `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
-    });
-    document.getElementById('suggestionBox').innerHTML = html;
-}
-function selectLoc(n, la, lo) {
-    document.getElementById('loc').value = n;
-    document.getElementById('lat').value = la;
-    document.getElementById('lon').value = lo;
-    document.getElementById('suggestionBox').innerHTML = "";
-}
+const DASHA_LORDS = ["केतु", "शुक्र", "सूर्य", "चंद्र", "मंगल", "राहु", "गुरु", "शनि", "बुध"];
+const DASHA_YEARS = [7, 20, 6, 10, 7, 18, 16, 19, 17];
 
-async function generateReport() {
+async function generate50Page() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value })
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value})
     });
     const data = await res.json();
-    if(data.status === 'success') renderPages(data);
+    render(data);
 }
 
-function renderPages(data) {
-    const container = document.getElementById('reportContainer');
-    container.innerHTML = "";
+function render(data) {
+    let html = "";
+    
+    // पेज 1: मुखपृष्ठ
+    html += `<div class="pdf-page"><h1>॥ वृहद जीवन फलादेश ॥</h1><h2 style="margin-top:100px;">जातक का नाम: ${document.getElementById('name').value}</h2><p style="text-align:center;">यह 50 पृष्ठों की विस्तृत रिपोर्ट आपके संपूर्ण जीवन का दर्पण है।</p></div>`;
 
-    // पेज 1: अवकहड़ा चक्र और मुख्य विवरण
-    let p1 = `<div class="pdf-page">
-        <h1 align="center" style="color:#800000;">॥ जन्म पत्रिका ॥</h1>
-        <div class="chart-row">
-            <div class="svg-container"><h3>D1 लग्न कुंडली</h3><div id="d1_box"></div></div>
-            <div class="svg-container"><h3>D9 नवांश कुंडली</h3><div id="d9_box"></div></div>
-        </div>
-        <h3>अवसहड़ा चक्र</h3>
-        <table>
-            <tr><th>नक्षत्र</th><td>${data.nak}</td><th>चरण</th><td>${data.charan}</td></tr>
-            <tr><th>वर्ण</th><td>${data.avk.वर्ण}</td><th>वश्य</th><td>${data.avk.वश्य}</td></tr>
-            <tr><th>योनि</th><td>${data.avk.योनि}</td><th>गण</th><td>${data.avk.गण}</td></tr>
-        </table>
-        <h3>ग्रह स्थिति एवं नक्षत्र</h3>
-        <table>
-            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>अवस्था</th></tr>
-            ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td><td><b>${p.status}</b></td></tr>`).join('')}
-        </table>
-    </div>`;
-    container.innerHTML += p1;
+    // पेज 2: लग्न कुंडली और ग्रह स्थिति
+    html += `<div class="pdf-page"><h2>कुंडली विवरण</h2><div id="d1_svg"></div><table><tr><th>ग्रह</th><th>अंश</th><th>भाव</th></tr>`;
+    data.planets.forEach(p => { html += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.house}</td></tr>`; });
+    html += `</table></div>`;
 
-    // फलादेश पेज (200 पेज के लिए लूप)
-    data.planets.forEach(p => {
-        for(let i=1; i<=10; i++) {
-            let p_html = `<div class="pdf-page">
-                <h2>${p.name} का विस्तृत फलादेश - भाग ${i}</h2>
-                <div class="pred-text">
-                    ज्योतिषीय गणना के अनुसार ${p.name} आपके ${p.house} भाव में स्थित है और ${p.naks} नक्षत्र में गोचर कर रहा है। 
-                    इस ग्रह की ${p.status} अवस्था आपके जीवन में विशेष प्रभाव डालेगी। 
-                    <br><br>
-                    यह ग्रह आपके कर्म क्षेत्र और पारिवारिक सुख में महत्वपूर्ण भूमिका निभाएगा। इसकी स्थिति दर्शाती है कि आपको 
-                    आने वाले समय में अपने प्रयासों का उचित फल प्राप्त होगा। उपाय स्वरूप संबंधित ग्रह का दान व मंत्र जप लाभकारी रहेगा।
-                </div>
-            </div>`;
-            container.innerHTML += p_html;
-        }
-    });
-
-    drawChart('d1_box', data.lagna_idx, data.planets, 'house');
-    drawChart('d9_box', data.planets[0].d9, data.planets, 'd9'); // D9 Chart
-}
-
-function drawChart(id, asc, planets, mode) {
-    const pos = {1:[150,115], 2:[75,50], 3:[35,115], 4:[100,180], 5:[35,245], 6:[75,310], 7:[150,245], 8:[225,310], 9:[265,245], 10:[200,180], 11:[265,115], 12:[225,50]};
-    let svg = `<svg viewBox="0 0 300 330" width="100%"><path d="M0 0 L300 0 L300 300 L0 300 Z M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
-    for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
-        let [x, y] = pos[i];
-        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="bold" font-size="16" text-anchor="middle">${sign}</text>`;
-        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
-        list.forEach((p, idx) => { svg += `<text x="${x}" y="${y-10-(idx*12)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`; });
+    // पेज 3-14: भावों का फलादेश (भावेश की स्थिति अनुसार)
+    for(let i=1; i<=12; i++) {
+        html += `<div class="pdf-page"><h2>अध्याय ${i+2}: ${i} भाव का परिणाम</h2><div class="prediction-box">इस भाव का स्वामी कुंडली में जिस स्थिति में है, वह आपके जीवन के इस क्षेत्र में महत्वपूर्ण भूमिका निभाएगा।</div></div>`;
     }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
-}
 
-async function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pages = document.querySelectorAll('.pdf-page');
-    for(let i=0; i<pages.length; i++) {
-        const canvas = await html2canvas(pages[i], {scale: 1.5});
-        if(i > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, 210, 297);
+    // पेज 15-50: आयु अनुसार मिलने वाली सुविधाएं (दशा आधारित)
+    let currentYear = new Date(data.dob).getFullYear();
+    let dashaIdx = data.dasha_idx;
+    let startAge = 0;
+    
+    for(let page=15; page<=50; page++) {
+        let ageRangeStart = (page - 15) * 3;
+        let ageRangeEnd = ageRangeStart + 3;
+        let lord = DASHA_LORDS[dashaIdx % 9];
+
+        html += `<div class="pdf-page">
+            <h2>आयु विश्लेषण: ${ageRangeStart} से ${ageRangeEnd} वर्ष</h2>
+            <div class="prediction-box">
+                <span class="age-tag">आयु ${ageRangeStart}-${ageRangeEnd} वर्ष</span><br><br>
+                इस अवधि में आप पर <b>${lord}</b> की महादशा का प्रभाव रहेगा। 
+                <br><br>
+                <b>मिलने वाली सुविधाएं:</b><br>
+                ${ageRangeStart < 20 ? 'शिक्षा, माता का सुख और प्रारंभिक विकास के साधन मिलेंगे।' : ''}
+                ${ageRangeStart >= 20 && ageRangeStart < 45 ? 'विवाह, वाहन सुख, भवन निर्माण और करियर में स्थायित्व की प्राप्ति होगी।' : ''}
+                ${ageRangeStart >= 45 ? 'धार्मिक यात्राएं, संचित धन का लाभ और सामाजिक प्रतिष्ठा में वृद्धि होगी।' : ''}
+                <br><br>
+                <b>Fortune विश्लेषण:</b> इस आयु वर्ग में आपके ${lord} की स्थिति के कारण आपको भौतिक सुखों की प्राप्ति होगी। यदि आप व्यापार में हैं, तो विस्तार के अवसर मिलेंगे।
+            </div>
+        </div>`;
+        if (ageRangeEnd % 10 === 0) dashaIdx++; // सरल दशा परिवर्तन लॉजिक
     }
-    doc.save("Kundli_Report_Complete.pdf");
+
+    document.getElementById('content').innerHTML = html;
 }
 </script>
 </body>
