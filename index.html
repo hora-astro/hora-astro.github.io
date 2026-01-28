@@ -2,30 +2,32 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>प्रोफेशनल कुंडली सॉफ्टवेयर</title>
     <style>
         body { font-family: 'Arial', sans-serif; background: #2c3e50; margin: 0; color: #333; }
         .toolbar { background: #1a1a1a; padding: 15px; text-align: center; color: gold; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid gold; }
-        .toolbar input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #444; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 10px double #800000; box-sizing: border-box; position: relative; }
-        #suggestionBox { position: absolute; background: white; color: black; width: 250px; z-index: 1001; text-align: left; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
+        .toolbar input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #444; width: 150px; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 10px double #800000; box-sizing: border-box; }
+        #suggestionBox { position: absolute; background: white; color: black; width: 250px; z-index: 1001; text-align: left; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; left: 50%; transform: translateX(-50%); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
         .box { border-bottom: 1px dashed #800000; padding: 8px; display: flex; justify-content: space-between; font-size: 14px; }
-        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
+        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #800000; padding: 10px; text-align: center; font-size: 13px; }
+        th, td { border: 1px solid #800000; padding: 8px; text-align: center; font-size: 13px; }
         th { background: #800000; color: white; }
-        .pred-text { border-left: 5px solid #800000; background: #fffcf0; padding: 20px; margin: 20px 0; line-height: 1.8; text-align: justify; }
+        .pred-text { border-left: 5px solid #800000; background: #fffcf0; padding: 20px; margin: 20px 0; line-height: 1.8; border-radius: 0 10px 10px 0; }
         .high { color: green; font-weight: bold; }
         .low { color: red; font-weight: bold; }
-        button { background: gold; font-weight: bold; cursor: pointer; padding: 10px 20px; border: none; border-radius: 5px; }
-        button:hover { background: #ffd700; }
+        button { background: gold; font-weight: bold; cursor: pointer; padding: 10px 20px; border: none; border-radius: 5px; transition: 0.3s; }
+        button:hover { background: #e6c200; transform: scale(1.05); }
+        #status { color: gold; font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="uname" placeholder="जातक का नाम">
+    <input type="text" id="uname" placeholder="नाम लिखें">
     <div style="display:inline-block; position:relative;">
         <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
         <div id="suggestionBox"></div>
@@ -35,18 +37,25 @@
     <input type="hidden" id="lat" value="28.61">
     <input type="hidden" id="lon" value="77.20">
     <button onclick="generate()">कुंडली बनाएँ</button>
+    <div id="status"></div>
 </div>
 
 <div id="reportContainer"></div>
 
 <script>
+// लोकेशन सर्च फंक्शन
 async function searchLoc(q) {
     if(q.length < 3) { document.getElementById('suggestionBox').innerHTML = ""; return; }
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-    const data = await res.json();
-    let html = "";
-    data.forEach(i => html += `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
-    document.getElementById('suggestionBox').innerHTML = html;
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const data = await res.json();
+        let html = "";
+        data.forEach(i => {
+            html += `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee; background:white;" 
+                     onclick="selectLoc('${i.display_name.split(',')[0]}',${i.lat},${i.lon})">${i.display_name}</div>`;
+        });
+        document.getElementById('suggestionBox').innerHTML = html;
+    } catch(e) { console.error("Loc Search Error", e); }
 }
 
 function selectLoc(n, la, lo) {
@@ -56,39 +65,51 @@ function selectLoc(n, la, lo) {
     document.getElementById('suggestionBox').innerHTML = "";
 }
 
+// मुख्य जनरेशन फंक्शन
 async function generate() {
-    const reportBtn = document.querySelector('button');
-    reportBtn.innerText = "गणना जारी है...";
+    const statusDiv = document.getElementById('status');
+    const container = document.getElementById('reportContainer');
+    statusDiv.innerText = "Backend से संपर्क किया जा रहा है...";
+    container.innerHTML = "<h2 style='color:white; text-align:center;'>कृपया प्रतीक्षा करें...</h2>";
+
+    const payload = { 
+        uname: document.getElementById('uname').value || "जातक", 
+        date: document.getElementById('dob').value, 
+        time: document.getElementById('tob').value, 
+        lat: document.getElementById('lat').value, 
+        lon: document.getElementById('lon').value 
+    };
+
     try {
         const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                uname: document.getElementById('uname').value, 
-                date: document.getElementById('dob').value, 
-                time: document.getElementById('tob').value, 
-                lat: document.getElementById('lat').value, 
-                lon: document.getElementById('lon').value 
-            })
+            body: JSON.stringify(payload)
         });
+        
         const d = await res.json();
-        if(d.status === 'success') renderUI(d);
-        else alert("Error: " + d.message);
+        if(d.status === 'success') {
+            statusDiv.innerText = "सफलतापूर्वक लोड हो गया।";
+            renderUI(d);
+        } else {
+            statusDiv.innerText = "Error: " + d.message;
+            container.innerHTML = `<div style='color:red; background:white; padding:20px; margin:20px;'>सर्वर एरर: ${d.message}</div>`;
+        }
     } catch(e) {
-        alert("सर्वर से संपर्क नहीं हो पाया। कृपया सुनिश्चित करें कि Backend चालू है।");
+        statusDiv.innerText = "कनेक्शन फेल! सुनिश्चित करें कि Backend चालू है।";
+        container.innerHTML = `<div style='color:red; background:white; padding:20px; margin:20px;'>नेटवर्क एरर: ${e.message}<br>चेक करें कि https://hemantpurohit27.pythonanywhere.com चालू है।</div>`;
     }
-    reportBtn.innerText = "कुंडली बनाएँ";
 }
 
 function renderUI(d) {
     const container = document.getElementById('reportContainer');
     container.innerHTML = "";
 
-    // Page 1: Main Details & Charts
+    // पंचांग और मुख्य विवरण
     let p1 = `<div class="pdf-page">
         <h1 align="center" style="color:#800000; margin-bottom:5px;">॥ श्री गणेशाय नमः ॥</h1>
         <h2 align="center" style="margin-top:0;">जन्म पत्रिका: ${d.name}</h2>
-        <p align="center"><b>सटीक अयनांश:</b> ${d.ayan}</p>
+        <p align="center"><b>सटीक अयनांश (Ayanamsa):</b> ${d.ayan}</p>
         <div class="grid">
             <div class="box"><span>नक्षत्र:</span><b>${d.planets.find(p=>p.name==='चंद्र').nak}</b></div>
             <div class="box"><span>इष्टकाल:</span><b>${d.ishtakal}</b></div>
@@ -98,8 +119,8 @@ function renderUI(d) {
             <div class="box"><span>पाया:</span><b>${d.avk.पाया}</b></div>
         </div>
         <div class="chart-box">
-            <div id="d1" style="width:360px;"></div>
-            <div id="d9" style="width:360px;"></div>
+            <div id="d1" style="width:340px; margin-bottom:20px;"></div>
+            <div id="d9" style="width:340px; margin-bottom:20px;"></div>
         </div>
         <table>
             <tr><th>ग्रह</th><th>अंश (नक्षत्र)</th><th>भाव</th><th>अवस्था</th></tr>
@@ -113,7 +134,7 @@ function renderUI(d) {
     </div>`;
     container.innerHTML += p1;
 
-    // Page 2+: Planetary Predictions
+    // फलादेश पेज
     d.planets.forEach(p => {
         container.innerHTML += `<div class="pdf-page">
             <h2 style="color:#800000; border-bottom: 2px solid;">${p.name} फलादेश विश्लेषण</h2>
@@ -121,8 +142,6 @@ function renderUI(d) {
                 <b>स्थिती:</b> ${p.name}, भाव संख्या <b>${p.lords.join(' व ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में स्थित है। <br><br>
                 <b>अवस्था:</b> यह ग्रह वर्तमान में <b>${p.status}</b> अवस्था में है। 
                 ${p.status === 'उच्च' ? '<span class="high">यह अत्यंत शुभ और बलवान फल देगा।</span>' : (p.status === 'नीच' ? '<span class="low">यह संघर्षपूर्ण परिणाम दे सकता है।</span>' : 'यह सामान्य फल प्रदान करेगा।')}
-                <br><br>
-                <b>विशेष:</b> यह जातक के जीवन में इस भाव से संबंधित सुख-दुख का निर्धारण करेगा।
             </div>
         </div>`;
     });
@@ -141,23 +160,18 @@ function drawChart(id, asc, planets, mode, title) {
     let svg = `<svg viewBox="0 0 300 370" width="100%">
         <text x="150" y="25" text-anchor="middle" font-weight="bold" fill="#800000" font-size="16">${title}</text>
         <path d="M0 40 L300 40 L300 340 L0 340 Z M0 40 L300 340 M300 40 L0 340 M150 40 L0 190 L150 340 L300 190 Z" 
-              fill="none" stroke="#800000" stroke-width="2"/>`;
+              fill="none" stroke="#800000" stroke-width="2.5"/>`;
 
     for (let i = 1; i <= 12; i++) {
         let signNum = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
         let [x, y] = centers[i];
-        
-        // राशि संख्या
         svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="15" text-anchor="middle">${signNum}</text>`;
 
         let hPlanets = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === signNum);
-        
-        // ग्रहों का प्लेसमेंट (कम स्पेस और कलर कोडिंग)
         hPlanets.forEach((p, idx) => {
             let row = Math.floor(idx / 2);
             let xOff = (hPlanets.length === 1) ? 0 : (idx % 2 === 0 ? -18 : 18);
             let pColor = p.status === 'उच्च' ? 'green' : (p.status === 'नीच' ? 'red' : '#333');
-            
             svg += `<text x="${x + xOff}" y="${y + 18 + (row * 12)}" font-size="9" font-weight="bold" text-anchor="middle" fill="${pColor}">${p.name}</text>`;
         });
     }
