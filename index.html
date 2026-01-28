@@ -2,21 +2,18 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional 50 Page Kundli Report</title>
+    <title>Professional 50-Page Kundli</title>
     <style>
         :root { --maroon: #800000; --gold: #b8860b; }
-        body { font-family: 'Arial', sans-serif; background: #f4f4f4; margin: 0; }
-        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top:0; z-index:100; }
-        .search-container { position: relative; width: 200px; }
-        #sugBox { position: absolute; background: white; border: 1px solid #ccc; width: 100%; top: 40px; display: none; z-index: 101; max-height: 200px; overflow-y: auto; }
-        #sugBox div { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); page-break-after: always; box-sizing: border-box; }
-        .border-line { border: 2px solid var(--maroon); height: 100%; padding: 20px; box-sizing: border-box; }
-        h1, h2, h3 { color: var(--maroon); text-align: center; margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #999; padding: 10px; text-align: center; font-size: 14px; }
-        .prediction-card { font-size: 16px; line-height: 1.8; text-align: justify; margin-top: 20px; color: #333; }
-        .age-badge { background: var(--maroon); color: white; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma; margin: 0; background: #eee; }
+        .toolbar { background: white; padding: 15px; border-bottom: 3px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top:0; z-index:100; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 25mm; box-shadow: 0 0 15px rgba(0,0,0,0.2); page-break-after: always; box-sizing: border-box; border: 1px solid #ddd; }
+        .inner-border { border: 2px solid var(--maroon); height: 100%; padding: 20px; position: relative; }
+        h1, h2 { color: var(--maroon); text-align: center; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+        .prediction-text { font-size: 17px; line-height: 1.8; text-align: justify; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #999; padding: 10px; text-align: center; }
+        .age-badge { background: var(--maroon); color: white; padding: 5px 15px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -25,45 +22,25 @@
     <input type="text" id="custName" value="हेमंत पुरोहित" placeholder="नाम">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <div class="search-container">
-        <input type="text" id="city" placeholder="स्थान खोजें..." oninput="searchLoc(this.value)">
-        <div id="sugBox"></div>
-    </div>
-    <input type="hidden" id="lat" value="23.32">
-    <input type="hidden" id="lon" value="74.26">
-    <button onclick="generate()" style="background:var(--maroon); color:white; border:none; padding:10px 20px; cursor:pointer;">50 पेज रिपोर्ट निकालें</button>
+    <input type="text" id="city" value="Banswara" placeholder="शहर">
+    <button onclick="generate()" style="background:var(--maroon); color:white; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">50 पृष्ठ फलादेश तैयार करें</button>
 </div>
 
-<div id="report-area"></div>
+<div id="report-container"></div>
 
 <script>
 const LORDS = ["", "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
-const HOUSES = ["", "प्रथम (व्यक्तित्व)", "द्वितीय (धन)", "तृतीय (पराक्रम)", "चतुर्थ (सुख)", "पंचम (संतान)", "षष्ठ (रोग)", "सप्तम (विवाह)", "अष्टम (मृत्यु)", "नवम (भाग्य)", "दशम (कर्म)", "एकादश (लाभ)", "द्वादश (व्यय)"];
-
-async function searchLoc(q) {
-    if(q.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-    const data = await res.json();
-    const sug = document.getElementById('sugBox');
-    sug.innerHTML = ""; sug.style.display = "block";
-    data.forEach(i => {
-        let d = document.createElement('div');
-        d.innerText = i.display_name;
-        d.onclick = () => {
-            document.getElementById('lat').value = i.lat;
-            document.getElementById('lon').value = i.lon;
-            document.getElementById('city').value = i.display_name.split(',')[0];
-            sug.style.display = "none";
-        };
-        sug.appendChild(d);
-    });
-}
+const HOUSES = ["", "प्रथम (व्यक्तित्व)", "द्वितीय (धन)", "तृतीय (पराक्रम)", "चतुर्थ (माता-सुख)", "पंचम (संतान-बुद्धि)", "षष्ठ (रोग-शत्रु)", "सप्तम (विवाह-व्यापार)", "अष्टम (आयु-संकट)", "नवम (भाग्य-धर्म)", "दशम (कर्म-पद)", "एकादश (लाभ)", "द्वादश (व्यय)"];
 
 async function generate() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value})
+        body: JSON.stringify({
+            date: document.getElementById('dob').value,
+            time: document.getElementById('tob').value,
+            lat: "23.32", lon: "74.26"
+        })
     });
     const data = await res.json();
     renderReport(data);
@@ -72,74 +49,51 @@ async function generate() {
 function renderReport(data) {
     let html = "";
     
-    // PAGE 1: Intro
-    html += `<div class="pdf-page"><div class="border-line"><h1>वृहद कुंडली फलादेश</h1><h2 style="margin-top:100px;">नाम: ${document.getElementById('custName').value}</h2><h3>स्थान: ${document.getElementById('city').value}</h3></div></div>`;
+    // Page 1: Introduction
+    html += `<div class="pdf-page"><div class="inner-border"><h1>॥ वृहद ५० पृष्ठ जीवन विवरण ॥</h1><div style="text-align:center; margin-top:150px;"><h2>जातक: ${document.getElementById('custName').value}</h2><p>जन्म विवरण: ${document.getElementById('dob').value} | ${document.getElementById('tob').value}</p><p>नक्षत्र: ${data.avk.nak}</p></div></div></div>`;
 
-    // PAGE 2: Avkahda & Charts
-    html += `<div class="pdf-page"><div class="border-line"><h2>ग्रह विवरण एवं अवकहड़ा चक्र</h2>
-        <table><tr><th>नक्षत्र</th><td>${data.avk.nak}</td><th>घटी-पल</th><td>${data.avk.ghati}</td></tr></table>
-        <div id="d1_svg" style="width:300px; margin:20px auto;"></div>
-        <table><tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th></tr>`;
+    // Page 2: Planet Table
+    html += `<div class="pdf-page"><div class="inner-border"><h2>ग्रह स्पष्ट एवं स्थिति</h2><table><tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>नवांश</th></tr>`;
     data.planets.forEach(p => {
-        html += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.nakshatra}</td><td>${p.house}</td></tr>`;
+        html += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.nak}</td><td>${p.house}</td><td>${p.d9}</td></tr>`;
     });
     html += `</table></div></div>`;
 
-    // PAGE 3-14: Detailed House Analysis (Dynamic)
+    // Page 3-14: Detailed House Analysis
     for(let i=1; i<=12; i++) {
         let signIdx = (data.lagna.rIdx + i - 2) % 12 + 1;
         let lordName = LORDS[signIdx];
         let lordPos = data.planets.find(p => p.name === lordName).house;
 
-        html += `<div class="pdf-page"><div class="border-line">
-            <h2>${HOUSES[i]} भाव का फल</h2>
-            <div class="prediction-card">
-                <b>भावाधिपति विश्लेषण:</b> आपके ${HOUSES[i]} का अधिपति <b>${lordName}</b> आपकी कुंडली के <b>${lordPos} वें भाव</b> में विराजमान है।
-                <br><br>
-                <b>विशेष फलादेश:</b> ${getHouseText(i, lordPos)}
-            </div>
-        </div></div>`;
+        html += `<div class="pdf-page"><div class="inner-border"><h2>${HOUSES[i]} भाव का विश्लेषण</h2><div class="prediction-text">
+        आपके <b>${HOUSES[i]}</b> का अधिपति <b>${lordName}</b> कुंडली के <b>${lordPos}</b> वें भाव में स्थित है।<br><br>
+        <b>शास्त्रीय फलादेश:</b> ${getLordInHouseText(i, lordPos)}
+        </div></div></div>`;
     }
 
-    // PAGE 15-50: Age-wise Amenities
+    // Page 15-50: Age Based Amenities (0-100 years)
     for(let age=1; age<=36; age++) {
-        let start = (age - 1) * 3;
-        html += `<div class="pdf-page"><div class="border-line">
-            <h2>आयु विश्लेषण: ${start} से ${start+3} वर्ष</h2>
-            <div class="prediction-card">
-                <span class="age-badge">उम्र: ${start}-${start+3} वर्ष</span><br><br>
-                ${getAgeText(start)}
-            </div>
-        </div></div>`;
+        let startAge = (age-1) * 3;
+        html += `<div class="pdf-page"><div class="inner-border"><h2>जीवन यात्रा: आयु ${startAge} से ${startAge+3} वर्ष</h2><div class="prediction-text"><span class="age-badge">आयु खंड: ${startAge}-${startAge+3} वर्ष</span><br><br>
+        ${getAmenityText(startAge)}
+        </div></div></div>`;
     }
 
-    document.getElementById('report-area').innerHTML = html;
-    setTimeout(() => drawChart('d1_svg', data.lagna.rIdx, data.planets), 500);
+    document.getElementById('report-container').innerHTML = html;
 }
 
-function getHouseText(h, p) {
-    const texts = {
-        1: ["लग्नेश का लग्न में होना जातक को तेजस्वी और दीर्घायु बनाता है।", "लग्नेश द्वितीय भाव में जातक को धनवान और परिवार प्रेमी बनाता है।"],
-        10: ["दशमेश का लग्न में होना जातक को अपने दम पर सफल बनाता है।", "दशमेश का दशम में होना राज्य पद और व्यापार में बड़ी सफलता देता है।"]
-    };
-    return (texts[h] && texts[h][p-1]) ? texts[h][p-1] : `भावाधिपति की ${p} भाव में स्थिति आपके जीवन में इस भाव से संबंधित सुखों को संतुलित करेगी। जातक को अपने पुरुषार्थ से सफलता प्राप्त होगी।`;
+function getLordInHouseText(h, p) {
+    // यहाँ आप 144 योगों का टेक्स्ट डाल सकते हैं। उदाहरण के लिए:
+    if(h === 10 && p === 11) return "दशमेश का एकादश में होना अत्यंत शुभ है। जातक अपने करियर से अपार धन और सुख-सुविधाएं अर्जित करेगा।";
+    if(h === 4 && p === 1) return "चतुर्थेश का लग्न में होना जातक को अपनी मेहनत से बड़ा घर और लग्जरी गाड़ियां दिलवाता है।";
+    return "भावाधिपति की यह स्थिति जीवन में संतुलित परिणाम देगी। जातक को इस भाव से संबंधित सुखों के लिए निरंतर प्रयास करने होंगे, जो समय के साथ फलीभूत होंगे।";
 }
 
-function getAgeText(age) {
-    if(age < 15) return "इस समय में उत्तम शिक्षा, पारिवारिक सुख और प्राथमिक सुख-सुविधाओं की प्राप्ति होगी।";
-    if(age < 25) return "करियर का चुनाव, उच्च शिक्षा और वाहन सुख के योग बनते हैं।";
-    if(age < 40) return "भवन निर्माण, वैवाहिक सुख, संतान प्राप्ति और पेशेवर उन्नति की पूर्ण सुविधाएं मिलेंगी।";
-    return "मानसिक शांति, तीर्थ यात्रा और संचित धन का उपभोग करने का समय है।";
-}
-
-function drawChart(id, asc, planets) {
-    const coords = {1:[150,110], 2:[70,50], 3:[30,110], 4:[100,180], 5:[30,250], 6:[70,300], 7:[150,250], 8:[230,300], 9:[270,250], 10:[200,180], 11:[270,110], 12:[230,50]};
-    let svg = `<svg viewBox="0 0 300 320" width="100%"><path d="M0 0 L300 0 L300 300 L0 300 Z M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#333" stroke-width="2"/>`;
-    for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 2) % 12 + 1;
-        svg += `<text x="${coords[i][0]}" y="${coords[i][1]+5}" fill="maroon" font-weight="bold" font-size="18" text-anchor="middle">${sign}</text>`;
-    }
-    document.getElementById(id).innerHTML = svg + `</svg>`;
+function getAmenityText(age) {
+    if(age < 15) return "इस अवधि में जातक को उत्तम स्वास्थ्य, खिलौनों का सुख, माता का विशेष स्नेह और आधुनिक शिक्षा की सुविधाएं प्राप्त होंगी। पारिवारिक माहौल सुखद रहेगा।";
+    if(age >= 21 && age <= 28) return "यह करियर निर्माण का समय है। जातक को अपना प्रथम वाहन, लैपटॉप, मोबाइल और पेशेवर जीवन के लिए आवश्यक सभी तकनीकी सुविधाएं प्राप्त होंगी।";
+    if(age >= 30 && age <= 45) return "यह संचय का काल है। जातक को स्वयं का बड़ा घर, चार पहिया वाहन, संतान सुख और गृहस्थी की समस्त सुख-सुविधाओं का लाभ मिलेगा।";
+    return "आध्यात्मिक सुख, संचित धन का उपभोग, तीर्थ यात्राएं और समाज में मान-सम्मान की प्राप्ति होगी।";
 }
 </script>
 </body>
