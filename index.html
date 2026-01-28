@@ -2,30 +2,28 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional 200 Page Kundli</title>
+    <title>Professional Vedic Kundli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Arial'; background: #555; margin: 0; }
-        .toolbar { background: #1a1a1a; color: gold; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 2px solid #800000; position: relative; box-sizing: border-box; }
-        .chart-row { display: flex; justify-content: space-around; margin-top: 20px; }
-        .chart-svg { width: 320px; height: 320px; border: 1px solid #ccc; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #800000; padding: 8px; text-align: center; font-size: 14px; }
-        th { background: #800000; color: white; }
-        .pred-text { font-size: 16px; line-height: 1.8; text-align: justify; padding: 20px; border-left: 5px solid #800000; background: #fffcf0; }
-        .status-tag { font-weight: bold; padding: 2px 5px; border-radius: 3px; }
-        .high { color: green; border: 1px solid green; }
-        .low { color: red; border: 1px solid red; }
+        body { font-family: 'Arial'; background: #444; margin: 0; }
+        .toolbar { background: #1a1a1a; padding: 15px; text-align: center; color: gold; position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 4px double #800000; box-sizing: border-box; }
+        .chart-grid { display: flex; justify-content: space-around; margin: 20px 0; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .data-table th, .data-table td { border: 1px solid #800000; padding: 8px; text-align: center; font-size: 13px; }
+        .data-table th { background: #800000; color: white; }
+        .pred-box { border-left: 5px solid #800000; background: #fffcf0; padding: 20px; line-height: 1.8; text-align: justify; }
+        .status-high { color: green; font-weight: bold; }
+        .status-low { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="date" id="dob" value="1990-01-01">
-    <input type="time" id="tob" value="12:00">
-    <button onclick="generate()" style="background:gold; font-weight:bold; cursor:pointer;">Generate 200 Page Report</button>
+    <input type="date" id="dob" value="1995-05-15">
+    <input type="time" id="tob" value="10:30">
+    <button onclick="generate()" style="background:gold; font-weight:bold; cursor:pointer; padding:10px;">विस्तृत कुंडली बनाएँ</button>
 </div>
 
 <div id="reportContainer"></div>
@@ -36,58 +34,64 @@ async function generate() {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
     });
-    const data = await res.json();
-    if(data.status === 'success') renderPages(data);
+    const d = await res.json();
+    if(d.status === 'success') renderUI(d);
 }
 
-function renderPages(data) {
+function renderUI(d) {
     const container = document.getElementById('reportContainer');
     container.innerHTML = "";
 
-    // Page 1: Main Charts
+    // Page 1: Panchang & Charts
     let p1 = `<div class="pdf-page">
-        <h1 align="center" style="color:#800000;">॥ जन्म कुंडली विवरण ॥</h1>
-        <div class="chart-row">
-            <div class="chart-svg"><h3>लग्न कुंडली (D1)</h3><div id="d1"></div></div>
-            <div class="chart-svg"><h3>नवांश कुंडली (D9)</h3><div id="d9"></div></div>
+        <h1 align="center" style="color:#800000;">॥ जन्म विवरण ॥</h1>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <p><b>नक्षत्र:</b> ${d.nak} (${d.charan} चरण)</p>
+            <p><b>मंगल दोष:</b> ${d.manglik}</p>
+            <p><b>योनि:</b> ${d.avk.योनि} | <b>गण:</b> ${d.avk.गण}</p>
+            <p><b>नाड़ी:</b> ${d.avk.नाड़ी} | <b>वर्ण:</b> ${d.avk.वर्ण}</p>
         </div>
-        <table>
-            <tr><th>ग्रह</th><th>अंश</th><th>भाव</th><th>अवस्था</th></tr>
-            ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.house}</td><td><span class="status-tag ${p.status==='उच्च'?'high':p.status==='नीच'?'low':'' }">${p.status}</span></td></tr>`).join('')}
+        <div class="chart-grid">
+            <div id="d1" style="width:320px;"></div>
+            <div id="d9" style="width:320px;"></div>
+        </div>
+        <table class="data-table">
+            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>अवस्था</th></tr>
+            ${d.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td><td class="${p.status==='उच्च'?'status-high':p.status==='नीच'?'status-low':''}"><b>${p.status}</b></td></tr>`).join('')}
         </table>
     </div>`;
     container.innerHTML += p1;
 
-    // Detailed Bhavesh Pages
-    data.planets.forEach(p => {
-        let content = `<div class="pdf-page">
-            <h2 style="color:#800000;">${p.name} फलादेश (भावेश विश्लेषण)</h2>
-            <div class="pred-text">
-                <b>ग्रह परिचय:</b> ${p.name} ज्योतिष में ${p.desc} है। <br><br>
-                <b>भावेश स्थिती:</b> आपकी कुंडली में ${p.name}, भाव संख्या <b>${p.lords.join(' और ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में स्थित है। 
-                यह दर्शाता है कि जातक को ${p.lords[0]} भाव से संबंधित परिणामों की प्राप्ति के लिए ${p.house} भाव के संघर्ष या सुखों से गुजरना होगा। <br><br>
-                <b>अवस्था फल:</b> ${p.status === 'उच्च' ? 'यह ग्रह उच्च का है, जो जीवन में शिखर पर ले जाएगा।' : p.status === 'नीच' ? 'नीच का होने से यह उस भाव के फलों में कमी करेगा।' : 'यह सामान्य अवस्था में है।'} <br><br>
-                <b>उपाय:</b> ${p.status === 'नीच' ? 'संबंधित ग्रह की वस्तुओं का दान करें।' : 'इस ग्रह का रत्न या मंत्र जप धारण करें।'}
+    // Detailed Prediction Pages (Bhavesh)
+    d.planets.forEach(p => {
+        container.innerHTML += `<div class="pdf-page">
+            <h2 style="color:#800000;">${p.name} का भावेश फलादेश</h2>
+            <div class="pred-box">
+                <b>कारकत्व:</b> ${p.desc} <br><br>
+                <b>भावेश विश्लेषण:</b> ${p.name} आपकी कुंडली में भाव संख्या <b>${p.lords.join(' और ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में स्थित है। 
+                <br><br>
+                <b>प्रभाव:</b> ${p.status === 'उच्च' ? 'ग्रह उच्च का होकर राजयोग बना रहा है।' : p.status === 'नीच' ? 'नीच का होकर संघर्ष को दर्शाता है।' : 'ग्रह सामान्य स्थिति में है।'} 
+                यह दर्शाता है कि ${p.lords[0]} भाव के फलों की प्राप्ति के लिए आपको काफी मेहनत करनी होगी। 
+                <br><br>
+                <b>उपाय:</b> नियमित मंत्र जप और दान करें।
             </div>
         </div>`;
-        container.innerHTML += content;
     });
 
     // Dasha Pages
-    data.dasha.forEach(d => {
-        let dashaPage = `<div class="pdf-page">
-            <h2 style="color:#800000;">विंशोत्तरी महादशा: ${d.l}</h2>
-            <p>अवधि: ${d.s} से ${d.e}</p>
-            <table>
+    d.dasha.forEach(da => {
+        container.innerHTML += `<div class="pdf-page">
+            <h2 style="color:#800000;">महादशा: ${da.l}</h2>
+            <p>अवधि: ${da.s} से ${da.e}</p>
+            <table class="data-table">
                 <tr><th>अन्तर दशा</th><th>समाप्ति तिथि</th></tr>
-                ${d.subs.map(s => `<tr><td>${s.l}</td><td>${s.e}</td></tr>`).join('')}
+                ${da.subs.map(s => `<tr><td>${s.l}</td><td>${s.e}</td></tr>`).join('')}
             </table>
         </div>`;
-        container.innerHTML += dashaPage;
     });
 
-    drawChart('d1', data.lagna, data.planets, 'house');
-    drawChart('d9', data.d9_lagna, data.planets, 'd9');
+    drawChart('d1', d.lagna, d.planets, 'house');
+    drawChart('d9', d.d9_lagna, d.planets, 'd9');
 }
 
 function drawChart(id, asc, planets, mode) {
@@ -99,9 +103,9 @@ function drawChart(id, asc, planets, mode) {
         svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="14" text-anchor="middle">${sign}</text>`;
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
         list.forEach((p, idx) => {
-            let offset = idx < 3 ? -20 : 0;
-            let xOff = (idx % 3) * 25 - 25;
-            svg += `<text x="${x + xOff}" y="${y + 15 + (idx >= 3 ? 12 : 0)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`;
+            let xOff = (idx % 2) * 45 - 22;
+            let yOff = Math.floor(idx / 2) * 15 + 15;
+            svg += `<text x="${x + xOff}" y="${y + yOff}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
