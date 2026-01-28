@@ -2,114 +2,107 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Kundli Software - Complete Analysis</title>
+    <title>Professional 200 Page Kundli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial; background: #222; margin: 0; color: #333; }
-        .toolbar { background: #1a1a1a; padding: 20px; color: gold; text-align: center; border-bottom: 2px solid gold; position: sticky; top:0; z-index:100; }
-        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 10px double #800000; box-sizing: border-box; }
-        .section-title { background: #800000; color: white; padding: 8px; margin-top: 20px; border-radius: 5px; text-align: center; }
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .data-item { border-bottom: 1px dashed #ccc; padding: 5px; display: flex; justify-content: space-between; }
-        .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { border: 1px solid #800000; padding: 8px; text-align: center; }
-        th { background: #fdf2f2; }
-        #suggestionBox { position: absolute; background: white; color: black; width: 250px; border: 1px solid #ccc; z-index: 101; text-align: left; }
+        body { font-family: 'Arial'; background: #555; margin: 0; }
+        .toolbar { background: #1a1a1a; color: gold; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 2px solid #800000; position: relative; box-sizing: border-box; }
+        .chart-row { display: flex; justify-content: space-around; margin-top: 20px; }
+        .chart-svg { width: 320px; height: 320px; border: 1px solid #ccc; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #800000; padding: 8px; text-align: center; font-size: 14px; }
+        th { background: #800000; color: white; }
+        .pred-text { font-size: 16px; line-height: 1.8; text-align: justify; padding: 20px; border-left: 5px solid #800000; background: #fffcf0; }
+        .status-tag { font-weight: bold; padding: 2px 5px; border-radius: 3px; }
+        .high { color: green; border: 1px solid green; }
+        .low { color: red; border: 1px solid red; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)" style="padding:10px;">
-    <div id="suggestionBox"></div>
-    <input type="date" id="dob" value="1995-05-15" style="padding:10px;">
-    <input type="time" id="tob" value="10:30" style="padding:10px;">
-    <input type="hidden" id="lat" value="28.61"><input type="hidden" id="lon" value="77.20">
-    <button onclick="generate()" style="padding:10px 20px; background:gold; font-weight:bold; cursor:pointer; border:none;">कुंडली बनाएँ</button>
+    <input type="date" id="dob" value="1990-01-01">
+    <input type="time" id="tob" value="12:00">
+    <button onclick="generate()" style="background:gold; font-weight:bold; cursor:pointer;">Generate 200 Page Report</button>
 </div>
 
 <div id="reportContainer"></div>
 
 <script>
-// लोकेशन सर्च
-async function searchLoc(q) {
-    if(q.length < 3) return;
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-    const data = await res.json();
-    let html = "";
-    data.forEach(i => html += `<div style="padding:8px; cursor:pointer;" onclick="selectLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
-    document.getElementById('suggestionBox').innerHTML = html;
-}
-function selectLoc(n, la, lo) {
-    document.getElementById('loc').value = n; document.getElementById('lat').value = la; document.getElementById('lon').value = lo;
-    document.getElementById('suggestionBox').innerHTML = "";
-}
-
 async function generate() {
     const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value })
+        body: JSON.stringify({ date: document.getElementById('dob').value, time: document.getElementById('tob').value })
     });
-    const d = await res.json();
-    if(d.status === 'success') renderUI(d);
+    const data = await res.json();
+    if(data.status === 'success') renderPages(data);
 }
 
-function renderUI(d) {
+function renderPages(data) {
     const container = document.getElementById('reportContainer');
-    container.innerHTML = `
-    <div class="pdf-page">
-        <h1 align="center" style="color:#800000; margin:0;">॥ श्री गणेशाय नमः ॥</h1>
-        <h2 align="center">जन्म पत्रिका</h2>
-        
-        <div class="section-title">पंचांग एवं जन्म विवरण</div>
-        <div class="data-grid">
-            <div class="data-item"><span>लग्न:</span><b>${d.lagna}</b></div>
-            <div class="data-item"><span>राशि:</span><b>${d.rashi}</b></div>
-            <div class="data-item"><span>नक्षत्र:</span><b>${d.nakshatra}</b></div>
-            <div class="data-item"><span>चरण:</span><b>${d.charan}</b></div>
-            <div class="data-item"><span>तिथि:</span><b>${d.tithi} (${d.paksha})</b></div>
-            <div class="data-item"><span>नक्षत्र स्वामी:</span><b>${d.nak_lord}</b></div>
-            <div class="data-item"><span>मंगल दोष:</span><b>${d.manglik}</b></div>
-            <div class="data-item"><span>दशा भोग्य:</span><b>चंद्र</b></div>
-        </div>
+    container.innerHTML = "";
 
-        <div class="section-title">अवकहड़ा चक्र</div>
-        <div class="data-grid">
-            <div class="data-item"><span>पाया:</span><b>${d.avk.पाया}</b></div>
-            <div class="data-item"><span>योनि:</span><b>${d.avk.योनि}</b></div>
-            <div class="data-item"><span>गण:</span><b>${d.avk.गण}</b></div>
-            <div class="data-item"><span>नाड़ी:</span><b>${d.avk.नाड़ी}</b></div>
-            <div class="data-item"><span>वर्ण:</span><b>${d.avk.वर्ण}</b></div>
-            <div class="data-item"><span>वश्य:</span><b>${d.avk.वश्य}</b></div>
+    // Page 1: Main Charts
+    let p1 = `<div class="pdf-page">
+        <h1 align="center" style="color:#800000;">॥ जन्म कुंडली विवरण ॥</h1>
+        <div class="chart-row">
+            <div class="chart-svg"><h3>लग्न कुंडली (D1)</h3><div id="d1"></div></div>
+            <div class="chart-svg"><h3>नवांश कुंडली (D9)</h3><div id="d9"></div></div>
         </div>
-
-        <div class="chart-box">
-            <div style="width:300px;"><h3>लग्न कुंडली (D1)</h3><div id="d1"></div></div>
-            <div style="width:300px;"><h3>नवांश कुंडली (D9)</h3><div id="d9"></div></div>
-        </div>
-
-        <div class="section-title">ग्रह स्पष्ट विवरण</div>
         <table>
-            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>D9 राशि</th></tr>
-            ${d.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td><td>${p.d9}</td></tr>`).join('')}
+            <tr><th>ग्रह</th><th>अंश</th><th>भाव</th><th>अवस्था</th></tr>
+            ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.house}</td><td><span class="status-tag ${p.status==='उच्च'?'high':p.status==='नीच'?'low':'' }">${p.status}</span></td></tr>`).join('')}
         </table>
     </div>`;
+    container.innerHTML += p1;
 
-    drawChart('d1', d.lagna_num, d.planets, 'house');
-    drawChart('d9', d.d9_lagna, d.planets, 'd9');
+    // Detailed Bhavesh Pages
+    data.planets.forEach(p => {
+        let content = `<div class="pdf-page">
+            <h2 style="color:#800000;">${p.name} फलादेश (भावेश विश्लेषण)</h2>
+            <div class="pred-text">
+                <b>ग्रह परिचय:</b> ${p.name} ज्योतिष में ${p.desc} है। <br><br>
+                <b>भावेश स्थिती:</b> आपकी कुंडली में ${p.name}, भाव संख्या <b>${p.lords.join(' और ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में स्थित है। 
+                यह दर्शाता है कि जातक को ${p.lords[0]} भाव से संबंधित परिणामों की प्राप्ति के लिए ${p.house} भाव के संघर्ष या सुखों से गुजरना होगा। <br><br>
+                <b>अवस्था फल:</b> ${p.status === 'उच्च' ? 'यह ग्रह उच्च का है, जो जीवन में शिखर पर ले जाएगा।' : p.status === 'नीच' ? 'नीच का होने से यह उस भाव के फलों में कमी करेगा।' : 'यह सामान्य अवस्था में है।'} <br><br>
+                <b>उपाय:</b> ${p.status === 'नीच' ? 'संबंधित ग्रह की वस्तुओं का दान करें।' : 'इस ग्रह का रत्न या मंत्र जप धारण करें।'}
+            </div>
+        </div>`;
+        container.innerHTML += content;
+    });
+
+    // Dasha Pages
+    data.dasha.forEach(d => {
+        let dashaPage = `<div class="pdf-page">
+            <h2 style="color:#800000;">विंशोत्तरी महादशा: ${d.l}</h2>
+            <p>अवधि: ${d.s} से ${d.e}</p>
+            <table>
+                <tr><th>अन्तर दशा</th><th>समाप्ति तिथि</th></tr>
+                ${d.subs.map(s => `<tr><td>${s.l}</td><td>${s.e}</td></tr>`).join('')}
+            </table>
+        </div>`;
+        container.innerHTML += dashaPage;
+    });
+
+    drawChart('d1', data.lagna, data.planets, 'house');
+    drawChart('d9', data.d9_lagna, data.planets, 'd9');
 }
 
 function drawChart(id, asc, planets, mode) {
-    const pos = {1:[150,115], 2:[75,50], 3:[35,115], 4:[100,180], 5:[35,245], 6:[75,310], 7:[150,245], 8:[225,310], 9:[265,245], 10:[200,180], 11:[265,115], 12:[225,50]};
-    let svg = `<svg viewBox="0 0 300 330" width="100%"><path d="M0 0 L300 0 L300 300 L0 300 Z M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+    const pos = {1:[150,135], 2:[75,60], 3:[35,135], 4:[100,210], 5:[35,285], 6:[75,340], 7:[150,285], 8:[225,340], 9:[265,285], 10:[200,210], 11:[265,135], 12:[225,60]};
+    let svg = `<svg viewBox="0 0 300 380" width="100%"><path d="M0 20 L300 20 L300 320 L0 320 Z M0 20 L300 320 M300 20 L0 320 M150 20 L0 170 L150 320 L300 170 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
     for (let i = 1; i <= 12; i++) {
         let sign = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
         let [x, y] = pos[i];
-        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="bold" font-size="16" text-anchor="middle">${sign}</text>`;
+        svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="14" text-anchor="middle">${sign}</text>`;
         let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
-        list.forEach((p, idx) => { svg += `<text x="${x}" y="${y-10-(idx*12)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`; });
+        list.forEach((p, idx) => {
+            let offset = idx < 3 ? -20 : 0;
+            let xOff = (idx % 3) * 25 - 25;
+            svg += `<text x="${x + xOff}" y="${y + 15 + (idx >= 3 ? 12 : 0)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`;
+        });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
