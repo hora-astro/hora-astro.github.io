@@ -2,22 +2,19 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Complete Kundli Software</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Professional Kundli</title>
     <style>
-        body { font-family: 'Arial'; background: #333; margin: 0; color: #333; }
+        body { font-family: 'Arial'; background: #333; margin: 0; }
         .toolbar { background: #1a1a1a; padding: 15px; text-align: center; color: gold; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid gold; }
         .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; border: 10px double #800000; box-sizing: border-box; }
-        input { padding: 8px; margin: 5px; }
-        #suggestionBox { position: absolute; background: white; color: black; width: 250px; z-index: 1001; text-align: left; }
+        #suggestionBox { position: absolute; background: white; color: black; width: 250px; z-index: 1001; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
         .box { border-bottom: 1px dashed #800000; padding: 5px; display: flex; justify-content: space-between; }
         .chart-box { display: flex; justify-content: space-around; margin: 20px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #800000; padding: 8px; text-align: center; font-size: 13px; }
         th { background: #800000; color: white; }
-        .pred-text { border-left: 5px solid #800000; background: #fffcf0; padding: 20px; margin: 20px 0; line-height: 1.8; text-align: justify; }
+        .pred-text { border-left: 5px solid #800000; background: #fffcf0; padding: 20px; margin: 20px 0; line-height: 1.8; }
         .high { color: green; font-weight: bold; }
         .low { color: red; font-weight: bold; }
     </style>
@@ -25,15 +22,13 @@
 <body>
 
 <div class="toolbar">
-    <input type="text" id="uname" placeholder="नाम लिखें...">
-    <div style="display:inline-block; position:relative;">
-        <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
-        <div id="suggestionBox"></div>
-    </div>
+    <input type="text" id="uname" placeholder="नाम">
+    <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
+    <div id="suggestionBox"></div>
     <input type="date" id="dob" value="1995-05-15">
     <input type="time" id="tob" value="10:30">
     <input type="hidden" id="lat" value="28.61"><input type="hidden" id="lon" value="77.20">
-    <button onclick="generate()" style="background:gold; font-weight:bold; cursor:pointer; padding:8px 15px; border:none;">कुंडली बनाएँ</button>
+    <button onclick="generate()" style="background:gold; font-weight:bold; cursor:pointer; padding:8px 15px;">कुंडली बनाएँ</button>
 </div>
 
 <div id="reportContainer"></div>
@@ -65,9 +60,8 @@ function renderUI(d) {
     const container = document.getElementById('reportContainer');
     container.innerHTML = "";
 
-    // Page 1: Panchang & Charts
     let p1 = `<div class="pdf-page">
-        <h1 align="center" style="color:#800000; margin:0;">जन्म पत्रिका: ${d.name}</h1>
+        <h1 align="center" style="color:#800000;">॥ जन्म पत्रिका: ${d.name} ॥</h1>
         <div class="grid">
             <div class="box"><span>नक्षत्र:</span><b>${d.nak} (${d.charan})</b></div>
             <div class="box"><span>इष्टकाल:</span><b>${d.ishtakal}</b></div>
@@ -87,47 +81,58 @@ function renderUI(d) {
     </div>`;
     container.innerHTML += p1;
 
-    // Detailed Prediction Pages
     d.planets.forEach(p => {
         container.innerHTML += `<div class="pdf-page">
-            <h2 style="color:#800000; border-bottom: 2px solid;">${p.name} फलादेश (भावेश विश्लेषण)</h2>
+            <h2 style="color:#800000;">${p.name} फलादेश विश्लेषण</h2>
             <div class="pred-text">
-                <b>स्थिती:</b> ${p.name}, भाव संख्या <b>${p.lords.join(' व ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में बैठा है। <br><br>
-                <b>अवस्था:</b> यह ग्रह ${p.status} है। ${p.status === 'उच्च' ? 'यह अत्यंत शुभ फल देगा।' : p.status === 'नीच' ? 'यह संघर्ष और बाधाएं बढ़ा सकता है।' : 'यह मिला-जुला फल देगा।'} <br><br>
-                <b>विस्तृत विश्लेषण:</b> ${p.house} भाव में होने से जातक के ${p.karaka} पक्ष पर गहरा प्रभाव पड़ेगा। यह जातक के व्यक्तित्व और भाग्य को नई दिशा प्रदान करेगा।
+                <b>स्थिती:</b> ${p.name}, भाव संख्या <b>${p.lords.join(' व ')}</b> का स्वामी होकर <b>${p.house}</b> भाव में स्थित है। <br><br>
+                <b>अवस्था:</b> यह ग्रह <b>${p.status}</b> है। <br><br>
+                <b>विस्तृत विश्लेषण:</b> ${p.house} भाव में होने से जातक के <b>${p.karaka}</b> पक्ष पर गहरा प्रभाव पड़ेगा।
             </div>
         </div>`;
     });
 
-    // Dasha Pages
     d.dasha.forEach(da => {
         container.innerHTML += `<div class="pdf-page">
-            <h2 style="color:#800000;">विंशोत्तरी महादशा: ${da.l}</h2>
+            <h2 style="color:#800000;">महादशा: ${da.l}</h2>
             <p>अवधि: ${da.s} से ${da.e}</p>
             <table>
-                <tr><th>अंतर्दशा</th><th>समाप्ति तिथि</th></tr>
+                <tr><th>अंतर्दशा स्वामी</th><th>समाप्ति तिथि</th></tr>
                 ${da.subs.map(s => `<tr><td>${s.l}</td><td>${s.e}</td></tr>`).join('')}
             </table>
         </div>`;
     });
 
-    drawChart('d1', d.lagna, d.planets, 'house', 'लग्न कुंडली');
-    drawChart('d9', d.d9_lagna, d.planets, 'd9', 'नवांश कुंडली');
+    drawChart('d1', d.lagna, d.planets, 'house', 'लग्न कुंडली (D1)');
+    drawChart('d9', d.d9_lagna, d.planets, 'd9', 'नवांश कुंडली (D9)');
 }
 
 function drawChart(id, asc, planets, mode, title) {
-    const pos = {1:[150,140], 2:[75,65], 3:[40,140], 4:[100,215], 5:[40,290], 6:[75,355], 7:[150,300], 8:[225,355], 9:[260,290], 10:[200,215], 11:[260,140], 12:[225,65]};
-    let svg = `<svg viewBox="0 0 300 400" width="100%"><text x="150" y="25" text-anchor="middle" font-weight="bold" fill="#800000">${title}</text>
-    <path d="M0 45 L300 45 L300 345 L0 345 Z M0 45 L300 345 M300 45 L0 345 M150 45 L0 195 L150 345 L300 195 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
+    // केंद्रों को बिल्कुल बीच में सेट किया गया है
+    const centers = {
+        1: [150, 115], 2: [75, 60], 3: [40, 115], 4: [100, 190],
+        5: [40, 265], 6: [75, 320], 7: [150, 265], 8: [225, 320],
+        9: [260, 265], 10: [200, 190], 11: [260, 115], 12: [225, 60]
+    };
+
+    let svg = `<svg viewBox="0 0 300 370" width="100%">
+        <text x="150" y="25" text-anchor="middle" font-weight="bold" fill="#800000" font-size="16">${title}</text>
+        <path d="M0 40 L300 40 L300 340 L0 340 Z M0 40 L300 340 M300 40 L0 340 M150 40 L0 190 L150 340 L300 190 Z" 
+              fill="none" stroke="#800000" stroke-width="2"/>`;
+
     for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
-        let [x, y] = pos[i];
-        svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="14" text-anchor="middle">${sign}</text>`;
-        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === sign);
-        list.forEach((p, idx) => {
-            let xOff = (idx % 2 === 0) ? -28 : 28;
-            let yOff = Math.floor(idx / 2) * 16 + 18;
-            svg += `<text x="${x + xOff}" y="${y + yOff}" font-size="10" text-anchor="middle" fill="#444">${p.name}</text>`;
+        let signNum = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
+        let [x, y] = centers[i];
+        
+        // राशि संख्या - केंद्र में
+        svg += `<text x="${x}" y="${y}" fill="#800000" font-weight="bold" font-size="16" text-anchor="middle">${signNum}</text>`;
+
+        // ग्रह - राशि के नीचे सेंटर में
+        let hPlanets = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9 === signNum);
+        hPlanets.forEach((p, idx) => {
+            let row = Math.floor(idx / 2);
+            let xOff = (hPlanets.length === 1) ? 0 : (idx % 2 === 0 ? -22 : 22);
+            svg += `<text x="${x + xOff}" y="${y + 20 + (row * 14)}" font-size="10" text-anchor="middle" fill="#333">${p.name}</text>`;
         });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
