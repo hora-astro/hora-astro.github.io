@@ -2,116 +2,119 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Kundli Software - All Features</title>
+    <title>Advanced Vedic Kundli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --maroon: #800000; --gold: #daa520; }
-        body { font-family: 'Segoe UI', Arial; background: #f4f4f4; margin: 0; }
-        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top: 0; z-index: 1000; }
-        .search-container { position: relative; width: 200px; }
-        #suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 100%; top: 42px; display: none; z-index: 1001; }
-        #suggestions div { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 12px; }
-        .pdf-page { width: 210mm; min-height: 297mm; margin: 20px auto; background: white; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.1); page-break-after: always; }
-        .chart-box { border: 2px solid var(--maroon); padding: 10px; text-align: center; width: 48%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #999; padding: 8px; text-align: center; font-size: 13px; }
-        .high { color: green; font-weight: bold; }
-        .low { color: red; font-weight: bold; }
-        .prediction-card { background: #fffdf0; border-left: 5px solid var(--gold); padding: 15px; margin: 15px 0; line-height: 1.6; }
+        body { font-family: 'Arial'; background: #f0f0f0; margin: 0; }
+        .toolbar { background: #1a1a1a; color: gold; padding: 20px; display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
+        .pdf-page { width: 210mm; min-height: 297mm; background: white; margin: 20px auto; padding: 15mm; box-sizing: border-box; border: 2px solid #800000; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #800000; padding: 8px; text-align: center; }
+        th { background: #800000; color: white; }
+        #suggestionBox { position: absolute; background: white; border: 1px solid #ccc; width: 250px; z-index: 1001; color: black; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="custName" value="हेमंत पुरोहित">
-    <input type="date" id="dob" value="1980-03-27">
-    <input type="time" id="tob" value="10:30">
-    <div class="search-container">
-        <input type="text" id="citySearch" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
-        <div id="suggestions"></div>
+    <div style="position:relative;">
+        <input type="text" id="loc" placeholder="शहर खोजें..." oninput="searchLoc(this.value)" style="padding:10px; width:250px;">
+        <div id="suggestionBox"></div>
     </div>
-    <input type="hidden" id="lat" value="23.32"><input type="hidden" id="lon" value="74.26">
-    <button onclick="generate()" style="background:var(--maroon); color:white; cursor:pointer;">कुंडली तैयार करें</button>
-    <button onclick="downloadPDF()" style="background:green; color:white; cursor:pointer;">PDF डाउनलोड</button>
+    <input type="date" id="dob" value="1995-05-15" style="padding:10px;">
+    <input type="time" id="tob" value="10:30" style="padding:10px;">
+    <input type="hidden" id="lat" value="28.61"><input type="hidden" id="lon" value="77.20">
+    <button onclick="generate()" style="padding:10px 20px; background:gold; border:none; cursor:pointer; font-weight:bold;">कुंडली बनाएँ</button>
+    <button onclick="downloadPDF()" style="padding:10px 20px; background:green; color:white; border:none; cursor:pointer;">PDF डाउनलोड</button>
 </div>
 
-<div id="printArea"></div>
+<div id="reportArea"></div>
 
 <script>
-const LORDS = ["", "मंगल", "शुक्र", "बुध", "चंद्र", "सूर्य", "बुध", "शुक्र", "मंगल", "गुरु", "शनि", "शनि", "गुरु"];
-
 async function searchLoc(q) {
     if(q.length < 3) return;
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
     const data = await res.json();
-    const box = document.getElementById('suggestions');
-    box.innerHTML = ""; box.style.display = "block";
-    data.slice(0, 5).forEach(item => {
-        let div = document.createElement('div');
-        div.innerText = item.display_name;
-        div.onclick = () => {
-            document.getElementById('lat').value = item.lat;
-            document.getElementById('lon').value = item.lon;
-            document.getElementById('citySearch').value = item.display_name.split(',')[0];
-            box.style.display = "none";
-        };
-        box.appendChild(div);
+    let html = "";
+    data.forEach(i => {
+        html += `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
     });
+    document.getElementById('suggestionBox').innerHTML = html;
+}
+function selectLoc(n, la, lo) {
+    document.getElementById('loc').value = n;
+    document.getElementById('lat').value = la;
+    document.getElementById('lon').value = lo;
+    document.getElementById('suggestionBox').innerHTML = "";
 }
 
 async function generate() {
-    const payload = { date: document.getElementById('dob').value, time: document.getElementById('tob').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value };
-    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            date: document.getElementById('dob').value, 
+            time: document.getElementById('tob').value, 
+            lat: document.getElementById('lat').value, 
+            lon: document.getElementById('lon').value 
+        })
+    });
     const data = await res.json();
     if(data.status === 'success') renderUI(data);
 }
 
 function renderUI(data) {
-    let html = `<div class="pdf-page">
-        <h1 style="text-align:center; color:var(--maroon);">॥ वृहद ज्योतिष प्रतिवेदन ॥</h1>
-        <div style="display:flex; justify-content:space-between;">
-            <div class="chart-box"><h3>D1 लग्न कुंडली</h3><div id="d1_svg"></div></div>
-            <div class="chart-box"><h3>D9 नवांश कुंडली</h3><div id="d9_svg"></div></div>
+    const area = document.getElementById('reportArea');
+    area.innerHTML = "";
+
+    // पेज 1: कुंडलियां
+    let p1 = `<div class="pdf-page">
+        <h1 align="center" style="color:#800000;">॥ जन्म विवरण ॥</h1>
+        <div class="chart-grid">
+            <div><h3 align="center">D1 लग्न कुंडली</h3><div id="d1"></div></div>
+            <div><h3 align="center">D9 नवांश कुंडली</h3><div id="d9"></div></div>
         </div>
         <table>
-            <tr><th>ग्रह</th><th>अंश</th><th>D1 स्थिति</th><th>D9 स्थिति</th><th>दृष्टि</th></tr>`;
+            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>D9 राशि</th></tr>
+            ${data.planets.map(p => `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td><td>${p.d9_rIdx}</td></tr>`).join('')}
+        </table>
+    </div>`;
+    area.innerHTML += p1;
+
+    // फलादेश और दशा पेज
     data.planets.forEach(p => {
-        html += `<tr>
-            <td>${p.name}</td><td>${p.deg}</td>
-            <td class="${p.status_d1=='उच्च'?'high':(p.status_d1=='नीच'?'low':'')}">${p.status_d1}</td>
-            <td class="${p.status_d9=='उच्च'?'high':(p.status_d9=='नीच'?'low':'')}">${p.status_d9}</td>
-            <td>${p.aspect} भाव पर</td>
-        </tr>`;
-    });
-    html += `</table></div>`;
-
-    // महादशा और अंतर्दशा पृष्ठ
-    data.dashas.forEach(d => {
-        html += `<div class="pdf-page"><h2>विंशोत्तरी दशा: ${d.lord}</h2>
-        <table><tr><th>अंतर्दशा</th><th>समाप्ति तिथि</th></tr>`;
-        d.antardasha.forEach(ad => { html += `<tr><td>${d.lord}-${ad.lord}</td><td>${ad.end}</td></tr>`; });
-        html += `</table></div>`;
+        area.innerHTML += `<div class="pdf-page">
+            <h2>${p.name} फलादेश</h2>
+            <p><b>स्थिती:</b> ${p.name} कुंडली के ${p.house} भाव में है। नवांश में यह ${p.d9_rIdx} राशि में है।</p>
+            <p><b>प्रभाव:</b> यह स्थिति जातक के जीवन में संतुलित फल प्रदान करेगी। कार्यक्षेत्र में उन्नति के लिए नियमित दान-पुण्य करें।</p>
+        </div>`;
     });
 
-    document.getElementById('printArea').innerHTML = html;
-    setTimeout(() => {
-        drawChart('d1_svg', data.lagna, data.planets, 'house');
-        drawChart('d9_svg', data.d9_lagna, data.planets, 'd9');
-    }, 500);
+    data.dasha.forEach(d => {
+        area.innerHTML += `<div class="pdf-page">
+            <h2>महादशा: ${d.lord}</h2>
+            <p>अवधि: ${d.start} से ${d.end}</p>
+            <table>
+                <tr><th>अंतर्दशा</th><th>समाप्ति तिथि</th></tr>
+                ${d.subs.map(s => `<tr><td>${s.lord}</td><td>${s.until}</td></tr>`).join('')}
+            </table>
+        </div>`;
+    });
+
+    drawChart('d1', data.lagna, data.planets, 'house');
+    drawChart('d9', data.d9_lagna, data.planets, 'd9');
 }
 
 function drawChart(id, asc, planets, mode) {
-    const coords = {1:[112,80], 2:[55,45], 3:[25,80], 4:[75,130], 5:[25,180], 6:[55,215], 7:[112,180], 8:[165,215], 9:[200,180], 10:[150,130], 11:[200,80], 12:[165,45]};
-    let svg = `<svg viewBox="0 0 225 240" width="100%"><path d="M0 0 L225 0 L225 225 L0 225 Z M0 0 L225 225 M225 0 L0 225 M112 0 L0 112 L112 225 L225 112 Z" fill="none" stroke="maroon" stroke-width="2"/>`;
+    const pos = {1:[150,115], 2:[75,50], 3:[35,115], 4:[100,180], 5:[35,245], 6:[75,310], 7:[150,245], 8:[225,310], 9:[265,245], 10:[200,180], 11:[265,115], 12:[225,50]};
+    let svg = `<svg viewBox="0 0 300 330" width="100%"><path d="M0 0 L300 0 L300 300 L0 300 Z M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#800000" stroke-width="2"/>`;
     for (let i = 1; i <= 12; i++) {
-        let sign = (asc + i - 2) % 12 + 1;
-        svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="maroon" font-weight="bold" font-size="14" text-anchor="middle">${sign}</text>`;
-        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9_sign === sign);
-        list.forEach((p, idx) => {
-            let st = (mode==='house'?p.status_d1:p.status_d9);
-            svg += `<text x="${coords[i][0]}" y="${coords[i][1]+12+(idx*10)}" font-size="8" fill="${st=='उच्च'?'green':(st=='नीच'?'red':'black')}" text-anchor="middle">${p.name}${st=='उच्च'?'(U)':(st=='नीच'?'(N)':'')}</text>`;
-        });
+        let sign = (asc + i - 1) > 12 ? (asc + i - 1) - 12 : (asc + i - 1);
+        let [x, y] = pos[i];
+        svg += `<text x="${x}" y="${y+5}" fill="#800000" font-weight="bold" font-size="16" text-anchor="middle">${sign}</text>`;
+        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9_rIdx === sign);
+        list.forEach((p, idx) => { svg += `<text x="${x}" y="${y-10-(idx*12)}" font-size="9" text-anchor="middle" fill="#444">${p.name}</text>`; });
     }
     document.getElementById(id).innerHTML = svg + `</svg>`;
 }
@@ -120,12 +123,12 @@ async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
     const pages = document.querySelectorAll('.pdf-page');
-    for (let i = 0; i < pages.length; i++) {
-        const canvas = await html2canvas(pages[i], { scale: 2 });
-        if (i > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+    for(let i=0; i<pages.length; i++) {
+        const canvas = await html2canvas(pages[i], {scale: 1.5});
+        if(i > 0) doc.addPage();
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, 210, 297);
     }
-    doc.save(`Complete_Kundli.pdf`);
+    doc.save("Kundli_Report.pdf");
 }
 </script>
 </body>
