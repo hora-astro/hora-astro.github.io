@@ -2,87 +2,103 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>FortuneWithStars Pro - Ultimate Edition</title>
+    <title>FortuneWithStars - Advanced Commercial Astrology</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --maroon: #800000; --gold: #daa520; }
-        body { font-family: 'Segoe UI', Arial; background: #f8f8f8; margin: 0; }
-        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; }
-        .pdf-page { width: 210mm; min-height: 297mm; margin: 20px auto; background: white; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.1); page-break-after: always; }
-        .header { text-align: center; border: 2px double var(--maroon); padding: 10px; background: #fffcf5; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #999; padding: 10px; text-align: center; font-size: 13px; }
-        th { background: var(--maroon); color: white; }
-        .nakshatra-text { color: var(--gold); font-weight: bold; }
-        select { padding: 10px; border-radius: 4px; border: 1px solid #ccc; }
+        :root { --main: #800000; --gold: #b8860b; }
+        body { font-family: 'Arial'; background: #eee; margin: 0; }
+        .toolbar { background: white; padding: 15px; border-bottom: 5px solid var(--main); display: flex; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100; }
+        .pdf-page { width: 210mm; height: 297mm; margin: 10px auto; background: white; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); page-break-after: always; overflow: hidden; }
+        .panchang-table { width: 100%; border: 2px solid var(--main); margin-bottom: 20px; }
+        .panchang-table td { padding: 8px; border: 1px solid #ddd; font-size: 14px; }
+        .prediction-box { font-size: 16px; line-height: 1.8; text-align: justify; border: 1px solid #eee; padding: 15px; background: #fffdf5; }
+        #suggestions { position: absolute; background: white; border: 1px solid #ccc; width: 250px; z-index: 1000; }
+        .chart-container { width: 300px; height: 300px; margin: auto; border: 2px solid var(--main); }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="custName" value="जातक का नाम">
+    <input type="text" id="name" placeholder="नाम" value="हेमंत पुरोहित">
     <input type="date" id="dob" value="1980-03-27">
     <input type="time" id="tob" value="10:30">
-    <select id="ayMode">
-        <option value="Lahiri">NC Lahiri (Chitra Paksha)</option>
-        <option value="KP">KP Ayanamsa</option>
-    </select>
-    <div class="search-container">
-        <input type="text" id="citySearch" placeholder="जन्म स्थान..." oninput="searchLoc(this.value)">
-        <div id="suggestions" style="position: absolute; background: white; width: 200px; display: none; border: 1px solid #ccc; z-index: 1001;"></div>
+    <div style="position:relative;">
+        <input type="text" id="city" placeholder="शहर खोजें" oninput="searchLocation(this.value)">
+        <div id="suggestions"></div>
     </div>
-    <input type="hidden" id="lat" value="23.32"><input type="hidden" id="lon" value="74.26">
-    <button onclick="generate()" style="background:var(--maroon); color:white; padding:10px 20px; cursor:pointer; border:none;">कुंडली तैयार करें</button>
+    Lat: <input type="text" id="lat" style="width:60px;" value="23.32">
+    Lon: <input type="text" id="lon" style="width:60px;" value="74.26">
+    <select id="ayMode"><option value="Lahiri">NC Lahiri</option><option value="KP">KP Ayanamsa</option></select>
+    <button onclick="generateKundli()" style="background:var(--main); color:white; cursor:pointer;">कुंडली बनाएँ</button>
 </div>
 
-<div id="printArea"></div>
+<div id="appBody"></div>
 
 <script>
-async function generate() {
-    const payload = { 
-        date: document.getElementById('dob').value, 
-        time: document.getElementById('tob').value, 
-        lat: document.getElementById('lat').value, 
+async function searchLocation(q) {
+    if(q.length < 3) return;
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+    const data = await res.json();
+    let html = "";
+    data.forEach(item => {
+        html += `<div style="padding:5px; cursor:pointer; border-bottom:1px solid #eee" onclick="selectCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
+    });
+    document.getElementById('suggestions').innerHTML = html;
+}
+
+function selectCity(name, lat, lon) {
+    document.getElementById('city').value = name;
+    document.getElementById('lat').value = lat;
+    document.getElementById('lon').value = lon;
+    document.getElementById('suggestions').innerHTML = "";
+}
+
+async function generateKundli() {
+    const payload = {
+        date: document.getElementById('dob').value,
+        time: document.getElementById('tob').value,
+        lat: document.getElementById('lat').value,
         lon: document.getElementById('lon').value,
-        ayanamsa_mode: document.getElementById('ayMode').value
+        ayMode: document.getElementById('ayMode').value
     };
-    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', { 
-        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) 
+    
+    const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if(data.status === 'success') renderUI(data);
+    renderPages(data);
 }
 
-function renderUI(data) {
-    let html = `<div class="pdf-page">
-        <div class="header">
-            <h1>॥ वृहद ज्योतिष प्रतिवेदन ॥</h1>
-            <p>अयनांश पद्धति: <b>${data.ayanamsa_name}</b> | मान: <b>${data.ayanamsa}°</b></p>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <div style="width:48%; border:2px solid var(--maroon); height:250px;" id="d1_svg"></div>
-            <div style="width:48%; border:2px solid var(--maroon); height:250px;" id="d9_svg"></div>
-        </div>
-        <table>
-            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>स्थिति</th><th>दृष्टि</th></tr>`;
-    
-    data.planets.forEach(p => {
-        html += `<tr>
-            <td><b>${p.name}</b></td>
-            <td>${p.deg}</td>
-            <td class="nakshatra-text">${p.nakshatra}</td>
-            <td>${p.status_d1}</td>
-            <td>${p.aspect} भाव पर</td>
-        </tr>`;
-    });
-    html += `</table></div>`;
+function renderPages(data) {
+    let html = "";
+    const p = data.panchang;
+    const name = document.getElementById('name').value;
 
-    document.getElementById('printArea').innerHTML = html;
-    // (यहाँ पुराना drawChart फंक्शन काम करेगा जो SVG बनाता है)
+    // PAGE 1: विवरण और पंचांग
+    html += `<div class="pdf-page">
+        <h1 style="text-align:center; color:var(--main);">FortuneWithStars वृहद कुंडली</h1>
+        <table class="panchang-table">
+            <tr><td><b>नाम:</b> ${name}</td><td><b>स्थान:</b> ${document.getElementById('city').value}</td></tr>
+            <tr><td><b>नक्षत्र:</b> ${p.nakshatra} (${p.charan} चरण)</td><td><b>योनि:</b> ${p.yoni}</td></tr>
+            <tr><td><b>गण:</b> ${p.gan}</td><td><b>नाड़ी:</b> ${p.nadi}</td></tr>
+            <tr><td><b>वर्ण:</b> ${p.varna}</td><td><b>अयनांश:</b> ${p.ayanamsa_val}</td></tr>
+        </table>
+        <div class="chart-container" id="d1_chart"></div>
+        <h3 style="text-align:center">लग्न कुंडली (D-1)</h3>
+    </div>`;
+
+    // PAGE 2: भाव फलादेश (विस्तृत 200 पेज के लिए यहाँ लूप चलेगा)
+    html += `<div class="pdf-page">
+        <h2 style="color:var(--main); border-bottom:2px solid var(--main)">प्रथम भाव (लग्न) फलादेश</h2>
+        <div class="prediction-box">
+            <b>${name} जी,</b> आपका लग्न ${data.lagna} है। FortuneWithStars के अनुसार, इस लग्न का स्वामी आपके व्यक्तित्व को तेजस्वी बनाता है। 
+            (यहाँ हम डेटाबेस से 200 पेज का फलादेश लोड करेंगे...)
+        </div>
+    </div>`;
+
+    document.getElementById('appBody').innerHTML = html;
 }
-
-// ... (searchLoc और drawChart फंक्शन पुराने कोड से कॉपी करें) ...
 </script>
 </body>
 </html>
