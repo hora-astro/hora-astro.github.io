@@ -84,7 +84,6 @@ async function searchLoc(q) {
 }
 
 async function generate() {
-    // Error Fix: Convert to Number (Float) before sending
     const payload = {
         date: document.getElementById('dob').value,
         time: document.getElementById('tob').value,
@@ -120,7 +119,7 @@ function renderReport(data) {
         <h3 style="margin-top:0">विस्तृत जन्म पंचांग</h3>
         <table class="panchang-table">
             <tr>
-                <td><b>तिथि:</b> ${data.panchang.tithi} (${data.panchang.paksha} पक्ष)</td>
+                <td><b>तिथि:</b> ${data.panchang.tithi} (${data.panchang.paksha})</td>
                 <td><b>वार:</b> ${data.panchang.day}</td>
                 <td><b>मास:</b> ${data.panchang.month || 'चैत्र'}</td>
             </tr>
@@ -136,7 +135,7 @@ function renderReport(data) {
             </tr>
             <tr>
                 <td><b>नाड़ी:</b> ${data.panchang.nadi}</td>
-                <td><b>वर्ण:</b> ${data.panchang.varna}</td>
+                <td><b>वर्ण:</b> ${data.panchang.varna || 'ब्राह्मण'}</td>
                 <td><b>अयनांश:</b> ${data.ayan_val}</td>
             </tr>
         </table>
@@ -149,7 +148,7 @@ function renderReport(data) {
         <h3>ग्रह स्पष्ट एवं नक्षत्र विवरण</h3>
         <table class="data-table">
             <thead>
-                <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th><th>स्थिति</th></tr>
+                <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>पद</th><th>भाव</th><th>D9</th><th>स्थिति</th></tr>
             </thead>
             <tbody>`;
     
@@ -161,6 +160,7 @@ function renderReport(data) {
             <td>${p.naks}</td>
             <td>${p.charan}</td>
             <td>${p.house}</td>
+            <td>${p.d9_sign}</td>
             <td class="${sClass}">${p.status || 'सम'}</td>
         </tr>`;
     });
