@@ -2,39 +2,48 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Fortune Kundli - Entry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Software - Entry</title>
     <style>
-        body { font-family: sans-serif; background: #fffcf5; display: flex; justify-content: center; padding: 50px; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 400px; border-top: 5px solid #800000; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffcf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 6px solid #800000; }
+        h2 { text-align: center; color: #800000; margin-bottom: 25px; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; }
+        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 20px; }
+        button:hover { background: #a00000; }
+        .row { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2 style="text-align:center; color:#800000;">✨ कुंडली सॉफ्टवेयर ✨</h2>
-        <input type="text" id="uname" placeholder="नाम लिखें">
+        <h2>✨ कुंडली सॉफ्टवेयर ✨</h2>
+        <input type="text" id="uname" placeholder="जातक का नाम">
         <input type="date" id="date">
         <input type="time" id="time">
-        <input type="text" id="city" placeholder="शहर (जैसे: Banswara)">
-        <div style="display:flex; gap:10px;">
+        <input type="text" id="city" placeholder="शहर का नाम">
+        <div class="row">
             <input type="text" id="lat" placeholder="अक्षांश (23.32)">
             <input type="text" id="lon" placeholder="देशांतर (74.26)">
         </div>
-        <button onclick="saveAndGo()">कुंडली बनाएं</button>
+        <select id="ayan">
+            <option>NC Lahiri</option>
+            <option>BV Raman</option>
+        </select>
+        <button onclick="calculate()">कुंडली बनाएं</button>
     </div>
 
     <script>
-        function saveAndGo() {
-            const data = {
-                custName: document.getElementById('uname').value,
+        function calculate() {
+            const d = {
+                custName: document.getElementById('uname').value || "जातक",
                 date: document.getElementById('date').value,
                 time: document.getElementById('time').value,
                 lat: document.getElementById('lat').value || "23.32",
                 lon: document.getElementById('lon').value || "74.26",
-                city: document.getElementById('city').value
+                city: document.getElementById('city').value || "Banswara"
             };
-            localStorage.setItem('kundliData', JSON.stringify(data));
+            if(!d.date || !d.time) { alert("कृपया तारीख और समय भरें"); return; }
+            localStorage.setItem('kundliData', JSON.stringify(d));
             window.location.href = "report.html";
         }
     </script>
