@@ -2,77 +2,72 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Kundli Report</title>
+    <title>Professional Kundli Report</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
-        .page { background: white; max-width: 900px; margin: auto; padding: 40px; border: 3px double #800000; }
-        .panchang-box { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #fff8f0; padding: 20px; border: 1px solid #800000; margin-bottom: 20px; font-size: 13px; }
-        .panchang-box b { color: #800000; }
-        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .chart-container { border: 1px solid #800000; text-align: center; background: #fff; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
-        th, td { border: 1px solid #ccc; padding: 12px; text-align: center; }
+        body { font-family: 'Segoe UI'; background: #f0f0f0; margin: 0; padding: 20px; }
+        .page { background: white; width: 210mm; margin: auto; padding: 15mm; border: 2px solid #800000; }
+        .panchang-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff8f0; border: 1px solid #800000; margin: 20px 0; font-size: 13px; }
+        .panchang-grid div { padding: 10px; border: 0.5px solid #eee; }
+        .panchang-grid b { color: #800000; }
+        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-box { border: 1px solid #800000; text-align: center; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
         th { background: #800000; color: white; }
-        .high { color: green; font-weight: bold; } /* उच्च (Green) */
-        .low { color: red; font-weight: bold; }   /* नीच (Red) */
-        .pred-box { background: #fffdf2; border-left: 5px solid #daa520; padding: 15px; margin-top: 20px; }
+        .high { color: green; font-weight: bold; }
+        .low { color: red; font-weight: bold; }
+        .pred-text { background: #fff9e6; padding: 15px; border-left: 5px solid gold; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="page">
-        <h1 style="text-align:center; color:#800000; margin-top:0;">॥ कुंडली विश्लेषण ॥</h1>
-        
-        <div class="panchang-box" id="panData"></div>
+        <h1 style="text-align:center; color:#800000;">॥ श्री गणेशाय नमः ॥</h1>
+        <p id="top-info" style="text-align:center;"></p>
 
-        <div class="charts">
-            <div class="chart-container"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
-            <div class="chart-container"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
+        <div class="panchang-grid" id="pan-table"></div>
+
+        <div class="chart-row">
+            <div class="chart-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
+            <div class="chart-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
         </div>
 
         <table>
-            <thead><tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>भाव</th><th>D9 राशि</th></tr></thead>
-            <tbody id="pBody"></tbody>
+            <thead><tr><th>ग्रह</th><th>डिग्री</th><th>भाव</th><th>D9 राशि</th></tr></thead>
+            <tbody id="p-rows"></tbody>
         </table>
 
-        <div class="pred-box">
-            <h3>✨ विस्तृत फलादेश (डेटाबेस के अनुसार)</h3>
-            <div id="pTexts"></div>
+        <div class="pred-text">
+            <h3 style="color:#800000;">✨ फलादेश (डेटाबेस के अनुसार)</h3>
+            <div id="predictions"></div>
         </div>
     </div>
 
     <script>
         window.onload = async () => {
-            const k = JSON.parse(localStorage.getItem('kData'));
+            const k = JSON.parse(localStorage.getItem('proKundli'));
             const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(k)
             });
             const data = await res.json();
             
-            // पंचांग प्रदर्शन
+            document.getElementById('top-info').innerHTML = `<b>नाम:</b> ${data.name} | <b>स्थान:</b> ${k.city} | <b>अक्षांश:</b> ${k.lat} | <b>देशांतर:</b> ${k.lon}`;
+            
             const p = data.panchang;
-            document.getElementById('panData').innerHTML = `
-                <div><b>नक्षत्र:</b> ${p.naks}</div><div><b>इष्टकाल:</b> ${p.ghati}</div>
+            document.getElementById('pan-table').innerHTML = `
+                <div><b>नक्षत्र:</b> ${p.naks}</div><div><b>वार:</b> रविवार</div>
                 <div><b>तिथि:</b> ${p.tithi}</div><div><b>योग:</b> ${p.yoga}</div>
-                <div><b>करण:</b> ${p.karan}</div><div><b>नाम:</b> ${data.name}</div>
+                <div><b>करण:</b> ${p.karan}</div><div><b>गण:</b> ${p.gan}</div>
+                <div><b>योनि:</b> ${p.yoni}</div><div><b>इष्टकाल:</b> ${p.ishtakal}</div>
             `;
 
-            // ग्रह टेबल (उच्च-नीच रंग के साथ)
-            let rows = "";
+            let p_html = "";
             data.planets.forEach(pl => {
-                rows += `<tr>
-                    <td class="${pl.status}">${pl.name}</td>
-                    <td>${pl.deg}</td><td>${pl.naks}</td><td>${pl.house}</td><td>${pl.d9_sign}</td>
-                </tr>`;
+                p_html += `<tr><td class="${pl.status}">${pl.name}</td><td>${pl.deg}</td><td>${pl.house}</td><td>${pl.d9_sign}</td></tr>`;
             });
-            document.getElementById('pBody').innerHTML = rows;
+            document.getElementById('p-rows').innerHTML = p_html;
 
-            // फलादेश
-            document.getElementById('pTexts').innerHTML = data.predictions.map(pr => `<p><b>${pr.planet}:</b> ${pr.text}</p>`).join('');
-
-            // चार्ट ड्राइंग
             drawChart('d1', data.lagna, data.planets, 'house');
-            drawChart('d9', data.d9_lagna, data.planets, 'd9_sign');
         };
 
         function drawChart(id, asc, planets, key) {
@@ -86,6 +81,6 @@
             }
             document.getElementById(id).innerHTML = s + `</svg>`;
         }
-    </script>
+</script>
 </body>
 </html>
