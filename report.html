@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>जन्म कुंडली रिपोर्ट</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .report { max-width: 800px; margin: auto; background: white; padding: 30px; border: 1px solid #ddd; }
+        .p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .p-box { border: 1px solid #d4af37; padding: 10px; text-align: center; background: #fffbf2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #8e1414; color: white; }
+        .chart-row { display: flex; justify-content: space-around; margin: 20px 0; }
+        svg { border: 2px solid #8e1414; width: 300px; height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="report" id="main">
+        <h1 id="n" style="text-align:center; color:#8e1414;">कुंडली रिपोर्ट</h1>
+        <div id="panchang" class="p-grid"></div>
+        <div class="chart-row">
+            <div id="d1"></div>
+            <div id="d9"></div>
+        </div>
+        <div id="analysis"></div>
+        <table id="pTable">
+            <thead><tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>भाव</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = "https://hemantpurohit27.pythonanywhere.com/calculate";
+
+        window.onload = async () => {
+            const d = JSON.parse(localStorage.getItem('kundliData'));
+            const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(d) });
+            const data = await res.json();
+            if(data.status === 'success') render(data);
+        };
+
+        function render(data) {
+            document.getElementById('n').innerText = data.name + " की कुंडली";
+            let pH = ""; data.panchang.forEach(p => { pH += `<div class="p-box"><b>${p.k}</b><br>${p.v}</div>`; });
+            document.getElementById('panchang').innerHTML = pH;
+            
+            let tH = ""; data.planets.forEach(p => { 
+                tH += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.nak}</td><td>${p.house}</td></tr>`; 
+            });
+            document.getElementById('pTable').querySelector('tbody').innerHTML = tH;
+
+            drawKundli('d1', data.lagna, data.planets, 'house', 'D1 Chart');
+            drawKundli('d9', data.d9_lagna, data.planets, 'd9', 'D9 Chart');
+
+            let pred = "<h2>भाव फलादेश एवं उपाय</h2>";
+            data.planets.forEach(p => {
+                pred += `<p><b>${p.name}:</b> ${p.prediction}</p><hr>`;
+            });
+            document.getElementById('analysis').innerHTML = pred;
+        }
+
+        function drawKundli(id, asc, planets, key, title) {
+            const pos = {1:[150,110], 2:[75,60], 3:[35,110], 4:[100,160], 5:[35,230], 6:[75,280], 7:[150,230], 8:[225,280], 9:[265,230], 10:[200,160], 11:[265,110], 12:[225,60]};
+            let s = `<svg viewBox="0 0 300 300"><text x="150" y="20" text-anchor="middle" font-size="14" fill="#8e1414">${title}</text>
+            <path d="M10 30 L290 30 L290 290 L10 290 Z M10 30 L290 290 M290 30 L10 290 M150 30 L10 160 L150 290 L290 160 Z" fill="none" stroke="#8e1414" stroke-width="2"/>`;
+            for(let i=1; i<=12; i++) {
+                let sign = (asc + i - 2) % 12 + 1;
+                s += `<text x="${pos[i][0]}" y="${pos[i][1]+15}" fill="#8e1414" font-weight="bold">${sign}</text>`;
+                let pNames = planets.filter(p => p[key] == i).map(p => p.name.substring(0,2)).join(' ');
+                s += `<text x="${pos[i][0]}" y="${pos[i][1]+35}" font-size="10" text-anchor="middle">${pNames}</text>`;
+            }
+            document.getElementById(id).innerHTML = s + `</svg>`;
+        }
+    </script>
+</body>
+</html>
