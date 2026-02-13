@@ -76,8 +76,22 @@ async function generate() {
 }
 
 function renderUI(data) {
-    let html = "";
+    // नाम सेट करें
+    document.querySelector('h1, h2').innerText = `${data.name} की कुंडली`;
     
+    let htmlRows = "";
+    data.planets.forEach(p => {
+        htmlRows += `<tr>
+            <td><b>${p.name}</b></td>
+            <td>${p.deg}</td>
+            <td>${p.house}</td>
+            <td>${p.status_d1 || 'सम'}</td>
+        </tr>`;
+    });
+    
+    // मान लें कि आपकी टेबल की बॉडी की आईडी 'pTableBody' है
+    document.getElementById('pTableBody').innerHTML = htmlRows;
+}  
     // Page 1
     html += `<div class="pdf-page"><div class="page-border">
         <h2 style="text-align:center; color:var(--maroon); margin:0;">॥ कुंडली विश्लेषण ॥</h2>
