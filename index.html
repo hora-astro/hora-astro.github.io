@@ -2,52 +2,71 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Fortune Kundli Entry</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <title>Fortune Pro Software</title>
     <style>
-        body { font-family: sans-serif; background: #fffcf5; display: flex; justify-content: center; padding-top: 50px; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 400px; border-top: 6px solid #800000; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; }
+        body { font-family: 'Segoe UI'; background: #fdf5e6; padding: 40px; }
+        .form-card { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 15px; border-top: 8px solid #800000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: #800000; color: white; cursor: pointer; border: none; font-weight: bold; }
+        .manual-geo { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2 style="text-align:center; color:#800000;">✨ कुंडली सॉफ्टवेयर ✨</h2>
+    <div class="form-card">
+        <h2 style="text-align:center; color:#800000;">✨ प्रोफेशनल कुंडली ✨</h2>
         <input type="text" id="uname" placeholder="नाम लिखें">
         <input type="date" id="date">
         <input type="time" id="time">
-        <input type="text" id="citySearch" placeholder="शहर खोजें (Location Search)...">
-        <input type="hidden" id="lat">
-        <input type="hidden" id="lon">
-        <button onclick="submit()">कुंडली बनाएँ</button>
+        
+        <input type="text" id="city" placeholder="शहर खोजें..." oninput="searchCity(this.value)">
+        <div id="city-results" style="background:#eee;"></div>
+        
+        <div class="manual-geo">
+            <input type="text" id="lat" placeholder="अक्षांश (Lat)">
+            <input type="text" id="lon" placeholder="देशांतर (Lon)">
+        </div>
+        
+        <select id="ayan">
+            <option>NC Lahiri</option>
+            <option>KP Ayanamsa</option>
+        </select>
+        
+        <button onclick="saveData()">कुंडली बनाएँ</button>
     </div>
 
     <script>
-        // Google Autocomplete Setup
-        function initAutocomplete() {
-            const input = document.getElementById('citySearch');
-            const autocomplete = new google.maps.places.Autocomplete(input);
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                document.getElementById('lat').value = place.geometry.location.lat();
-                document.getElementById('lon').value = place.geometry.location.lng();
+        async function searchCity(query) {
+            if(query.length < 3) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+            const data = await res.json();
+            let html = "";
+            data.slice(0, 5).forEach(item => {
+                html += `<div style="padding:5px; border-bottom:1px solid #ccc; cursor:pointer;" 
+                        onclick="setCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
             });
+            document.getElementById('city-results').innerHTML = html;
         }
-        google.maps.event.addDomListener(window, 'load', initAutocomplete);
 
-        function submit() {
-            const d = {
+        function setCity(name, lat, lon) {
+            document.getElementById('city').value = name;
+            document.getElementById('lat').value = lat;
+            document.getElementById('lon').value = lon;
+            document.getElementById('city-results').innerHTML = "";
+        }
+
+        function saveData() {
+            const payload = {
                 custName: document.getElementById('uname').value,
                 date: document.getElementById('date').value,
                 time: document.getElementById('time').value,
-                city: document.getElementById('citySearch').value,
+                city: document.getElementById('city').value,
                 lat: document.getElementById('lat').value,
-                lon: document.getElementById('lon').value
+                lon: document.getElementById('lon').value,
+                ayan_mode: document.getElementById('ayan').value
             };
-            localStorage.setItem('kData', JSON.stringify(d));
+            localStorage.setItem('proKundli', JSON.stringify(payload));
             window.location.href = "report.html";
         }
-    </script>
+</script>
 </body>
 </html>
