@@ -4,69 +4,58 @@
     <meta charset="UTF-8">
     <title>Fortune Pro Software</title>
     <style>
-        body { font-family: 'Segoe UI'; background: #fdf5e6; padding: 40px; }
-        .form-card { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 15px; border-top: 8px solid #800000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #ddd; }
-        button { background: #800000; color: white; cursor: pointer; border: none; font-weight: bold; }
-        .manual-geo { display: flex; gap: 10px; }
+        body { font-family: sans-serif; background: #fffcf5; padding: 40px; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 450px; margin: auto; border-top: 8px solid #800000; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .geo-row { display: flex; gap: 10px; }
+        #res { position: absolute; background: white; border: 1px solid #ddd; width: 390px; z-index: 100; display: none; }
+        .res-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        button { background: #800000; color: white; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="form-card">
-        <h2 style="text-align:center; color:#800000;">✨ प्रोफेशनल कुंडली ✨</h2>
-        <input type="text" id="uname" placeholder="नाम लिखें">
-        <input type="date" id="date">
-        <input type="time" id="time">
+    <div class="box">
+        <h2 style="text-align:center; color:#800000;">✨ कमर्शियल कुंडली सॉफ्टवेयर ✨</h2>
+        <input type="text" id="uname" placeholder="नाम">
+        <input type="date" id="date"><input type="time" id="time">
         
-        <input type="text" id="city" placeholder="शहर खोजें..." oninput="searchCity(this.value)">
-        <div id="city-results" style="background:#eee;"></div>
-        
-        <div class="manual-geo">
+        <div style="position:relative;">
+            <input type="text" id="city" placeholder="शहर खोजें (जैसे: Banswara)..." oninput="searchLoc(this.value)">
+            <div id="res"></div>
+        </div>
+
+        <div class="geo-row">
             <input type="text" id="lat" placeholder="अक्षांश (Lat)">
             <input type="text" id="lon" placeholder="देशांतर (Lon)">
         </div>
-        
-        <select id="ayan">
-            <option>NC Lahiri</option>
-            <option>KP Ayanamsa</option>
-        </select>
-        
-        <button onclick="saveData()">कुंडली बनाएँ</button>
+
+        <select id="ayan"><option>NC Lahiri</option><option>KP Ayanamsa</option></select>
+        <button onclick="go()">कुंडली बनाएँ</button>
     </div>
 
     <script>
-        async function searchCity(query) {
-            if(query.length < 3) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
-            const data = await res.json();
-            let html = "";
-            data.slice(0, 5).forEach(item => {
-                html += `<div style="padding:5px; border-bottom:1px solid #ccc; cursor:pointer;" 
-                        onclick="setCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
+        async function searchLoc(q) {
+            if(q.length < 3) return;
+            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await r.json();
+            let h = "";
+            data.slice(0, 5).forEach(i => {
+                h += `<div class="res-item" onclick="setLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
             });
-            document.getElementById('city-results').innerHTML = html;
+            document.getElementById('res').innerHTML = h;
+            document.getElementById('res').style.display = 'block';
         }
-
-        function setCity(name, lat, lon) {
-            document.getElementById('city').value = name;
-            document.getElementById('lat').value = lat;
-            document.getElementById('lon').value = lon;
-            document.getElementById('city-results').innerHTML = "";
+        function setLoc(n, lt, ln) {
+            document.getElementById('city').value = n;
+            document.getElementById('lat').value = lt;
+            document.getElementById('lon').value = ln;
+            document.getElementById('res').style.display = 'none';
         }
-
-        function saveData() {
-            const payload = {
-                custName: document.getElementById('uname').value,
-                date: document.getElementById('date').value,
-                time: document.getElementById('time').value,
-                city: document.getElementById('city').value,
-                lat: document.getElementById('lat').value,
-                lon: document.getElementById('lon').value,
-                ayan_mode: document.getElementById('ayan').value
-            };
-            localStorage.setItem('proKundli', JSON.stringify(payload));
+        function go() {
+            const d = { custName: document.getElementById('uname').value, date: document.getElementById('date').value, time: document.getElementById('time').value, city: document.getElementById('city').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value, ayan_mode: document.getElementById('ayan').value };
+            localStorage.setItem('kData', JSON.stringify(d));
             window.location.href = "report.html";
         }
-</script>
+    </script>
 </body>
 </html>
