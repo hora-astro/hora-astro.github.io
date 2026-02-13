@@ -2,48 +2,50 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortune Software - Entry</title>
+    <title>Fortune Kundli Entry</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fffcf5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 6px solid #800000; }
-        h2 { text-align: center; color: #800000; margin-bottom: 25px; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; }
-        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 20px; }
-        button:hover { background: #a00000; }
-        .row { display: flex; gap: 10px; }
+        body { font-family: sans-serif; background: #fffcf5; display: flex; justify-content: center; padding-top: 50px; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 400px; border-top: 6px solid #800000; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2>✨ कुंडली सॉफ्टवेयर ✨</h2>
-        <input type="text" id="uname" placeholder="जातक का नाम">
+        <h2 style="text-align:center; color:#800000;">✨ कुंडली सॉफ्टवेयर ✨</h2>
+        <input type="text" id="uname" placeholder="नाम लिखें">
         <input type="date" id="date">
         <input type="time" id="time">
-        <input type="text" id="city" placeholder="शहर का नाम">
-        <div class="row">
-            <input type="text" id="lat" placeholder="अक्षांश (23.32)">
-            <input type="text" id="lon" placeholder="देशांतर (74.26)">
-        </div>
-        <select id="ayan">
-            <option>NC Lahiri</option>
-            <option>BV Raman</option>
-        </select>
-        <button onclick="calculate()">कुंडली बनाएं</button>
+        <input type="text" id="citySearch" placeholder="शहर खोजें (Location Search)...">
+        <input type="hidden" id="lat">
+        <input type="hidden" id="lon">
+        <button onclick="submit()">कुंडली बनाएँ</button>
     </div>
 
     <script>
-        function calculate() {
+        // Google Autocomplete Setup
+        function initAutocomplete() {
+            const input = document.getElementById('citySearch');
+            const autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                document.getElementById('lat').value = place.geometry.location.lat();
+                document.getElementById('lon').value = place.geometry.location.lng();
+            });
+        }
+        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+
+        function submit() {
             const d = {
-                custName: document.getElementById('uname').value || "जातक",
+                custName: document.getElementById('uname').value,
                 date: document.getElementById('date').value,
                 time: document.getElementById('time').value,
-                lat: document.getElementById('lat').value || "23.32",
-                lon: document.getElementById('lon').value || "74.26",
-                city: document.getElementById('city').value || "Banswara"
+                city: document.getElementById('citySearch').value,
+                lat: document.getElementById('lat').value,
+                lon: document.getElementById('lon').value
             };
-            if(!d.date || !d.time) { alert("कृपया तारीख और समय भरें"); return; }
-            localStorage.setItem('kundliData', JSON.stringify(d));
+            localStorage.setItem('kData', JSON.stringify(d));
             window.location.href = "report.html";
         }
     </script>
