@@ -2,26 +2,29 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Fortune Pro Software</title>
+    <title>Fortune Pro - Entry</title>
     <style>
-        body { font-family: sans-serif; background: #fffcf5; padding: 40px; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 450px; margin: auto; border-top: 8px solid #800000; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffcf5; padding: 40px; display: flex; justify-content: center; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); width: 450px; border-top: 8px solid #800000; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
         .geo-row { display: flex; gap: 10px; }
-        #res { position: absolute; background: white; border: 1px solid #ddd; width: 390px; z-index: 100; display: none; }
-        .res-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        button { background: #800000; color: white; border: none; font-weight: bold; cursor: pointer; }
+        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 390px; z-index: 100; display: none; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .res-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+        .res-item:hover { background: #f0f0f0; }
+        button { background: #800000; color: white; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #a00000; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2 style="text-align:center; color:#800000;">✨ कमर्शियल कुंडली सॉफ्टवेयर ✨</h2>
-        <input type="text" id="uname" placeholder="नाम">
-        <input type="date" id="date"><input type="time" id="time">
+        <h2 style="text-align:center; color:#800000; margin-bottom:20px;">✨ व्यावसायिक कुंडली सॉफ्टवेयर ✨</h2>
+        <input type="text" id="uname" placeholder="जातक का नाम">
+        <input type="date" id="date">
+        <input type="time" id="time">
         
         <div style="position:relative;">
-            <input type="text" id="city" placeholder="शहर खोजें (जैसे: Banswara)..." oninput="searchLoc(this.value)">
-            <div id="res"></div>
+            <input type="text" id="city" placeholder="शहर खोजें (जैसे: Banswara)..." oninput="searchLocation(this.value)">
+            <div id="res-box"></div>
         </div>
 
         <div class="geo-row">
@@ -29,33 +32,50 @@
             <input type="text" id="lon" placeholder="देशांतर (Lon)">
         </div>
 
-        <select id="ayan"><option>NC Lahiri</option><option>KP Ayanamsa</option></select>
-        <button onclick="go()">कुंडली बनाएँ</button>
+        <select id="ayan">
+            <option>NC Lahiri</option>
+            <option>KP Ayanamsa</option>
+        </select>
+        
+        <button onclick="processData()">कुंडली बनाएँ</button>
     </div>
 
     <script>
-        async function searchLoc(q) {
-            if(q.length < 3) return;
-            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const data = await r.json();
-            let h = "";
-            data.slice(0, 5).forEach(i => {
-                h += `<div class="res-item" onclick="setLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
-            });
-            document.getElementById('res').innerHTML = h;
-            document.getElementById('res').style.display = 'block';
+        async function searchLocation(query) {
+            if(query.length < 3) return;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+                const data = await response.json();
+                let html = "";
+                data.slice(0, 5).forEach(item => {
+                    html += `<div class="res-item" onclick="selectLoc('${item.display_name}',${item.lat},${item.lon})">${item.display_name}</div>`;
+                });
+                document.getElementById('res-box').innerHTML = html;
+                document.getElementById('res-box').style.display = 'block';
+            } catch(e) { console.log("Search error"); }
         }
-        function setLoc(n, lt, ln) {
-            document.getElementById('city').value = n;
-            document.getElementById('lat').value = lt;
-            document.getElementById('lon').value = ln;
-            document.getElementById('res').style.display = 'none';
+
+        function selectLoc(name, lat, lon) {
+            document.getElementById('city').value = name;
+            document.getElementById('lat').value = lat;
+            document.getElementById('lon').value = lon;
+            document.getElementById('res-box').style.display = 'none';
         }
-        function go() {
-            const d = { custName: document.getElementById('uname').value, date: document.getElementById('date').value, time: document.getElementById('time').value, city: document.getElementById('city').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value, ayan_mode: document.getElementById('ayan').value };
+
+        function processData() {
+            const d = {
+                custName: document.getElementById('uname').value || "जातक",
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                city: document.getElementById('city').value,
+                lat: document.getElementById('lat').value,
+                lon: document.getElementById('lon').value,
+                ayan_mode: document.getElementById('ayan').value
+            };
+            if(!d.date || !d.lat) { alert("कृपया सभी जानकारी भरें"); return; }
             localStorage.setItem('kData', JSON.stringify(d));
             window.location.href = "report.html";
         }
-    </script>
+</script>
 </body>
 </html>
