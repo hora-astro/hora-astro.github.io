@@ -4,35 +4,42 @@
     <meta charset="UTF-8">
     <title>Professional Astrology Report</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding: 20px; }
-        .page { background: white; max-width: 950px; margin: auto; padding: 40px; border: 2px solid #800000; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .panchang { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff8f0; border: 1px solid #800000; margin: 20px 0; padding: 15px; font-size: 14px; }
-        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { background: white; max-width: 950px; margin: auto; padding: 40px; border: 2px solid #800000; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .panchang { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff8f0; border: 1px solid #800000; margin: 20px 0; padding: 15px; font-size: 13px; }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .c-box { border: 1px solid #800000; padding: 10px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
         th { background: #800000; color: white; }
         .high { color: green; font-weight: bold; }
         .low { color: red; font-weight: bold; }
-        .pred-area { background: #fffdf2; border-left: 6px solid #daa520; padding: 20px; margin-top: 30px; }
+        .pred-box { background: #fffcf2; border-left: 6px solid #daa520; padding: 20px; margin-top: 30px; }
     </style>
 </head>
 <body>
-    <div class="page">
-        <h1 style="text-align:center; color:#800000; margin-top:0;">॥ श्री गणेशाय नमः ॥</h1>
+    <div class="container">
+        <h1 style="text-align:center; color:#800000;">॥ श्री गणेशाय नमः ॥</h1>
+        <div id="personal" style="text-align:center; font-weight:bold; margin-bottom:10px;"></div>
+        
         <div class="panchang" id="pan"></div>
+
         <div class="charts">
             <div class="c-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
             <div class="c-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
         </div>
+
         <table>
             <thead><tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>D1 स्थिति</th><th>D9 स्थिति</th></tr></thead>
             <tbody id="tbody"></tbody>
         </table>
-        <h3 style="color:#800000; margin-top:30px; border-bottom: 2px solid #800000;">📅 विंशोत्तरी महादशा (भुक्त शेष)</h3>
-        <table id="dasha"><thead><tr><th>स्वामी</th><th>समाप्ति तिथि</th><th>प्रकार</th></tr></thead><tbody id="dbody"></tbody></table>
-        <div class="pred-area"><h3>✨ विस्तृत फलादेश</h3><div id="preds"></div></div>
+
+        <h3 style="color:#800000; border-bottom: 2px solid #800000; margin-top:40px;">📅 विंशोत्तरी महादशा (भुक्त शेष सहित)</h3>
+        <table><thead><tr><th>स्वामी</th><th>समाप्ति तिथि</th><th>अवधि प्रकार</th></tr></thead><tbody id="dbody"></tbody></table>
+
+        <div class="pred-box"><h3>✨ विस्तृत फलादेश (JSON आधारित)</h3><div id="preds"></div></div>
     </div>
+
     <script>
         window.onload = async () => {
             const k = JSON.parse(localStorage.getItem('kData'));
@@ -40,18 +47,27 @@
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
             });
             const data = await res.json();
-            document.getElementById('pan').innerHTML = `<div><b>नक्षत्र:</b> ${data.panchang.naks}</div><div><b>तिथि:</b> ${data.panchang.tithi}</div><div><b>इष्टकाल:</b> ${data.panchang.ishtakal}</div><div><b>स्थान:</b> ${k.city}</div>`;
             
-            let h="", pr="", d="";
-            data.planets.forEach(p => {
-                h += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td class="${p.d1_stat=='उच्च'?'high':(p.d1_stat=='नीच'?'low':'')}">${p.d1_stat}</td><td class="${p.d9_stat=='उच्च'?'high':(p.d9_stat=='नीच'?'low':'')}">${p.d9_stat}</td></tr>`;
-                pr += `<p><b>${p.name}:</b> ${p.pred}</p>`;
-            });
-            data.dasha.forEach(ds => d += `<tr><td>${ds.lord}</td><td>${ds.date}</td><td>${ds.type}</td></tr>`);
-            document.getElementById('tbody').innerHTML = h; document.getElementById('dbody').innerHTML = d; document.getElementById('preds').innerHTML = pr;
+            document.getElementById('personal').innerText = `नाम: ${data.name} | स्थान: ${k.city} | दिनांक: ${k.date} | समय: ${k.time}`;
+            const p = data.pan;
+            document.getElementById('pan').innerHTML = `
+                <div><b>नक्षत्र:</b> ${p.naks}</div><div><b>तिथि:</b> ${p.tithi}</div><div><b>योग:</b> ${p.yoga}</div><div><b>इष्टकाल:</b> ${p.ishtakal}</div>
+                <div><b>गण:</b> ${p.gan}</div><div><b>योनि:</b> ${p.yoni}</div><div><b>नाड़ी:</b> ${p.nadi}</div><div><b>वर्ण:</b> ${p.varna}</div>
+            `;
 
-            draw('d1', data.l1, data.planets, 'house');
-            draw('d9', data.l9, data.planets, 'd9_house');
+            let h="", pr="", ds="";
+            data.planets.forEach(pl => {
+                h += `<tr><td>${pl.name}</td><td>${pl.deg}</td><td>${pl.naks}</td><td class="${pl.d1_stat=='उच्च'?'high':(pl.d1_stat=='नीच'?'low':'')}">${pl.d1_stat}</td><td class="${pl.d9_stat=='उच्च'?'high':(pl.d9_stat=='नीच'?'low':'')}">${pl.d9_stat}</td></tr>`;
+                pr += `<p><b>${pl.name}:</b> ${pl.pred}</p>`;
+            });
+            data.dasha.forEach(d => ds += `<tr><td>${d.l}</td><td>${d.ed}</td><td>${d.type}</td></tr>`);
+            
+            document.getElementById('tbody').innerHTML = h;
+            document.getElementById('dbody').innerHTML = ds;
+            document.getElementById('preds').innerHTML = pr;
+
+            draw('d1', data.l1, data.planets, 'h');
+            draw('d9', data.l9, data.planets, 'd9_h');
         };
 
         function draw(id, asc, planets, key) {
