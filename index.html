@@ -2,127 +2,64 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FortuneWithStars - ज्योतिष सॉफ्टवेयर</title>
+    <title>FortuneWithStars - कुंडली सॉफ्टवेयर</title>
     <link href="https://fonts.googleapis.com/css2?family=Yantra+Manav:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #b01a1a; --gold: #d4af37; --bg: #fffbf2; }
-        body { font-family: 'Yantra Manav', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-top: 6px solid var(--main); }
-        h2 { text-align: center; color: var(--main); font-size: 26px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
-        
-        .field { margin-bottom: 15px; position: relative; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        
-        /* City Search Results */
-        #results { position: absolute; width: 100%; background: white; border: 1px solid #ddd; z-index: 100; border-radius: 8px; max-height: 150px; overflow-y: auto; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-        .city-item:hover { background: #fff8e1; color: var(--main); }
-
-        button { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #8e1414; transform: translateY(-2px); }
-        .row { display: flex; gap: 10px; }
-        .row div { flex: 1; }
+        body { font-family: 'Yantra Manav', sans-serif; background: #fffbf2; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; border-top: 5px solid #8e1414; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background: #8e1414; color: white; border: none; font-weight: bold; cursor: pointer; }
+        #results { background: white; position: absolute; width: 380px; z-index: 10; cursor: pointer; }
+        .city-item { padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h2>✨ FortuneWithStars ✨</h2>
-    
-    <div class="field">
-        <label>नाम:</label>
-        <input type="text" id="uname" placeholder="जातक का नाम">
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <label>जन्म दिनांक:</label>
-            <input type="date" id="date">
-        </div>
-        <div class="field">
-            <label>जन्म समय:</label>
-            <input type="time" id="time">
-        </div>
-    </div>
-
-    <div class="field">
-        <label>जन्म स्थान (शहर खोजें):</label>
-        <input type="text" id="cityInput" oninput="fetchCities()" placeholder="उदा. जयपुर, राजस्थान" autocomplete="off">
+    <div class="card">
+        <h2 style="text-align:center; color:#8e1414;">✨ कुंडली सॉफ्टवेयर ✨</h2>
+        <input type="text" id="uname" placeholder="नाम लिखें">
+        <input type="date" id="date">
+        <input type="time" id="time">
+        <input type="text" id="cityInput" oninput="searchCity()" placeholder="शहर खोजें...">
         <div id="results"></div>
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <label>अक्षांश (Lat):</label>
-            <input type="text" id="lat" readonly>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="lat" placeholder="अक्षांश" readonly>
+            <input type="text" id="lon" placeholder="देशांतर" readonly>
         </div>
-        <div class="field">
-            <label>देशांतर (Lon):</label>
-            <input type="text" id="lon" readonly>
-        </div>
-    </div>
-
-    <div class="field">
-        <label>अयनांश पद्धति:</label>
         <select id="ayan_type">
-            <option value="LAHIRI">NC Lahiri (Chitra Paksha)</option>
+            <option value="LAHIRI">NC Lahiri</option>
             <option value="KP">KP Ayanamsa</option>
-            <option value="BV_RAMAN">BV Raman</option>
         </select>
+        <button onclick="go()">कुंडली बनाएं</button>
     </div>
 
-    <button onclick="saveAndGo()">कुंडली गणना प्रारंभ करें</button>
-</div>
-
-
-
-<script>
-    // PythonAnywhere URL (इसे अपनी वेबसाइट के URL से बदलें)
-    const SERVER_URL = "https://hemantpurohit27.pythonanywhere.com";
-
-    async function fetchCities() {
-        const q = document.getElementById('cityInput').value;
-        const resBox = document.getElementById('results');
-        if(q.length < 3) { resBox.innerHTML = ""; return; }
-
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
-        const data = await response.json();
-        
-        let html = "";
-        data.forEach(item => {
-            html += `<div class="city-item" onclick="selectCity('${item.display_name}', ${item.lat}, ${item.lon})">${item.display_name}</div>`;
-        });
-        resBox.innerHTML = html;
-    }
-
-    function selectCity(name, lat, lon) {
-        document.getElementById('cityInput').value = name;
-        document.getElementById('lat').value = parseFloat(lat).toFixed(4);
-        document.getElementById('lon').value = parseFloat(lon).toFixed(4);
-        document.getElementById('results').innerHTML = "";
-    }
-
-    function saveAndGo() {
-        const data = {
-            uname: document.getElementById('uname').value,
-            date: document.getElementById('date').value,
-            time: document.getElementById('time').value,
-            lat: document.getElementById('lat').value,
-            lon: document.getElementById('lon').value,
-            ayan_type: document.getElementById('ayan_type').value
-        };
-
-        if(!data.date || !data.lat) { alert("कृपया विवरण भरें!"); return; }
-
-        // डेटा को लोकल स्टोरेज में रखें ताकि report.html उसे पढ़ सके
-        localStorage.setItem('kundliData', JSON.stringify(data));
-        
-        // अब रिपोर्ट पेज पर भेजें (जो आपके सर्वर पर है)
-        window.location.href = SERVER_URL + "/report.html";
-    }
-</script>
-
+    <script>
+        async function searchCity() {
+            const q = document.getElementById('cityInput').value;
+            if(q.length < 3) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
+            const data = await res.json();
+            let h = "";
+            data.forEach(i => { h += `<div class="city-item" onclick="setCity('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`; });
+            document.getElementById('results').innerHTML = h;
+        }
+        function setCity(n, la, lo) {
+            document.getElementById('cityInput').value = n;
+            document.getElementById('lat').value = la;
+            document.getElementById('lon').value = lo;
+            document.getElementById('results').innerHTML = "";
+        }
+        function go() {
+            const d = { 
+                uname: document.getElementById('uname').value, 
+                date: document.getElementById('date').value, 
+                time: document.getElementById('time').value, 
+                lat: document.getElementById('lat').value, 
+                lon: document.getElementById('lon').value, 
+                ayan_type: document.getElementById('ayan_type').value 
+            };
+            localStorage.setItem('kundliData', JSON.stringify(d));
+            window.location.href = "report.html";
+        }
+    </script>
 </body>
 </html>
