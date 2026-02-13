@@ -87,7 +87,16 @@ function renderUI(data) {
         </div>
         <table>
             <thead><tr><th>ग्रह</th><th>डिग्री</th><th>भाव</th><th>D1 स्थिति</th><th>D9 स्थिति</th><th>दृष्टि</th></tr></thead>
-            <tbody>`;
+            data.planets.forEach(p => {
+        html += `<tr>
+            <td><b>${p.name}</b></td>
+            <td>${p.deg}</td>
+            <td>${p.house}</td>
+            <td class="${p.status_d1=='उच्च'?'high':(p.status_d1=='नीच'?'low':'')}">${p.status_d1}</td>
+            <td class="${p.status_d9=='उच्च'?'high':(p.status_d9=='नीच'?'low':'')}">${p.status_d9}</td>
+            <td>${p.aspect}वें भाव पर</td>
+        </tr>`;
+    });
     
     data.planets.forEach(p => {
         html += `<tr>
