@@ -2,62 +2,39 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>FortuneWithStars - कुंडली सॉफ्टवेयर</title>
-    <link href="https://fonts.googleapis.com/css2?family=Yantra+Manav:wght@400;700&display=swap" rel="stylesheet">
+    <title>Fortune Kundli - Entry</title>
     <style>
-        body { font-family: 'Yantra Manav', sans-serif; background: #fffbf2; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; border-top: 5px solid #8e1414; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button { background: #8e1414; color: white; border: none; font-weight: bold; cursor: pointer; }
-        #results { background: white; position: absolute; width: 380px; z-index: 10; cursor: pointer; }
-        .city-item { padding: 10px; border-bottom: 1px solid #eee; }
+        body { font-family: sans-serif; background: #fffcf5; display: flex; justify-content: center; padding: 50px; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 400px; border-top: 5px solid #800000; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 style="text-align:center; color:#8e1414;">✨ कुंडली सॉफ्टवेयर ✨</h2>
+    <div class="box">
+        <h2 style="text-align:center; color:#800000;">✨ कुंडली सॉफ्टवेयर ✨</h2>
         <input type="text" id="uname" placeholder="नाम लिखें">
         <input type="date" id="date">
         <input type="time" id="time">
-        <input type="text" id="cityInput" oninput="searchCity()" placeholder="शहर खोजें...">
-        <div id="results"></div>
+        <input type="text" id="city" placeholder="शहर (जैसे: Banswara)">
         <div style="display:flex; gap:10px;">
-            <input type="text" id="lat" placeholder="अक्षांश" readonly>
-            <input type="text" id="lon" placeholder="देशांतर" readonly>
+            <input type="text" id="lat" placeholder="अक्षांश (23.32)">
+            <input type="text" id="lon" placeholder="देशांतर (74.26)">
         </div>
-        <select id="ayan_type">
-            <option value="LAHIRI">NC Lahiri</option>
-            <option value="KP">KP Ayanamsa</option>
-        </select>
-        <button onclick="go()">कुंडली बनाएं</button>
+        <button onclick="saveAndGo()">कुंडली बनाएं</button>
     </div>
 
     <script>
-        async function searchCity() {
-            const q = document.getElementById('cityInput').value;
-            if(q.length < 3) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
-            const data = await res.json();
-            let h = "";
-            data.forEach(i => { h += `<div class="city-item" onclick="setCity('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`; });
-            document.getElementById('results').innerHTML = h;
-        }
-        function setCity(n, la, lo) {
-            document.getElementById('cityInput').value = n;
-            document.getElementById('lat').value = la;
-            document.getElementById('lon').value = lo;
-            document.getElementById('results').innerHTML = "";
-        }
-        function go() {
-            const d = { 
-                uname: document.getElementById('uname').value, 
-                date: document.getElementById('date').value, 
-                time: document.getElementById('time').value, 
-                lat: document.getElementById('lat').value, 
-                lon: document.getElementById('lon').value, 
-                ayan_type: document.getElementById('ayan_type').value 
+        function saveAndGo() {
+            const data = {
+                custName: document.getElementById('uname').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                lat: document.getElementById('lat').value || "23.32",
+                lon: document.getElementById('lon').value || "74.26",
+                city: document.getElementById('city').value
             };
-            localStorage.setItem('kundliData', JSON.stringify(d));
+            localStorage.setItem('kundliData', JSON.stringify(data));
             window.location.href = "report.html";
         }
     </script>
