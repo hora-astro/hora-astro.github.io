@@ -20,94 +20,55 @@
     </style>
 </head>
 <body>
-    <div class="report-container">
-        <h1 style="text-align:center; color:#800000; margin:0;">॥ श्री गणेशाय नमः ॥</h1>
-        <p id="personal-info" style="text-align:center; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
 
-        <div class="panchang-grid" id="panchang-data"></div>
-
-        <div class="chart-section">
-            <div class="chart-box"><b>लग्न कुंडली (D1)</b><div id="d1-chart"></div></div>
-            <div class="chart-box"><b>नवांश कुंडली (D9)</b><div id="d9-chart"></div></div>
-        </div>
-
-        <table>
-            <thead>
-                <tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>भाव</th><th>D9 राशि</th></tr>
-            </thead>
-            <tbody id="planet-table"></tbody>
-        </table>
-
-        <div class="prediction-area">
-            <h3 style="color:#800000; margin-top:0;">✨ विस्तृत फलादेश</h3>
-            <div id="falaadesh-content"></div>
-        </div>
+<div class="report-container">
+    <h1 style="text-align:center; color:#800000;">॥ कुंडली विश्लेषण ॥</h1>
+    
+    <div class="panchang-header" style="display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #800000; padding: 10px; font-size: 14px; background: #fffcf0;">
+        <div><b>नक्षत्र:</b> <span id="naks-val"></span></div>
+        <div><b>तिथि:</b> <span id="tithi-val"></span></div>
+        <div><b>इष्टकाल:</b> <span id="ishtakal-val"></span></div>
+        <div><b>योग:</b> <span id="yoga-val"></span></div>
+        <div><b>करण:</b> बव</div>
+        <div><b>पक्ष:</b> शुक्ल</div>
+        <div><b>योनि:</b> <span id="yoni-val"></span></div>
+        <div><b>गण:</b> <span id="gan-val"></span></div>
+        <div><b>नाड़ी:</b> <span id="nadi-val"></span></div>
     </div>
 
-    <script>
-        window.onload = async () => {
-            const k = JSON.parse(localStorage.getItem('kData'));
-            if(!k) return;
+    <div class="charts-row" style="display: flex; gap: 20px; margin-top: 20px;">
+        <div id="d1-box" class="chart-box"><h3>लग्न कुंडली (D1)</h3><div id="d1"></div></div>
+        <div id="d9-box" class="chart-box"><h3>नवांश कुंडली (D9)</h3><div id="d9"></div></div>
+    </div>
 
-            try {
-                const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(k)
-                });
-                const data = await response.json();
-                renderReport(data, k);
-            } catch(e) { alert("सर्वर से डेटा प्राप्त करने में त्रुटि!"); }
-        };
+    <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background:#800000; color:white;">
+            <th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>भाव</th><th>D1 स्थिति</th><th>D9 स्थिति</th>
+        </tr>
+        <tbody id="p-table"></tbody>
+    </table>
 
-        function renderReport(data, input) {
-            document.getElementById('personal-info').innerHTML = `<b>नाम:</b> ${data.name} | <b>स्थान:</b> ${input.city} | <b>अक्षांश:</b> ${input.lat} | <b>देशांतर:</b> ${input.lon}`;
+    <div class="dasha-section" style="margin-top:20px; border-top: 2px solid #800000; padding-top:10px;">
+        <h3>महादशा एवं अंतर्दशा</h3>
+        <div id="dasha-list"></div>
+    </div>
+</div>
+
+<script>
+    // डेटा रेंडरिंग के समय स्टेटस चेक करें
+    function renderPlanets(planets) {
+        let html = "";
+        planets.forEach(p => {
+            let d1_class = p.d1_status === 'high' ? 'style="color:green; font-weight:bold"' : (p.d1_status === 'low' ? 'style="color:red"' : '');
+            let d9_class = p.d9_status === 'high' ? 'style="color:green; font-weight:bold"' : (p.d9_status === 'low' ? 'style="color:red"' : '');
             
-            const p = data.panchang;
-            document.getElementById('panchang-data').innerHTML = `
-                <div><b>नक्षत्र:</b> ${p.naks}</div><div><b>तिथि:</b> ${p.tithi}</div>
-                <div><b>योग:</b> ${p.yoga}</div><div><b>इष्टकाल:</b> ${p.ishtakal}</div>
-                <div><b>गण:</b> मनुष्य</div><div><b>योनि:</b> अश्व</div>
-                <div><b>नाड़ी:</b> आदि</div><div><b>वर्ण:</b> ब्राह्मण</div>
-            `;
-
-            let tableHtml = ""; let predHtml = "";
-            data.planets.forEach(pl => {
-                tableHtml += `<tr>
-                    <td class="${pl.status}">${pl.name}</td>
-                    <td>${pl.deg}</td><td>${pl.naks}</td>
-                    <td>${pl.house}</td><td>${pl.d9_sign}</td>
-                </tr>`;
-                predHtml += `<p><b>${pl.name}:</b> ${pl.pred}</p>`;
-            });
-            document.getElementById('planet-table').innerHTML = tableHtml;
-            document.getElementById('falaadesh-content').innerHTML = predHtml;
-
-            drawKundli('d1-chart', data.lagna, data.planets, 'house');
-            drawKundli('d9-chart', data.d9_lagna, data.planets, 'd9_sign');
-        }
-
-        function drawKundli(containerId, ascendant, planets, filterKey) {
-            const positions = {
-                1:[100,70], 2:[50,40], 3:[25,70], 4:[65,110], 5:[25,150], 6:[50,180],
-                7:[100,150], 8:[150,180], 9:[175,150], 10:[135,110], 11:[175,70], 12:[150,40]
-            };
-            let svg = `<svg viewBox="0 0 200 200" width="100%"><path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="#800000" stroke-width="1.5"/>`;
-            
-            for(let i=1; i<=12; i++) {
-                let rashi = (ascendant + i - 2) % 12 + 1;
-                svg += `<text x="${positions[i][0]}" y="${positions[i][1]}" font-size="12" fill="#800000" font-weight="bold" text-anchor="middle">${rashi}</text>`;
-                
-                let housePlanets = planets.filter(p => (filterKey === 'house' ? p.house : p.d9_sign) == i);
-                let pNames = housePlanets.map(p => p.name.substring(0,2)).join(' ');
-                
-                // उच्च/नीच ग्रह का रंग चार्ट में भी दिखेगा
-                let color = housePlanets.some(p => p.status === 'high') ? 'green' : (housePlanets.some(p => p.status === 'low') ? 'red' : '#333');
-                
-                svg += `<text x="${positions[i][0]}" y="${positions[i][1]+15}" font-size="9" text-anchor="middle" fill="${color}">${pNames}</text>`;
-            }
-            document.getElementById(containerId).innerHTML = svg + `</svg>`;
-        }
+            html += `<tr>
+                <td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td>
+                <td ${d1_class}>${p.d1_status}</td><td ${d9_class}>${p.d9_status}</td>
+            </tr>`;
+        });
+        document.getElementById('p-table').innerHTML = html;
+    }
 </script>
 </body>
 </html>
