@@ -43,47 +43,75 @@
         </div>
     </div>
 
-    <script>
-        window.onload = async () => {
-            const input = JSON.parse(localStorage.getItem('kundliInput') || localStorage.getItem('kData'));
-            if(!input) { document.getElementById('error-msg').innerText = "Input data missing!"; return; }
+<script>
+    window.onload = async () => {
+        // डेटा ढूँढना (दोनों नाम चेक करेगा)
+        const input = JSON.parse(localStorage.getItem('kundliInput') || localStorage.getItem('kData'));
+        
+        if(!input) {
+            document.getElementById('error-msg').innerText = "डाटा नहीं मिला! कृपया index.html से वापस आएं।";
+            return;
+        }
 
-            try {
-                const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(input)
-                });
+        console.log("Sending Data:", input);
 
-                const data = await response.json();
-                if(data.status === "success") {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('main-content').style.display = 'block';
-                    document.getElementById('ayan-info').innerText = data.ayan;
-                    
-                    const p = data.pan;
-                    document.getElementById('pan').innerHTML = `
-                        <div><b>नक्षत्र:</b> ${p.naks}</div><div><b>तिथि:</b> ${p.tithi}</div><div><b>योग:</b> ${p.yoga}</div><div><b>इष्टकाल:</b> ${p.ishtakal}</div>
-                        <div><b>गण:</b> ${p.gan}</div><div><b>योनि:</b> ${p.yoni}</div><div><b>नाड़ी:</b> ${p.nadi}</div><div><b>वर्ण:</b> ${p.varna}</div>`;
+        try {
+            const response = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(input)
+            });
 
-                    let pRows = "", dRows = "";
-                    data.planets.forEach(pl => {
-                        pRows += `<tr><td>${pl.name}</td><td>${pl.deg}</td><td>${pl.naks}</td><td>${pl.h}</td><td>${pl.d9_r}</td></tr>`;
-                    });
-                    data.dasha.forEach(ds => {
-                        dRows += `<tr><td>${ds.ml}</td><td>${ds.al}</td><td>${ds.ed}</td></tr>`;
-                    });
-                    document.getElementById('p-body').innerHTML = pRows;
-                    document.getElementById('d-body').innerHTML = dRows;
-
-                    // कुंडली ड्रॉ करने का फंक्शन यहाँ कॉल करें
-                } else {
-                    document.getElementById('error-msg').innerText = "Server Error: " + data.message;
-                }
-            } catch (err) {
-                document.getElementById('error-msg').innerText = "कनैक्शन एरर! कृपया सर्वर रीलोड करें।";
+            if(!response.ok) {
+                throw new Error("सर्वर ने एरर दिया: " + response.status);
             }
-        };
+
+            const data = await response.json();
+            console.log("Received Data:", data);
+
+            if(data.status === "success") {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                
+                // पंचांग रेंडरिंग (14 पैरामीटर्स)
+                const p = data.pan;
+                document.getElementById('pan').innerHTML = `
+                    <div><b>तिथि:</b> ${p.tithi}</div><div><b>नक्षत्र:</b> ${p.naks}</div>
+                    <div><b>योग:</b> ${p.yoga}</div><div><b>इष्टकाल:</b> ${p.ishtakal}</div>
+                    <div><b>गण:</b> ${p.gan}</div><div><b>योनि:</b> ${p.yoni}</div>
+                    <div><b>नाड़ी:</b> ${p.nadi}</div><div><b>वर्ण:</b> ${p.varna}</div>
+                    <div><b>वश्य:</b> ${p.vashya}</div><div><b>वैर:</b> ${p.vair}</div>
+                    <div><b>मैत्री:</b> ${p.maitri}</div><div><b>दोष:</b> ${p.dosha}</div>
+                    <div><b>भकूट:</b> ${p.bhakoot}</div>
+                `;
+
+                // ग्रह तालिका
+                let pRows = "";
+                data.planets.forEach(pl => {
+                    pRows += `<tr><td>${pl.name}</td><td>${pl.deg}</td><td>${pl.h}</td><td>${pl.d9_r}</td></tr>`;
+                });
+                document.getElementById('p-body').innerHTML = pRows;
+
+                // अंतर्दशा तालिका
+                let dRows = "";
+                data.dasha.forEach(ds => {
+                    dRows += `<tr><td>${ds.ml}</td><td>${ds.al}</td><td>${ds.ed}</td></tr>`;
+                });
+                document.getElementById('d-body').innerHTML = dRows;
+
+            } else {
+                document.getElementById('error-msg').innerText = "Error: " + data.message;
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('error-msg').innerHTML = `
+                कनैक्शन फेल! <br> 
+                1. चेक करें: <a href="https://hemantpurohit27.pythonanywhere.com/calculate" target="_blank">यह लिंक</a> खुल रहा है या नहीं? <br>
+                2. PythonAnywhere में 'Web' टैब पर जाकर <b>Reload</b> दबाया? <br>
+                3. ब्राउज़र का Cache क्लियर करें।
+            `;
+        }
+    };
 </script>
 </body>
 </html>
