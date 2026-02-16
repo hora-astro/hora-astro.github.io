@@ -2,47 +2,70 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Fortune Pro Software</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Pro - ज्योतिष सॉफ्टवेयर</title>
     <style>
-        body { font-family: sans-serif; background: #fffcf5; padding: 40px; display: flex; justify-content: center; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); width: 450px; border-top: 8px solid #800000; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-        button { background: #800000; color: white; font-weight: bold; cursor: pointer; border: none; }
-        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 390px; z-index: 100; display: none; }
-        .item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .item:hover { background: #f0f0f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fff5e6 0%, #ffebcc 100%); height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(128,0,0,0.2); width: 100%; max-width: 450px; border-top: 10px solid #800000; }
+        h2 { text-align: center; color: #800000; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: #800000; outline: none; box-shadow: 0 0 5px rgba(128,0,0,0.2); }
+        button { width: 100%; padding: 15px; margin-top: 20px; background: #800000; color: white; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #a00000; transform: translateY(-2px); }
+        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 100%; max-height: 200px; overflow-y: auto; z-index: 100; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; }
+        .item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        .item:hover { background: #fff8f0; color: #800000; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2 style="text-align:center; color:#800000;">Commercial Astrology Pro</h2>
-        <input type="text" id="name" placeholder="जातक का नाम">
-        <input type="date" id="date"><input type="time" id="time">
+        <h2>☸ Fortune Pro Astrology</h2>
+        <input type="text" id="name" placeholder="जातक का नाम" value="हेमंत पुरोहित">
+        <div style="display: flex; gap: 10px;">
+            <input type="date" id="date" value="1980-03-27">
+            <input type="time" id="time" value="10:30">
+        </div>
         <div style="position:relative;">
-            <input type="text" id="city" placeholder="शहर खोजें..." oninput="search(this.value)">
+            <input type="text" id="city" placeholder="शहर का नाम टाइप करें..." oninput="search(this.value)">
             <div id="res-box"></div>
         </div>
         <div style="display:flex; gap:10px;">
-            <input type="text" id="lat" placeholder="अक्षांश (Lat)">
-            <input type="text" id="lon" placeholder="देशांतर (Lon)">
+            <input type="text" id="lat" placeholder="अक्षांश (Lat)" readonly>
+            <input type="text" id="lon" placeholder="देशांतर (Lon)" readonly>
         </div>
-        <button onclick="save()">कुंडली विश्लेषण</button>
+        <button onclick="save()">कुंडली विश्लेषण शुरू करें</button>
     </div>
+
     <script>
         async function search(q) {
-            if(q.length < 3) return;
-            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const data = await r.json();
-            let h = "";
-            data.slice(0,5).forEach(i => h += `<div class="item" onclick="set('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
-            document.getElementById('res-box').innerHTML = h; document.getElementById('res-box').style.display='block';
+            if(q.length < 3) { document.getElementById('res-box').style.display='none'; return; }
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+                const data = await r.json();
+                let h = "";
+                data.slice(0,5).forEach(i => {
+                    h += `<div class="item" onclick="set('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
+                });
+                const box = document.getElementById('res-box');
+                box.innerHTML = h; box.style.display='block';
+            } catch(e) {}
         }
         function set(n, lt, ln) {
-            document.getElementById('city').value = n; document.getElementById('lat').value = lt; document.getElementById('lon').value = ln;
+            document.getElementById('city').value = n;
+            document.getElementById('lat').value = parseFloat(lt).toFixed(4);
+            document.getElementById('lon').value = parseFloat(ln).toFixed(4);
             document.getElementById('res-box').style.display = 'none';
         }
         function save() {
-            const d = { custName: document.getElementById('name').value, date: document.getElementById('date').value, time: document.getElementById('time').value, city: document.getElementById('city').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value };
+            const d = { 
+                custName: document.getElementById('name').value, 
+                date: document.getElementById('date').value, 
+                time: document.getElementById('time').value, 
+                city: document.getElementById('city').value, 
+                lat: document.getElementById('lat').value, 
+                lon: document.getElementById('lon').value 
+            };
+            if(!d.lat) { alert("कृपया शहर चुनें!"); return; }
             localStorage.setItem('kData', JSON.stringify(d));
             window.location.href = "report.html";
         }
