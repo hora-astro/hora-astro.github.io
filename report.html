@@ -2,155 +2,121 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Horoscope Report</title>
+    <title>FortuneWithStars Pro - Commercial Astrology</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #fdf6e3; padding: 20px; }
-        .page { background: white; max-width: 900px; margin: auto; padding: 40px; border: 2px solid #800000; box-shadow: 0 0 20px rgba(0,0,0,0.2); }
-        .panchang-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #fff8f0; border: 1px solid #800000; padding: 15px; margin: 20px 0; font-size: 14px; }
-        .chart-container { display: flex; gap: 20px; margin-bottom: 30px; }
-        .c-box { flex: 1; border: 1px solid #800000; padding: 10px; text-align: center; background: white; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #800000; color: white; }
-        .prediction-box { background: #fffde7; padding: 20px; border-left: 5px solid #800000; margin-top: 20px; line-height: 1.6; }
-        #loader { font-size: 24px; text-align: center; color: #800000; margin-top: 100px; }
-        .error-btn { background: #800000; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; margin-top: 10px; }
+        :root { --maroon: #800000; --gold: #daa520; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f0f0; margin: 0; }
+        .toolbar { background: white; padding: 15px; border-bottom: 4px solid var(--maroon); display: flex; gap: 10px; justify-content: center; position: sticky; top:0; z-index:100; }
+        .pdf-page { width: 210mm; min-height: 297mm; margin: 10px auto; background: white; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 2px solid var(--maroon); }
+        .panchang-bar { display: grid; grid-template-columns: repeat(3, 1fr); background: #fff8f0; border: 1px solid var(--gold); padding: 10px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-box { border: 1px solid var(--maroon); padding: 5px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: center; font-size: 12px; }
+        th { background: var(--maroon); color: white; }
+        .high { color: green; font-weight: bold; }
+        .low { color: red; font-weight: bold; }
+        .prediction-card { background: #fffdf0; border-left: 5px solid var(--gold); padding: 12px; margin-top: 15px; font-size: 14px; }
+        #loading { display:none; position:fixed; top:50%; left:50%; background:rgba(0,0,0,0.8); color:white; padding:20px; z-index:1000; }
     </style>
 </head>
 <body>
-    <div id="loader">🪐 ग्रहों की गणना की जा रही है...</div>
+
+<div id="loading">गणना जारी है...</div>
+
+<div class="toolbar">
+    <input type="text" id="custName" value="हेमंत पुरोहित">
+    <input type="date" id="dob" value="1980-03-27">
+    <input type="time" id="tob" value="10:30">
+    <button style="background:var(--maroon); color:white;" onclick="generate()">कुंडली बनाएँ</button>
+    <button style="background:green; color:white;" onclick="downloadPDF()">PDF</button>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+async function generate() {
+    document.getElementById('loading').style.display = 'block';
+    const payload = {
+        date: document.getElementById('dob').value,
+        time: document.getElementById('tob').value,
+        lat: 23.32, lon: 74.26
+    };
+
+    try {
+        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        renderUI(data);
+    } catch(e) { alert("सर्वर त्रुटि!"); }
+    finally { document.getElementById('loading').style.display = 'none'; }
+}
+
+function renderUI(data) {
+    let html = `<div class="pdf-page">
+        <h2 style="text-align:center; color:var(--maroon); margin:0;">॥ वृहद ज्योतिषीय विवरण ॥</h2>
+        <p style="text-align:center;">जातक: <b>${document.getElementById('custName').value}</b></p>
+        
+        <div class="panchang-bar">
+            <span>तिथि: ${data.pan.tithi}</span>
+            <span>नक्षत्र: ${data.pan.naks}</span>
+            <span>अयनांश: ${data.pan.ayan}</span>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-box"><b>लग्न कुंडली (D1)</b><div id="d1_svg"></div></div>
+            <div class="chart-box"><b>नवांश कुंडली (D9)</b><div id="d9_svg"></div></div>
+        </div>
+
+        <table>
+            <tr><th>ग्रह</th><th>अंश</th><th>नक्षत्र</th><th>भाव</th><th>D1 स्थिति</th><th>D9 स्थिति</th></tr>`;
     
-    <div class="page" id="report" style="display:none;">
-        <h1 style="text-align:center; color:#800000; margin:0;">॥ जन्म कुंडली विवरण ॥</h1>
-        <p style="text-align:center;"><b>अयनांश:</b> <span id="ayan-info"></span></p>
+    data.planets.forEach(p => {
+        html += `<tr>
+            <td><b>${p.name}</b></td><td>${p.deg}</td><td>${p.naks}</td><td>${p.house}</td>
+            <td class="${p.status_d1=='उच्च'?'high':(p.status_d1=='नीच'?'low':'')}">${p.status_d1}</td>
+            <td class="${p.status_d9=='उच्च'?'high':(p.status_d9=='नीच'?'low':'')}">${p.status_d9}</td>
+        </tr>`;
+    });
+    html += `</table>
 
-        <div class="panchang-grid" id="pan-data"></div>
-
-        <div class="chart-container">
-            <div class="c-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
-            <div class="c-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
-        </div>
-
-        <table>
-            <thead><tr><th>ग्रह</th><th>अंश (Degree)</th><th>नक्षत्र</th><th>भाव</th><th>D9 राशि</th></tr></thead>
-            <tbody id="p-body"></tbody>
-        </table>
-
-        <h3 style="color:#800000; border-bottom: 2px solid #800000;">📅 विंशोत्तरी अंतर्दशा (भुक्त शेष सहित)</h3>
-        <table>
-            <thead><tr><th>महादशा</th><th>अंतर्दशा</th><th>समाप्ति तिथि</th></tr></thead>
-            <tbody id="d-body"></tbody>
-        </table>
-
-        <div class="prediction-box">
-            <h3 style="margin-top:0;">✨ विस्तृत फलादेश (Capture from Data Files)</h3>
-            <div id="preds"></div>
-        </div>
+    <div class="prediction-card">
+        <h3 style="margin:0; color:var(--maroon);">✨ ज्योतिषीय फलादेश</h3>
+        ${data.planets.map(p => `<p style="margin:5px 0;"><b>${p.name}:</b> ${p.prediction}</p>`).join('')}
     </div>
+    </div>`;
 
-    <script>
-        window.onload = async () => {
-            // 1. डेटा प्राप्त करना
-            const input = JSON.parse(localStorage.getItem('kundliInput') || localStorage.getItem('kData'));
-            if(!input) { 
-                document.getElementById('loader').innerText = "डाटा नहीं मिला! कृपया मुख्य पेज से विवरण भरें।"; 
-                return; 
-            }
+    document.getElementById('printArea').innerHTML = html;
+    drawChart('d1_svg', data.lagna, data.planets, 'house');
+    drawChart('d9_svg', data.d9_lagna, data.planets, 'd9');
+}
 
-            try {
-                // 2. API कॉल (CORS सुरक्षा के साथ)
-                const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
-                    method: 'POST',
-                    mode: 'cors', // इसे जोड़ना जरूरी है
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(input)
-                });
+function drawChart(id, asc, planets, mode) {
+    const coords = {1:[100,70], 2:[50,40], 3:[25,70], 4:[65,110], 5:[25,150], 6:[50,180], 7:[100,150], 8:[150,180], 9:[175,150], 10:[135,110], 11:[175,70], 12:[150,40]};
+    let svg = `<svg viewBox="0 0 200 200" width="100%"><path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="maroon" stroke-width="1.5"/>`;
+    for (let i = 1; i <= 12; i++) {
+        let sign = (asc + i - 2) % 12 + 1;
+        svg += `<text x="${coords[i][0]}" y="${coords[i][1]}" fill="maroon" font-size="12" font-weight="bold" text-anchor="middle">${sign}</text>`;
+        let list = (mode === 'house') ? planets.filter(p => p.house === i) : planets.filter(p => p.d9_sign === sign);
+        list.forEach((p, idx) => {
+            svg += `<text x="${coords[i][0]}" y="${coords[i][1]+10+(idx*8)}" font-size="7" fill="#333" text-anchor="middle">${p.name.substring(0,2)}</text>`;
+        });
+    }
+    document.getElementById(id).innerHTML = svg + `</svg>`;
+}
 
-                if (!res.ok) {
-                    throw new Error(`HTTP Error: ${res.status}`);
-                }
-
-                const data = await res.json();
-                
-                if(data.status === "success") {
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('report').style.display = 'block';
-                    document.getElementById('ayan-info').innerText = data.ayan || 'Lahiri';
-
-                    // 3. पंचांग रेंडरिंग
-                    const p = data.pan;
-                    document.getElementById('pan-data').innerHTML = `
-                        <div><b>तिथि:</b> ${p.tithi}</div><div><b>नक्षत्र:</b> ${p.naks}</div>
-                        <div><b>योग:</b> ${p.yoga}</div><div><b>करण:</b> ${p.karan}</div>
-                        <div><b>इष्टकाल:</b> ${p.ishtakal}</div><div><b>गण:</b> ${p.gan}</div>
-                        <div><b>योनि:</b> ${p.yoni}</div><div><b>नाड़ी:</b> ${p.nadi}</div>
-                        <div><b>वर्ण:</b> ${p.varna}</div><div><b>वश्य:</b> ${p.vashya}</div>
-                        <div><b>वैर:</b> ${p.vair}</div><div><b>मैत्री:</b> ${p.maitri}</div>
-                        <div><b>दोष:</b> ${p.dosha}</div><div><b>भकूट:</b> ${p.bhakoot}</div>
-                    `;
-
-                    // 4. ग्रह और फलादेश रेंडरिंग
-                    let pRows = "", predHtml = "";
-                    data.planets.forEach(pl => {
-                        pRows += `<tr><td>${pl.name}</td><td>${pl.deg}</td><td>${pl.naks}</td><td>${pl.h}</td><td>${pl.d9_r}</td></tr>`;
-                        predHtml += `<p><b>${pl.name}:</b> ${pl.pred}</p>`;
-                    });
-                    document.getElementById('p-body').innerHTML = pRows;
-                    document.getElementById('preds').innerHTML = predHtml;
-
-                    // 5. विंशोत्तरी दशा रेंडरिंग
-                    let dRows = "";
-                    data.dasha.forEach(ds => {
-                        dRows += `<tr><td>${ds.ml}</td><td>${ds.al}</td><td>${ds.ed}</td></tr>`;
-                    });
-                    document.getElementById('d-body').innerHTML = dRows;
-
-                    // 6. कुंडली ड्रॉ (D1 & D9)
-                    drawKundli('d1', data.l1, data.planets, 'h');
-                    
-                    // D9 के लिए दूसरे ग्रह (चंद्रमा) की नवांश राशि को आधार मानकर या सीधे राशि भेजकर
-                    const d9_asc = data.planets[0].d9_r; // सूर्य की नवांश राशि को उदाहरण मानकर
-                    drawKundli('d9', d9_asc, data.planets, 'd9_r'); 
-
-                } else {
-                    document.getElementById('loader').innerHTML = `सर्वर एरर: ${data.message} <br> <button class="error-btn" onclick="location.reload()">दोबारा प्रयास करें</button>`;
-                }
-            } catch (e) {
-                console.error("Fetch error:", e);
-                document.getElementById('loader').innerHTML = `
-                    <div style="color:red; font-weight:bold;">कनैक्शन फेल!</div>
-                    <p style="font-size:16px;">ऐसा ब्राउज़र की सुरक्षा (CORS) के कारण हो सकता है।</p>
-                    <button class="error-btn" onclick="location.reload()">Reload Page</button>
-                `;
-            }
-        };
-
-        // कुंडली ड्रॉ करने का फंक्शन
-        function drawKundli(id, asc, planets, key) {
-            const pos = {
-                1:[100,70], 2:[50,40], 3:[25,70], 4:[65,110], 5:[25,150], 6:[50,180], 
-                7:[100,150], 8:[150,180], 9:[175,150], 10:[135,110], 11:[175,70], 12:[150,40]
-            };
-            
-            let svg = `<svg viewBox="0 0 200 200" width="100%">
-                <path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="#800000" stroke-width="1.5"/>`;
-            
-            for(let i=1; i<=12; i++) {
-                // राशि गणना
-                let r = (asc + i - 2) % 12 + 1;
-                svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-size="10" fill="#800000" font-weight="bold" text-anchor="middle">${r}</text>`;
-                
-                // उस भाव में कौन से ग्रह हैं?
-                let pNames = planets.filter(p => p[key] == i).map(p => p.name.substring(0,2)).join(' ');
-                if(pNames) {
-                    svg += `<text x="${pos[i][0]}" y="${pos[i][1]+15}" font-size="8" fill="#333" text-anchor="middle">${pNames}</text>`;
-                }
-            }
-            document.getElementById(id).innerHTML = svg + `</svg>`;
-        }
-    </script>
+async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const canvas = await html2canvas(document.querySelector('.pdf-page'), { scale: 2 });
+    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+    doc.save("Kundli_Report.pdf");
+}
+</script>
 </body>
 </html>
