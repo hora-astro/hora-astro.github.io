@@ -2,27 +2,25 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Commercial Kundli Report</title>
+    <title>Fortune Pro कुंडली रिपोर्ट</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { background: white; max-width: 900px; margin: auto; padding: 30px; border: 2px solid #800000; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .header { text-align: center; color: #800000; }
-        .info-box { background: #fff8f0; border: 1px solid #ddd; padding: 15px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .c-box { border: 1px solid #800000; padding: 10px; text-align: center; background: #fff; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffdf5; padding: 20px; }
+        .container { background: white; max-width: 900px; margin: auto; padding: 30px; border: 2px solid #800000; border-radius: 10px; }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .c-box { border: 1.5px solid #800000; padding: 10px; text-align: center; background: #fff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #800000; color: white; }
-        .ayan-badge { background: #800000; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
         .high { color: green; font-weight: bold; }
         .low { color: red; font-weight: bold; }
+        .prediction { background: #fff9e6; padding: 20px; border-left: 5px solid #daa520; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header"><h1>॥ श्री गणेशाय नमः ॥</h1></div>
-        <div id="personal" class="info-box">गणणा की जा रही है...</div>
-
+        <h1 style="text-align:center; color:#800000; margin-top:0;">॥ वृहद ज्योतिषीय रिपोर्ट ॥</h1>
+        <div id="p-info" style="text-align:center; font-weight:bold; border-bottom:1px solid #eee; padding-bottom:10px;"></div>
+        
         <div class="charts">
             <div class="c-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
             <div class="c-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
@@ -33,44 +31,44 @@
             <tbody id="tbody"></tbody>
         </table>
 
-        <h3 style="color:#800000;">📅 विंशोत्तरी महादशा</h3>
-        <table><thead><tr><th>स्वामी</th><th>समाप्ति तिथि</th><th>अवधि प्रकार</th></tr></thead><tbody id="dbody"></tbody></table>
+        <div class="prediction">
+            <h3 style="margin-top:0; color:#800000;">✨ ग्रहों का फलादेश</h3>
+            <div id="preds"></div>
+        </div>
+        
+        <h3>📅 विंशोत्तरी महादशा</h3>
+        <table id="dbody"><tr><th>ग्रह</th><th>अवधि</th></tr></table>
     </div>
 
     <script>
-        const API_URL = 'https://hemantpurohit27.pythonanywhere.com/calculate';
-
         window.onload = async () => {
             const k = JSON.parse(localStorage.getItem('kData'));
-            if (!k) return;
+            if(!k) return alert("डेटा नहीं मिला");
 
             try {
-                const res = await fetch(API_URL, {
+                const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
                     method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
                 });
                 const data = await res.json();
-                
                 if(data.status === "error") throw new Error(data.message);
 
-                document.getElementById('personal').innerHTML = `
-                    <div><b>नाम:</b> ${k.name} | <b>स्थान:</b> ${k.city}<br><b>तिथि:</b> ${k.date} | <b>समय:</b> ${k.time}</div>
-                    <div class="ayan-badge">लाहिरी आयनांश: ${data.ayanamsa}</div>
-                `;
-
-                let h = "";
+                document.getElementById('p-info').innerText = `नाम: ${data.name} | अयनांश: ${data.ayan} | स्थान: ${k.city}`;
+                
+                let h="", pr="", ds="";
                 data.planets.forEach(pl => {
-                    h += `<tr><td>${pl.name}</td><td>${pl.deg}</td><td>${pl.naks}</td><td class="${pl.d1_stat=='उच्च'?'high':(pl.d1_stat=='नीच'?'low':'')}">${pl.d1_stat}</td><td class="${pl.d9_stat=='उच्च'?'high':(pl.d9_stat=='नीच'?'low':'')}">${pl.d9_stat}</td></tr>`;
+                    h += `<tr><td><b>${pl.name}</b></td><td>${pl.deg}</td><td>${pl.naks}</td><td class="${pl.d1_stat=='उच्च'?'high':(pl.d1_stat=='नीच'?'low':'')}">${pl.d1_stat}</td><td class="${pl.d9_stat=='उच्च'?'high':(pl.d9_stat=='नीच'?'low':'')}">${pl.d9_stat}</td></tr>`;
+                    pr += `<p><b>${pl.name}:</b> ${pl.pred}</p>`;
                 });
+                data.dasha.forEach(d => ds += `<tr><td><b>${d.l}</b></td><td>${d.sd} - ${d.ed}</td></tr>`);
+                
                 document.getElementById('tbody').innerHTML = h;
-
-                let ds = "";
-                data.dasha.forEach(d => ds += `<tr><td>${d.l}</td><td>${d.ed}</td><td>${d.type}</td></tr>`);
-                document.getElementById('dbody').innerHTML = ds;
+                document.getElementById('dbody').innerHTML += ds;
+                document.getElementById('preds').innerHTML = pr;
 
                 draw('d1', data.l1, data.planets, 'h');
                 draw('d9', data.l9, data.planets, 'd9_h');
-            } catch (err) {
-                document.getElementById('personal').innerHTML = `<span style="color:red">सर्वर एरर: ${err.message}</span>`;
+            } catch(e) {
+                alert("सर्वर त्रुटि: " + e.message);
             }
         };
 
