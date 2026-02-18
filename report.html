@@ -2,22 +2,34 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Report - FortuneWithStars</title>
+    <title>कुंडली रिपोर्ट</title>
     <style>
-        body { font-family: 'Segoe UI', serif; margin: 0; background: #eee; }
-        .page { background: white; width: 210mm; min-height: 297mm; padding: 20mm; margin: 10mm auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
-        .header { border-bottom: 3px double #800000; text-align: center; padding-bottom: 10px; margin-bottom: 20px; }
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #800000; padding: 10px; text-align: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { background: white; max-width: 900px; margin: auto; padding: 40px; border: 2px solid #800000; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        .c-box { border: 1px solid #800000; padding: 10px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #800000; color: white; }
-        .pred-text { line-height: 1.6; color: #333; text-align: justify; }
-        @media print { body { background: none; } .page { margin: 0; box-shadow: none; page-break-after: always; } }
+        .high { color: green; font-weight: bold; }
+        .low { color: red; font-weight: bold; }
+        .pred-box { background: #fffcf2; border-left: 6px solid #800000; padding: 15px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div id="output"></div>
-
+    <div class="container">
+        <h1 style="text-align:center; color:#800000;">विस्तृत जन्म-कुंडली विश्लेषण</h1>
+        <h3 id="personal_info" style="text-align:center;"></h3>
+        <div class="charts">
+            <div class="c-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
+            <div class="c-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
+        </div>
+        <table>
+            <thead><tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र (डिग्री)</th><th>स्थिति</th><th>D1 भाव</th><th>D9 भाव</th></tr></thead>
+            <tbody id="tbody"></tbody>
+        </table>
+        <div id="preds"></div>
+    </div>
     <script>
         window.onload = async () => {
             const k = JSON.parse(localStorage.getItem('kData'));
@@ -25,44 +37,23 @@
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
             });
             const data = await res.json();
-            renderReport(data, k);
-        };
-
-        function renderReport(data, k) {
-            let html = `
-                <div class="page">
-                    <div class="header"><h1>FortuneWithStars - ज्योतिष विश्लेषण</h1></div>
-                    <p><b>नाम:</b> ${data.name} | <b>स्थान:</b> ${k.city}</p>
-                    <p><b>मांगलिक दोष:</b> ${data.manglik}</p>
-                    <div class="chart-grid">
-                        <div><h3>लग्न कुंडली (D1)</h3><div id="d1_svg"></div></div>
-                        <div><h3>नवांश कुंडली (D9)</h3><div id="d9_svg"></div></div>
-                    </div>
-                </div>
-            `;
-
-            // विस्तृत फलादेश लूप (200 पेज के लिए यहाँ अधिक डेटा जोड़ें)
+            document.getElementById('personal_info').innerText = `${data.name} | ${k.city} | ${k.date} ${k.time}`;
+            
+            let h = "", pr = "";
             data.planets.forEach(p => {
-                html += `
-                    <div class="page">
-                        <h2 style="color:#800000; border-bottom:1px solid;">${p.name} का विश्लेषण</h2>
-                        <div class="pred-text">
-                            <p><b>स्थिति:</b> यह ग्रह आपके ${p.h} भाव में ${p.naks} नक्षत्र में स्थित है।</p>
-                            <p>${p.pred}</p>
-                            <p><b>नवांश फल:</b> नवांश में यह ${p.d9_h} भाव में होने से फल की तीव्रता को प्रभावित करता है।</p>
-                        </div>
-                    </div>
-                `;
+                let sCol = p.stat === "उच्च" ? "high" : (p.stat === "नीच" ? "low" : "");
+                h += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td class="${sCol}">${p.stat}</td><td>${p.h}</td><td>${p.d9_h}</td></tr>`;
+                pr += `<div class="pred-box"><b>${p.name} फल:</b> <p>${p.pred}</p></div>`;
             });
-
-            document.getElementById('output').innerHTML = html;
-            draw('d1_svg', data.l1, data.planets, 'h');
-            draw('d9_svg', data.l9, data.planets, 'd9_h');
-        }
+            document.getElementById('tbody').innerHTML = h;
+            document.getElementById('preds').innerHTML = pr;
+            draw('d1', data.l1, data.planets, 'h');
+            draw('d9', data.l9, data.planets, 'd9_h');
+        };
 
         function draw(id, asc, planets, key) {
             const pos = {1:[100,65], 2:[50,35], 3:[20,65], 4:[60,105], 5:[20,145], 6:[50,180], 7:[100,145], 8:[150,180], 9:[185,145], 10:[145,105], 11:[185,65], 12:[150,35]};
-            let s = `<svg viewBox="0 0 200 200" style="border:1px solid #800000"><path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="maroon" stroke-width="1.5"/>`;
+            let s = `<svg viewBox="0 0 200 200" width="100%"><path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="maroon" stroke-width="1.5"/>`;
             for(let i=1; i<=12; i++) {
                 let sign = (asc + i - 2) % 12 + 1;
                 s += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-size="12" fill="maroon" font-weight="bold" text-anchor="middle">${sign}</text>`;
