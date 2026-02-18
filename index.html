@@ -2,66 +2,51 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>FortuneWithStars - Pro Astrology</title>
+    <title>Fortune Pro - Commercial Software</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf5e6; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 480px; border-top: 10px solid #800000; }
-        h2 { color: #800000; text-align: center; margin-bottom: 25px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; }
-        button { background: #800000; color: white; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #b00000; }
-        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; max-height: 200px; overflow-y: auto; border-radius: 8px; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .city-item:hover { background: #f9f9f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffcf5; padding: 20px; display: flex; justify-content: center; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); width: 450px; border-top: 8px solid #800000; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+        button { background: #800000; color: white; cursor: pointer; border: none; font-weight: bold; }
+        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; display: none; max-height: 200px; overflow-y: auto; }
+        .item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .item:hover { background: #f0f0f0; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>FortuneWithStars Pro</h2>
+    <div class="box">
+        <h2 style="text-align:center; color:#800000;">Fortune Pro Software</h2>
         <input type="text" id="name" placeholder="जातक का नाम">
-        <div style="display:flex; gap:10px;">
-            <input type="date" id="date">
-            <input type="time" id="time">
-        </div>
-        <select id="ayan">
-            <option value="Lahiri">NC Lahiri (Ayanamsa)</option>
-            <option value="KP">KP Ayanamsa</option>
-        </select>
+        <div style="display:flex; gap:10px;"><input type="date" id="date"><input type="time" id="time"></div>
+        <select id="ayan"><option value="Lahiri">N.C. Lahiri</option><option value="KP">KP Ayanamsa</option></select>
         <div style="position:relative;">
-            <input type="text" id="city" placeholder="शहर खोजें..." oninput="searchLoc(this.value)">
+            <input type="text" id="city" placeholder="शहर खोजें..." oninput="search(this.value)">
             <div id="res-box"></div>
         </div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="lat" placeholder="अक्षांश (Lat)">
-            <input type="text" id="lon" placeholder="देशांतर (Lon)">
-        </div>
-        <button onclick="process()">कुंडली विश्लेषण शुरू करें</button>
+        <div style="display:flex; gap:10px;"><input type="text" id="lat" placeholder="Lat"><input type="text" id="lon" placeholder="Lon"></div>
+        <button onclick="save()">कुंडली और विस्तृत फलादेश</button>
     </div>
-
     <script>
-        async function searchLoc(q) {
+        async function search(q) {
             if(q.length < 3) return;
             const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
             const data = await r.json();
             let h = "";
-            data.forEach(i => {
-                h += `<div class="city-item" onclick="setLoc('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`;
-            });
-            document.getElementById('res-box').innerHTML = h;
+            data.forEach(i => h += `<div class="item" onclick="set('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
+            const rb = document.getElementById('res-box'); rb.innerHTML = h; rb.style.display = 'block';
         }
-        function setLoc(n, lt, ln) {
+        function set(n, lt, ln) {
             document.getElementById('city').value = n; document.getElementById('lat').value = lt;
-            document.getElementById('lon').value = ln; document.getElementById('res-box').innerHTML = "";
+            document.getElementById('lon').value = ln; document.getElementById('res-box').style.display = 'none';
         }
-        function process() {
+        function save() {
             const d = { 
                 custName: document.getElementById('name').value, date: document.getElementById('date').value, 
                 time: document.getElementById('time').value, city: document.getElementById('city').value, 
                 lat: document.getElementById('lat').value, lon: document.getElementById('lon').value,
                 ayan_mode: document.getElementById('ayan').value
             };
-            localStorage.setItem('kData', JSON.stringify(d));
-            window.location.href = "report.html";
+            localStorage.setItem('kData', JSON.stringify(d)); window.location.href = "report.html";
         }
     </script>
 </body>
