@@ -3,82 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro - प्रीमियम कुंडली</title>
+    <title>Hora Astro - Premium Kundli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .gradient-bg { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
-        #suggestions { position: absolute; z-index: 50; width: 100%; background: white; border: 1px solid #ddd; display: none; }
+        .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
+        #suggestions { position: absolute; z-index: 50; width: 100%; background: white; border: 1px solid #ddd; border-top: none; display: none; max-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<nav class="gradient-bg p-4 text-white text-center shadow-lg">
-    <h1 class="text-2xl font-bold">🔮 HORA ASTRO PREMIUM</h1>
+<nav class="gradient-bg p-4 text-white text-center shadow-md">
+    <h1 class="text-2xl font-bold tracking-wider">🔮 HORA ASTRO KUNDLI</h1>
 </nav>
 
-<div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-2xl">
-    <h2 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2">नया विवरण भरें</h2>
+<div class="max-w-md mx-auto mt-10 p-8 bg-white rounded-2xl shadow-xl border border-gray-100">
+    <h2 class="text-xl font-bold text-gray-800 mb-6 text-center border-b pb-4">जन्म विवरण दर्ज करें</h2>
     
-    <div class="space-y-4">
+    <div class="space-y-5">
         <div>
-            <label class="block text-sm font-medium">पूरा नाम</label>
-            <input type="text" id="name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="उदा: राहुल कुमार">
+            <label class="block text-sm font-semibold text-gray-600">पूरा नाम</label>
+            <input type="text" id="name" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="उदा: हेमंत पुरोहित">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium">जन्म तिथि</label>
-                <input type="date" id="dob" class="w-full p-3 border rounded-lg">
+                <label class="block text-sm font-semibold text-gray-600">जन्म तिथि</label>
+                <input type="date" id="dob" class="w-full p-3 border border-gray-300 rounded-xl outline-none">
             </div>
             <div>
-                <label class="block text-sm font-medium">जन्म समय</label>
-                <input type="time" id="tob" class="w-full p-3 border rounded-lg">
+                <label class="block text-sm font-semibold text-gray-600">जन्म समय</label>
+                <input type="time" id="tob" class="w-full p-3 border border-gray-300 rounded-xl outline-none">
             </div>
         </div>
 
         <div class="relative">
-            <label class="block text-sm font-medium">जन्म स्थान</label>
-            <input type="text" id="place" onkeyup="searchLocation(this.value)" class="w-full p-3 border rounded-lg" placeholder="शहर खोजें..." autocomplete="off">
-            <div id="suggestions" class="rounded-b-lg shadow-lg"></div>
-            <input type="hidden" id="lat">
-            <input type="hidden" id="lon">
+            <label class="block text-sm font-semibold text-gray-600">जन्म स्थान</label>
+            <input type="text" id="place" onkeyup="searchLoc(this.value)" class="w-full p-3 border border-gray-300 rounded-xl outline-none" placeholder="शहर का नाम लिखें..." autocomplete="off">
+            <div id="suggestions" class="shadow-2xl rounded-b-xl"></div>
+            <input type="hidden" id="lat"><input type="hidden" id="lon">
         </div>
 
-        <button onclick="getReport()" id="btn-text" class="w-full gradient-bg text-white font-bold py-4 rounded-lg hover:opacity-90 transition">
-            कुंडली रिपोर्ट प्राप्त करें
+        <button onclick="getKundli()" id="submitBtn" class="w-full gradient-bg text-white font-bold py-4 rounded-xl hover:scale-[1.02] transition-transform shadow-lg">
+            कुंडली तैयार करें
         </button>
     </div>
 </div>
 
-<div id="loader" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xl">
-    🔄 ग्रहों की गणना की जा रही है...
+<div id="loader" class="hidden fixed inset-0 bg-blue-900/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div class="bg-white p-6 rounded-2xl shadow-2xl text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-700 mx-auto mb-4"></div>
+        <p class="font-bold text-gray-700">ग्रहों की गणना जारी है...</p>
+    </div>
 </div>
 
 <script>
-    const API_URL = "https://yourusername.pythonanywhere.com"; // यहाँ अपना URL डालें
+    const API_URL = "https://hemantpurohit27.pythonanywhere.com/calculate";
 
-    async function searchLocation(q) {
+    async function searchLoc(q) {
         if (q.length < 3) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
-        const data = await res.json();
-        const box = document.getElementById('suggestions');
-        box.innerHTML = '';
-        box.style.display = 'block';
-        data.forEach(item => {
-            let div = document.createElement('div');
-            div.className = "p-3 hover:bg-gray-100 cursor-pointer border-b text-sm";
-            div.innerText = item.display_name;
-            div.onclick = () => {
-                document.getElementById('place').value = item.display_name.split(',')[0];
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lon').value = item.lon;
-                box.style.display = 'none';
-            };
-            box.appendChild(div);
-        });
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
+            const data = await res.json();
+            const box = document.getElementById('suggestions');
+            box.innerHTML = '';
+            box.style.display = 'block';
+            data.forEach(item => {
+                let d = document.createElement('div');
+                d.className = "p-3 hover:bg-blue-50 cursor-pointer border-b text-sm text-gray-700";
+                d.innerText = item.display_name;
+                d.onclick = () => {
+                    document.getElementById('place').value = item.display_name.split(',')[0];
+                    document.getElementById('lat').value = item.lat;
+                    document.getElementById('lon').value = item.lon;
+                    box.style.display = 'none';
+                };
+                box.appendChild(d);
+            });
+        } catch (e) { console.error(e); }
     }
 
-    async function getReport() {
+    async function getKundli() {
         const payload = {
             name: document.getElementById('name').value,
             date: document.getElementById('dob').value,
@@ -88,26 +92,26 @@
             lon: document.getElementById('lon').value
         };
 
-        if(!payload.lat) return alert("कृपया स्थान चुनें");
+        if(!payload.lat || !payload.name) return alert("सभी जानकारी भरें और स्थान चुनें");
 
         document.getElementById('loader').classList.remove('hidden');
 
         try {
-            const res = await fetch(`${API_URL}/calculate`, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            const result = await res.json();
-            
+
+            const result = await response.json();
             if(result.status === 'success') {
-                localStorage.setItem('kundli_data', JSON.stringify(result));
+                localStorage.setItem('astro_data', JSON.stringify(result));
                 window.location.href = 'report.html';
             } else {
-                alert("Error: " + result.message);
+                alert("सर्वर एरर: " + result.message);
             }
         } catch (e) {
-            alert("सर्वर से कनेक्ट नहीं हो पाया");
+            alert("सर्वर से कनेक्ट नहीं हो पाया। PythonAnywhere पर 'Reload' करें।");
         } finally {
             document.getElementById('loader').classList.add('hidden');
         }
