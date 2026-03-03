@@ -5,93 +5,114 @@
     <title>विस्तृत कुंडली रिपोर्ट</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @media print { .no-print { display: none; } }
-        .tab-content { display: none; }
-        .active { display: block; }
+        @media print { .no-print { display: none; } body { background: white; } }
+        .tab-btn.active { border-bottom: 3px solid #1e40af; color: #1e40af; }
     </style>
 </head>
-<body class="bg-gray-50 p-4">
+<body class="bg-gray-50 pb-10">
 
-<div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-    <div class="bg-blue-800 p-6 text-white flex justify-between items-center">
-        <h1 id="r-name" class="text-2xl font-bold">नाम</h1>
-        <button onclick="window.print()" class="no-print bg-orange-500 px-4 py-2 rounded shadow">PDF प्रिंट करें</button>
+<div class="max-w-4xl mx-auto mt-6 bg-white shadow-2xl rounded-xl overflow-hidden border border-gray-200">
+    <div class="bg-blue-900 p-8 text-white flex justify-between items-center">
+        <div>
+            <h1 id="user-name" class="text-3xl font-bold">जातक रिपोर्ट</h1>
+            <p id="user-birth" class="opacity-80 mt-1"></p>
+        </div>
+        <button onclick="window.print()" class="no-print bg-amber-500 hover:bg-amber-600 px-6 py-2 rounded-lg font-bold transition shadow-lg">प्रिंट करें / PDF</button>
     </div>
 
-    <div class="flex border-b no-print bg-gray-100">
-        <button onclick="showTab('t1')" class="p-4 hover:bg-white font-bold border-r">ग्रह स्थिति</button>
-        <button onclick="showTab('t2')" class="p-4 hover:bg-white font-bold border-r">विंशोत्तरी दशा</button>
-        <button onclick="showTab('t3')" class="p-4 hover:bg-white font-bold">भविष्यफल</button>
+    <div class="flex border-b bg-gray-50 no-print">
+        <button onclick="switchTab('planets')" id="btn-planets" class="tab-btn active flex-1 p-4 font-bold text-gray-600">ग्रह विवरण</button>
+        <button onclick="switchTab('dasha')" id="btn-dasha" class="tab-btn flex-1 p-4 font-bold text-gray-600">विंशोत्तरी दशा</button>
+        <button onclick="switchTab('prediction')" id="btn-prediction" class="tab-btn flex-1 p-4 font-bold text-gray-600">भविष्यवाणी</button>
     </div>
 
-    <div class="p-6">
-        <div id="t1" class="tab-content active">
-            <h3 class="text-xl font-bold mb-4 text-blue-800">नक्षत्र और ग्रह विवरण</h3>
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="bg-blue-100">
-                        <th class="border p-2">ग्रह</th>
-                        <th class="border p-2">राशि</th>
-                        <th class="border p-2">अंश</th>
-                        <th class="border p-2">भाव</th>
-                    </tr>
-                </thead>
-                <tbody id="planet-body"></tbody>
-            </table>
+    <div class="p-8">
+        <div id="planets-sec" class="tab-content">
+            <h2 class="text-xl font-bold text-blue-900 mb-4 flex items-center">🪐 ग्रहों की स्थिति (D1)</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-blue-50 text-blue-900">
+                            <th class="p-3 border">ग्रह</th>
+                            <th class="p-3 border">राशि</th>
+                            <th class="p-3 border">भाव</th>
+                            <th class="p-3 border">डिग्री</th>
+                            <th class="p-3 border">अवस्था</th>
+                        </tr>
+                    </thead>
+                    <tbody id="planet-table"></tbody>
+                </table>
+            </div>
         </div>
 
-        <div id="t2" class="tab-content">
-            <h3 class="text-xl font-bold mb-4 text-blue-800">विंशोत्तरी महादशा समयरेखा</h3>
-            <div id="dasha-list" class="space-y-2"></div>
+        <div id="dasha-sec" class="tab-content hidden">
+            <h2 class="text-xl font-bold text-blue-900 mb-6">⏳ महादशा चक्र</h2>
+            <div id="dasha-timeline" class="space-y-3"></div>
         </div>
 
-        <div id="t3" class="tab-content">
-            <h3 class="text-xl font-bold mb-4 text-blue-800">विस्तृत फलादेश</h3>
-            <div id="pred-content" class="prose max-w-none text-gray-700"></div>
+        <div id="prediction-sec" class="tab-content hidden">
+            <h2 class="text-xl font-bold text-blue-900 mb-4">🔮 भविष्यवाणियाँ</h2>
+            <div id="pred-content" class="space-y-6"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const data = JSON.parse(localStorage.getItem('kundli_data'));
-    if(!data) window.location.href = 'index.html';
+    const data = JSON.parse(localStorage.getItem('astro_data'));
+    if(!data) { alert("डेटा नहीं मिला"); window.location.href = 'index.html'; }
 
-    // Populate Data
-    document.getElementById('r-name').innerText = `कुंडली: ${data.name}`;
+    // Header Info
+    document.getElementById('user-name').innerText = data.name;
+    document.getElementById('user-birth').innerText = `${data.details.dob} | ${data.details.tob} | ${data.details.place}`;
 
-    // Planets
-    const pBody = document.getElementById('planet-body');
+    // Planet Table
+    const pTable = document.getElementById('planet-table');
     data.chart.planets.forEach(p => {
-        pBody.innerHTML += `<tr class="text-center">
-            <td class="border p-2 font-bold">${p.name}</td>
-            <td class="border p-2">${p.sign}</td>
-            <td class="border p-2">${p.degree}°</td>
-            <td class="border p-2">${p.house}</td>
-        </tr>`;
+        pTable.innerHTML += `
+            <tr class="hover:bg-gray-50">
+                <td class="p-3 border font-bold text-gray-700">${p.name}</td>
+                <td class="p-3 border">${p.sign}</td>
+                <td class="p-3 border">${p.house}</td>
+                <td class="p-3 border">${p.degree}°</td>
+                <td class="p-3 border">${p.retrograde ? '<span class="text-red-600">वक्री</span>' : 'मार्गी'}</td>
+            </tr>`;
     });
 
-    // Dasha
-    const dList = document.getElementById('dasha-list');
+    // Dasha Timeline
+    const dTimeline = document.getElementById('dasha-timeline');
     data.dasha.mahadasha.forEach(d => {
-        dList.innerHTML += `<div class="p-3 border-l-4 border-blue-500 bg-gray-50 flex justify-between">
-            <span class="font-bold">${d.planet}</span>
-            <span>${d.start} से ${d.end}</span>
-        </div>`;
+        dTimeline.innerHTML += `
+            <div class="flex justify-between items-center p-4 border-l-4 border-blue-800 bg-blue-50/50 rounded-r-lg">
+                <span class="font-bold text-blue-900 text-lg">${d.planet}</span>
+                <span class="text-gray-600 font-medium">${d.start} से ${d.end}</span>
+            </div>`;
     });
 
     // Predictions
-    const pCont = document.getElementById('pred-content');
-    pCont.innerHTML = `
-        <div class="mb-4 p-4 bg-orange-50 rounded"><strong>सारांश:</strong> ${data.predictions.summary}</div>
-        <div class="grid md:grid-cols-2 gap-4">
-            <div class="p-4 border rounded"><strong>💼 करियर:</strong><br>${data.predictions.career}</div>
-            <div class="p-4 border rounded"><strong>🩺 स्वास्थ्य:</strong><br>${data.predictions.health}</div>
+    const predDiv = document.getElementById('pred-content');
+    const p = data.predictions;
+    predDiv.innerHTML = `
+        <div class="p-5 bg-amber-50 rounded-xl border-l-4 border-amber-400">
+            <h3 class="font-bold text-amber-900 mb-2">मुख्य विश्लेषण</h3>
+            <p class="text-gray-700 leading-relaxed">${p.summary}</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="p-5 border rounded-xl shadow-sm">
+                <h3 class="font-bold text-blue-800 mb-2">💼 करियर और धन</h3>
+                <p class="text-sm text-gray-600">${p.career || 'डेटा उपलब्ध नहीं'}</p>
+            </div>
+            <div class="p-5 border rounded-xl shadow-sm">
+                <h3 class="font-bold text-blue-800 mb-2">🩺 स्वास्थ्य</h3>
+                <p class="text-sm text-gray-600">${p.health || 'डेटा उपलब्ध नहीं'}</p>
+            </div>
         </div>
     `;
 
-    function showTab(id) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    function switchTab(id) {
+        document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id + '-sec').classList.remove('hidden');
+        document.getElementById('btn-' + id).classList.add('active');
     }
 </script>
 </body>
