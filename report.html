@@ -4,116 +4,57 @@
     <meta charset="UTF-8">
     <title>विस्तृत कुंडली रिपोर्ट</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @media print { .no-print { display: none; } body { background: white; } }
-        .tab-btn.active { border-bottom: 3px solid #1e40af; color: #1e40af; }
-    </style>
 </head>
-<body class="bg-gray-50 pb-10">
-
-<div class="max-w-4xl mx-auto mt-6 bg-white shadow-2xl rounded-xl overflow-hidden border border-gray-200">
-    <div class="bg-blue-900 p-8 text-white flex justify-between items-center">
-        <div>
-            <h1 id="user-name" class="text-3xl font-bold">जातक रिपोर्ट</h1>
-            <p id="user-birth" class="opacity-80 mt-1"></p>
-        </div>
-        <button onclick="window.print()" class="no-print bg-amber-500 hover:bg-amber-600 px-6 py-2 rounded-lg font-bold transition shadow-lg">प्रिंट करें / PDF</button>
+<body class="bg-gray-50 p-4">
+<div class="max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8">
+    <div class="flex justify-between items-center border-b pb-4 mb-6">
+        <h1 id="r-name" class="text-3xl font-bold text-blue-900">जातक कुंडली</h1>
+        <button onclick="window.print()" class="bg-green-600 text-white px-4 py-2 rounded no-print">PDF सेव करें</button>
     </div>
 
-    <div class="flex border-b bg-gray-50 no-print">
-        <button onclick="switchTab('planets')" id="btn-planets" class="tab-btn active flex-1 p-4 font-bold text-gray-600">ग्रह विवरण</button>
-        <button onclick="switchTab('dasha')" id="btn-dasha" class="tab-btn flex-1 p-4 font-bold text-gray-600">विंशोत्तरी दशा</button>
-        <button onclick="switchTab('prediction')" id="btn-prediction" class="tab-btn flex-1 p-4 font-bold text-gray-600">भविष्यवाणी</button>
-    </div>
+    <section class="mb-8">
+        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">🪐 ग्रह स्थिति</h2>
+        <table class="w-full border-collapse border">
+            <tr class="bg-gray-100">
+                <th class="border p-2">ग्रह</th><th class="border p-2">राशि</th><th class="border p-2">भाव</th><th class="border p-2">डिग्री</th>
+            </tr>
+            <tbody id="p-table"></tbody>
+        </table>
+    </section>
 
-    <div class="p-8">
-        <div id="planets-sec" class="tab-content">
-            <h2 class="text-xl font-bold text-blue-900 mb-4 flex items-center">🪐 ग्रहों की स्थिति (D1)</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-blue-50 text-blue-900">
-                            <th class="p-3 border">ग्रह</th>
-                            <th class="p-3 border">राशि</th>
-                            <th class="p-3 border">भाव</th>
-                            <th class="p-3 border">डिग्री</th>
-                            <th class="p-3 border">अवस्था</th>
-                        </tr>
-                    </thead>
-                    <tbody id="planet-table"></tbody>
-                </table>
-            </div>
-        </div>
+    <section class="mb-8">
+        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">⏳ विंशोत्तरी महादशा</h2>
+        <div id="dasha-list" class="space-y-2"></div>
+    </section>
 
-        <div id="dasha-sec" class="tab-content hidden">
-            <h2 class="text-xl font-bold text-blue-900 mb-6">⏳ महादशा चक्र</h2>
-            <div id="dasha-timeline" class="space-y-3"></div>
-        </div>
-
-        <div id="prediction-sec" class="tab-content hidden">
-            <h2 class="text-xl font-bold text-blue-900 mb-4">🔮 भविष्यवाणियाँ</h2>
-            <div id="pred-content" class="space-y-6"></div>
-        </div>
-    </div>
+    <section>
+        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">🔮 फलादेश</h2>
+        <div id="predictions" class="bg-blue-50 p-4 rounded-lg text-gray-700 leading-relaxed"></div>
+    </section>
 </div>
 
 <script>
     const data = JSON.parse(localStorage.getItem('astro_data'));
-    if(!data) { alert("डेटा नहीं मिला"); window.location.href = 'index.html'; }
+    if(!data) window.location.href = 'index.html';
 
-    // Header Info
-    document.getElementById('user-name').innerText = data.name;
-    document.getElementById('user-birth').innerText = `${data.details.dob} | ${data.details.tob} | ${data.details.place}`;
+    document.getElementById('r-name').innerText = data.name;
 
-    // Planet Table
-    const pTable = document.getElementById('planet-table');
+    // Planets
+    const pTable = document.getElementById('p-table');
     data.chart.planets.forEach(p => {
-        pTable.innerHTML += `
-            <tr class="hover:bg-gray-50">
-                <td class="p-3 border font-bold text-gray-700">${p.name}</td>
-                <td class="p-3 border">${p.sign}</td>
-                <td class="p-3 border">${p.house}</td>
-                <td class="p-3 border">${p.degree}°</td>
-                <td class="p-3 border">${p.retrograde ? '<span class="text-red-600">वक्री</span>' : 'मार्गी'}</td>
-            </tr>`;
+        pTable.innerHTML += `<tr><td class="border p-2 font-bold">${p.name}</td><td class="border p-2">${p.sign}</td><td class="border p-2">${p.house}</td><td class="border p-2">${p.degree}°</td></tr>`;
     });
 
-    // Dasha Timeline
-    const dTimeline = document.getElementById('dasha-timeline');
+    // Dasha
+    const dList = document.getElementById('dasha-list');
     data.dasha.mahadasha.forEach(d => {
-        dTimeline.innerHTML += `
-            <div class="flex justify-between items-center p-4 border-l-4 border-blue-800 bg-blue-50/50 rounded-r-lg">
-                <span class="font-bold text-blue-900 text-lg">${d.planet}</span>
-                <span class="text-gray-600 font-medium">${d.start} से ${d.end}</span>
-            </div>`;
+        dList.innerHTML += `<div class="p-3 border-l-4 border-blue-500 bg-gray-50 flex justify-between">
+            <span class="font-bold">${d.planet}</span><span>${d.start} से ${d.end}</span>
+        </div>`;
     });
 
     // Predictions
-    const predDiv = document.getElementById('pred-content');
-    const p = data.predictions;
-    predDiv.innerHTML = `
-        <div class="p-5 bg-amber-50 rounded-xl border-l-4 border-amber-400">
-            <h3 class="font-bold text-amber-900 mb-2">मुख्य विश्लेषण</h3>
-            <p class="text-gray-700 leading-relaxed">${p.summary}</p>
-        </div>
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="p-5 border rounded-xl shadow-sm">
-                <h3 class="font-bold text-blue-800 mb-2">💼 करियर और धन</h3>
-                <p class="text-sm text-gray-600">${p.career || 'डेटा उपलब्ध नहीं'}</p>
-            </div>
-            <div class="p-5 border rounded-xl shadow-sm">
-                <h3 class="font-bold text-blue-800 mb-2">🩺 स्वास्थ्य</h3>
-                <p class="text-sm text-gray-600">${p.health || 'डेटा उपलब्ध नहीं'}</p>
-            </div>
-        </div>
-    `;
-
-    function switchTab(id) {
-        document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id + '-sec').classList.remove('hidden');
-        document.getElementById('btn-' + id).classList.add('active');
-    }
+    document.getElementById('predictions').innerText = data.predictions.summary;
 </script>
 </body>
 </html>
