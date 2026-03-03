@@ -2,46 +2,116 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Satik Kundli Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hora Astro - प्रीमियम कुंडली</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; background: #fdf5e6; padding: 50px; display: flex; justify-content: center; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 450px; border-top: 10px solid #800000; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
-        button { background: #800000; color: white; font-weight: bold; border: none; cursor: pointer; }
-        #res-box { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 100; max-height: 150px; overflow-y: auto; display: none; }
-        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .gradient-bg { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
+        #suggestions { position: absolute; z-index: 50; width: 100%; background: white; border: 1px solid #ddd; display: none; }
     </style>
 </head>
-<body>
-    <div class="box">
-        <h2 style="text-align:center; color:#800000;">FortuneWithStars Pro</h2>
-        <input type="text" id="name" placeholder="जातक का नाम">
-        <div style="display:flex; gap:10px;"><input type="date" id="date"><input type="time" id="time"></div>
-        <select id="ayan"><option value="Lahiri">N.C. Lahiri (सटीक)</option><option value="KP">KP Ayanamsa</option></select>
-        <div style="position:relative;">
-            <input type="text" id="city" placeholder="शहर खोजें..." oninput="search(this.value)">
-            <div id="res-box"></div>
+<body class="bg-gray-100 min-h-screen">
+
+<nav class="gradient-bg p-4 text-white text-center shadow-lg">
+    <h1 class="text-2xl font-bold">🔮 HORA ASTRO PREMIUM</h1>
+</nav>
+
+<div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-2xl">
+    <h2 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2">नया विवरण भरें</h2>
+    
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium">पूरा नाम</label>
+            <input type="text" id="name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="उदा: राहुल कुमार">
         </div>
-        <div style="display:flex; gap:10px;"><input type="text" id="lat" placeholder="Latitude"><input type="text" id="lon" placeholder="Longitude"></div>
-        <button onclick="go()">कुंडली विश्लेषण</button>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium">जन्म तिथि</label>
+                <input type="date" id="dob" class="w-full p-3 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">जन्म समय</label>
+                <input type="time" id="tob" class="w-full p-3 border rounded-lg">
+            </div>
+        </div>
+
+        <div class="relative">
+            <label class="block text-sm font-medium">जन्म स्थान</label>
+            <input type="text" id="place" onkeyup="searchLocation(this.value)" class="w-full p-3 border rounded-lg" placeholder="शहर खोजें..." autocomplete="off">
+            <div id="suggestions" class="rounded-b-lg shadow-lg"></div>
+            <input type="hidden" id="lat">
+            <input type="hidden" id="lon">
+        </div>
+
+        <button onclick="getReport()" id="btn-text" class="w-full gradient-bg text-white font-bold py-4 rounded-lg hover:opacity-90 transition">
+            कुंडली रिपोर्ट प्राप्त करें
+        </button>
     </div>
-    <script>
-        async function search(q) {
-            if(q.length<3) return;
-            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const data = await r.json();
-            let h = "";
-            data.forEach(i => h += `<div class="city-item" onclick="set('${i.display_name}',${i.lat},${i.lon})">${i.display_name}</div>`);
-            const rb = document.getElementById('res-box'); rb.innerHTML = h; rb.style.display = 'block';
+</div>
+
+<div id="loader" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xl">
+    🔄 ग्रहों की गणना की जा रही है...
+</div>
+
+<script>
+    const API_URL = "https://yourusername.pythonanywhere.com"; // यहाँ अपना URL डालें
+
+    async function searchLocation(q) {
+        if (q.length < 3) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
+        const data = await res.json();
+        const box = document.getElementById('suggestions');
+        box.innerHTML = '';
+        box.style.display = 'block';
+        data.forEach(item => {
+            let div = document.createElement('div');
+            div.className = "p-3 hover:bg-gray-100 cursor-pointer border-b text-sm";
+            div.innerText = item.display_name;
+            div.onclick = () => {
+                document.getElementById('place').value = item.display_name.split(',')[0];
+                document.getElementById('lat').value = item.lat;
+                document.getElementById('lon').value = item.lon;
+                box.style.display = 'none';
+            };
+            box.appendChild(div);
+        });
+    }
+
+    async function getReport() {
+        const payload = {
+            name: document.getElementById('name').value,
+            date: document.getElementById('dob').value,
+            time: document.getElementById('tob').value,
+            place: document.getElementById('place').value,
+            lat: document.getElementById('lat').value,
+            lon: document.getElementById('lon').value
+        };
+
+        if(!payload.lat) return alert("कृपया स्थान चुनें");
+
+        document.getElementById('loader').classList.remove('hidden');
+
+        try {
+            const res = await fetch(`${API_URL}/calculate`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            
+            if(result.status === 'success') {
+                localStorage.setItem('kundli_data', JSON.stringify(result));
+                window.location.href = 'report.html';
+            } else {
+                alert("Error: " + result.message);
+            }
+        } catch (e) {
+            alert("सर्वर से कनेक्ट नहीं हो पाया");
+        } finally {
+            document.getElementById('loader').classList.add('hidden');
         }
-        function set(n, lt, ln) {
-            document.getElementById('city').value=n; document.getElementById('lat').value=lt;
-            document.getElementById('lon').value=ln; document.getElementById('res-box').style.display='none';
-        }
-        function go() {
-            const d = { custName: document.getElementById('name').value, date: document.getElementById('date').value, time: document.getElementById('time').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value, ayan_mode: document.getElementById('ayan').value };
-            localStorage.setItem('kData', JSON.stringify(d)); window.location.href = "report.html";
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
