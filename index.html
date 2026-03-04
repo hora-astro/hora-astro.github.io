@@ -3,84 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hora Astro - Premium Kundli</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-
-<nav class="bg-blue-900 p-4 text-white text-center shadow-lg">
-    <h1 class="text-2xl font-bold">🔮 HORA ASTRO PREMIUM</h1>
-</nav>
-
-<div class="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-2xl">
-    <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">नया विवरण</h2>
-    <div class="space-y-4">
-        <input type="text" id="name" placeholder="नाम" class="w-full p-3 border rounded-lg">
-        <div class="grid grid-cols-2 gap-2">
-            <input type="date" id="dob" class="p-3 border rounded-lg">
-            <input type="time" id="tob" class="p-3 border rounded-lg">
-        </div>
-        <input type="text" id="place" onkeyup="searchLoc(this.value)" placeholder="शहर खोजें..." class="w-full p-3 border rounded-lg" autocomplete="off">
-        <div id="suggestions" class="bg-white border hidden max-h-40 overflow-y-auto"></div>
+    <title>Hora Astro - प्रोफेशनल कुंडली फॉर्म</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            background: #1a1a1a; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0;
+            padding: 20px;
+        }
+        .container { 
+            background: white; 
+            padding: 35px; 
+            border-radius: 15px; 
+            width: 100%; 
+            max-width: 480px; 
+            text-align: center; 
+            border-top: 6px solid var(--primary);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+        h2 { color: var(--primary); margin-bottom: 25px; font-size: 24px; letter-spacing: 1px; }
+        .form-group { margin-bottom: 18px; text-align: left; position: relative; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; color: #444; font-size: 14px; }
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1.5px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 5px rgba(212, 175, 55, 0.3); }
         
-        <input type="hidden" id="lat">
-        <input type="hidden" id="lon">
+        /* कोआर्डिनेट्स सेक्शन - अब पूरी तरह एडिटेबल */
+        .coords-box { 
+            display: flex; 
+            gap: 12px; 
+            background: #fdfaf6; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px dashed var(--gold);
+            margin-bottom: 20px;
+        }
+        .coords-box div { flex: 1; }
+        .coords-box input { background: #fff; font-family: monospace; font-weight: bold; color: var(--primary); }
 
-        <button onclick="getReport()" class="w-full bg-blue-800 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">कुंडली बनाएं</button>
+        #city-results {
+            background: white;
+            border: 1px solid #ddd;
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; text-align: left; color: #333; }
+        .city-item:hover { background: #f8f1e5; color: var(--primary); }
+        
+        button { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            width: 100%; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3);
+        }
+        button:hover { background: #a33124; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2><i class="fas fa-dharmachakra"></i> Hora Astro प्रोफेशनल</h2>
+        
+        <form action="/generate_report" method="POST">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> जातक का नाम</label>
+                <input type="text" name="name" placeholder="नाम लिखें" required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-calendar-day"></i> जन्म तिथि और समय</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="date" name="dob" required>
+                    <input type="time" name="tob" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> जन्म स्थान (Auto-Search)</label>
+                <input type="text" id="city-search" placeholder="शहर खोजें (उदा: Delhi)" autocomplete="off">
+                <div id="city-results"></div>
+            </div>
+
+            <div class="coords-box">
+                <div>
+                    <label>Latitude (अक्षांश)</label>
+                    <input type="number" step="any" name="lat" id="lat" placeholder="0.0000" required>
+                </div>
+                <div>
+                    <label>Longitude (देशांतर)</label>
+                    <input type="number" step="any" name="lon" id="lon" placeholder="0.0000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-compass"></i> अयनांश (Ayanamsa)</label>
+                <select name="ayanamsa">
+                    <option value="NC_Lahiri">NC Lahiri (Chitra Paksha)</option>
+                    <option value="KP">KP (New Combined)</option>
+                    <option value="BV_Raman">B.V. Raman</option>
+                    <option value="SAYANA">Sayana (Western)</option>
+                </select>
+            </div>
+
+            <button type="submit"><i class="fas fa-file-pdf"></i> 200 पेज की रिपोर्ट प्राप्त करें</button>
+        </form>
     </div>
-</div>
 
-<div id="loader" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center text-white font-bold">गणन जारी है...</div>
+    <script>
+        const citySearch = document.getElementById('city-search');
+        const cityResults = document.getElementById('city-results');
+        const latInput = document.getElementById('lat');
+        const lonInput = document.getElementById('lon');
 
-<script>
-    const API_URL = "https://hemantpurohit27.pythonanywhere.com/calculate";
+        citySearch.addEventListener('input', function() {
+            const query = this.value;
+            if (query.length < 3) {
+                cityResults.style.display = 'none';
+                return;
+            }
 
-    async function searchLoc(q) {
-        if (q.length < 3) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5`);
-        const data = await res.json();
-        const box = document.getElementById('suggestions');
-        box.innerHTML = ''; box.style.display = 'block';
-        data.forEach(item => {
-            let div = document.createElement('div');
-            div.className = "p-2 hover:bg-gray-100 cursor-pointer border-b text-sm";
-            div.innerText = item.display_name;
-            div.onclick = () => {
-                document.getElementById('place').value = item.display_name.split(',')[0];
-                document.getElementById('lat').value = item.lat;
-                document.getElementById('lon').value = item.lon;
-                box.style.display = 'none';
-            };
-            box.appendChild(div);
+            // OpenStreetMap API का उपयोग (Free & No API Key required)
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    cityResults.innerHTML = '';
+                    if (data.length > 0) {
+                        cityResults.style.display = 'block';
+                        data.forEach(place => {
+                            const div = document.createElement('div');
+                            div.className = 'city-item';
+                            // शहर और देश का छोटा नाम दिखाएँ
+                            div.innerText = place.display_name.split(',').slice(0, 3).join(',');
+                            div.onclick = () => {
+                                citySearch.value = div.innerText;
+                                latInput.value = parseFloat(place.lat).toFixed(4);
+                                lonInput.value = parseFloat(place.lon).toFixed(4);
+                                cityResults.style.display = 'none';
+                            };
+                            cityResults.appendChild(div);
+                        });
+                    }
+                });
         });
-    }
 
-    async function getReport() {
-        const lat = document.getElementById('lat').value;
-        if(!lat) { alert("कृपया लिस्ट में से शहर चुनें!"); return; }
-
-        document.getElementById('loader').classList.remove('hidden');
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: document.getElementById('name').value,
-                    date: document.getElementById('dob').value,
-                    time: document.getElementById('tob').value,
-                    place: document.getElementById('place').value,
-                    lat: lat,
-                    lon: document.getElementById('lon').value
-                })
-            });
-            const result = await res.json();
-            if(result.status === 'success') {
-                localStorage.setItem('astro_data', JSON.stringify(result));
-                window.location.href = 'report.html';
-            } else { alert("सर्वर एरर: " + result.message); }
-        } catch (e) { alert("सर्वर से कनेक्ट नहीं हो सका!"); }
-        finally { document.getElementById('loader').classList.add('hidden'); }
-    }
-</script>
+        // बाहर क्लिक करने पर सजेशन बॉक्स छुपाएँ
+        document.addEventListener('click', (e) => {
+            if (e.target !== citySearch) cityResults.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
