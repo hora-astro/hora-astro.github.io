@@ -2,59 +2,103 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>विस्तृत कुंडली रिपोर्ट</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>कुण्डली रिपोर्ट - {{ name }}</title>
+    <style>
+        body { background: #f4f4f4; font-family: 'Segoe UI', Arial; padding: 20px; }
+        .paper { background: white; max-width: 900px; margin: auto; padding: 30px; border: 8px double #b8860b; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #5d4037; color: white; }
+        .chart-row { display: flex; justify-content: space-between; margin: 20px 0; }
+        .chart-box { width: 48%; border: 2px solid #5d4037; padding: 10px; text-align: center; background: #fff; }
+        svg { width: 100%; height: auto; max-width: 380px; }
+        .footer-btn { text-align: center; margin-top: 20px; }
+        .btn { background: #b8860b; color: white; padding: 10px 25px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        @media print { .no-print { display: none; } .paper { border: none; box-shadow: none; } }
+    </style>
 </head>
-<body class="bg-gray-50 p-4">
-<div class="max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8">
-    <div class="flex justify-between items-center border-b pb-4 mb-6">
-        <h1 id="r-name" class="text-3xl font-bold text-blue-900">जातक कुंडली</h1>
-        <button onclick="window.print()" class="bg-green-600 text-white px-4 py-2 rounded no-print">PDF सेव करें</button>
+<body>
+<div class="paper">
+    <h1 align="center" style="color:#5d4037; margin-bottom: 5px;">॥ श्री कुण्डली विवरण ॥</h1>
+    <p align="center" style="margin-top: 0;"><b>जातक का नाम:</b> {{ name }} | <b>इष्टकाल:</b> {{ isht }}</p>
+
+    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ जन्मकालीन पंचांग विवरण ॥</h2>
+    <table border="1">
+        <tr>
+            <td><b>वार:</b> {{ p.day }}</td>
+            <td><b>तिथि:</b> {{ p.tithi }} ({{ p.paksha }})</td>
+            <td><b>नक्षत्र:</b> {{ p.nakshatra }}</td>
+        </tr>
+        <tr>
+            <td><b>योग:</b> {{ p.yoga }}</td>
+            <td><b>करण:</b> {{ p.karana }}</td>
+            <td><b>सूर्योदय:</b> {{ p.sunrise }}</td>
+        </tr>
+        <tr>
+            <td><b>सूर्यास्त:</b> {{ p.sunset }}</td>
+            <td><b>दिनमान:</b> {{ p.dinman }}</td>
+            <td><b>अयन:</b> {{ p.ayan }}</td>
+        </tr>
+    </table>
+
+    <div class="chart-row">
+        <div class="chart-box">
+            <h3 style="margin-top:0;">लग्न कुंडली (D1)</h3>
+            <svg viewBox="0 0 400 400">
+                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
+                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
+                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
+                {% set sc = {1:[200,165], 2:[110,75], 3:[75,110], 4:[165,200], 5:[75,290], 6:[110,325], 7:[200,235], 8:[290,325], 9:[325,290], 10:[235,200], 11:[325,110], 12:[290,75]} %}
+                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#999" text-anchor="middle">{{ ((lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
+                {% set pc = {1:[200,130], 2:[80,60], 3:[60,90], 4:[120,210], 5:[60,310], 6:[80,350], 7:[200,280], 8:[320,350], 9:[340,310], 10:[280,210], 11:[340,90], 12:[320,60]} %}
+                {% for hs in d1 %}{% set idx = loop.index %}<text x="{{ pc[idx][0] }}" y="{{ pc[idx][1] }}" text-anchor="middle">{% for pr in hs %}<tspan x="{{ pc[idx][0] }}" dy="14" font-weight="bold" font-size="11">{{ pr }}</tspan>{% endfor %}</text>{% endfor %}
+            </svg>
+        </div>
+
+        <div class="chart-box">
+            <h3 style="margin-top:0;">नवांश कुंडली (D9)</h3>
+            <svg viewBox="0 0 400 400">
+                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
+                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
+                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
+                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#999" text-anchor="middle">{{ ((d9_lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
+                {% for hs in d9 %}{% set idx = loop.index %}<text x="{{ pc[idx][0] }}" y="{{ pc[idx][1] }}" text-anchor="middle">{% for pr in hs %}<tspan x="{{ pc[idx][0] }}" dy="14" font-weight="bold" font-size="11">{{ pr }}</tspan>{% endfor %}</text>{% endfor %}
+            </svg>
+        </div>
     </div>
 
-    <section class="mb-8">
-        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">🪐 ग्रह स्थिति</h2>
-        <table class="w-full border-collapse border">
-            <tr class="bg-gray-100">
-                <th class="border p-2">ग्रह</th><th class="border p-2">राशि</th><th class="border p-2">भाव</th><th class="border p-2">डिग्री</th>
-            </tr>
-            <tbody id="p-table"></tbody>
-        </table>
-    </section>
+    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ स्पष्ट ग्रह स्थिति ॥</h2>
+    <table>
+        <tr>
+            <th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th>
+        </tr>
+        {% for planet in p_table %}
+        <tr>
+            <td><b>{{ planet.n }}</b></td>
+            <td>{{ planet.s }}</td>
+            <td>{{ planet.d }}</td>
+            <td>{{ planet.nk }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    <section class="mb-8">
-        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">⏳ विंशोत्तरी महादशा</h2>
-        <div id="dasha-list" class="space-y-2"></div>
-    </section>
+    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ विंशोत्तरी भोग्य महादशा ॥</h2>
+    <table>
+        <tr style="background:#5d4037; color:white;">
+            <th>ग्रह</th><th>प्रारंभ तिथि</th><th>समाप्ति तिथि</th>
+        </tr>
+        {% for d in dasha %}
+        <tr>
+            <td><b>{{ d.planet }}</b></td>
+            <td>{{ d.start }}</td>
+            <td>{{ d.end }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    <section>
-        <h2 class="text-xl font-bold text-blue-800 mb-4 border-l-4 border-blue-800 pl-2">🔮 फलादेश</h2>
-        <div id="predictions" class="bg-blue-50 p-4 rounded-lg text-gray-700 leading-relaxed"></div>
-    </section>
+    <div class="no-print footer-btn">
+        <button class="btn" onclick="window.print()">प्रिंट / PDF सेव करें</button>
+    </div>
 </div>
-
-<script>
-    const data = JSON.parse(localStorage.getItem('astro_data'));
-    if(!data) window.location.href = 'index.html';
-
-    document.getElementById('r-name').innerText = data.name;
-
-    // Planets
-    const pTable = document.getElementById('p-table');
-    data.chart.planets.forEach(p => {
-        pTable.innerHTML += `<tr><td class="border p-2 font-bold">${p.name}</td><td class="border p-2">${p.sign}</td><td class="border p-2">${p.house}</td><td class="border p-2">${p.degree}°</td></tr>`;
-    });
-
-    // Dasha
-    const dList = document.getElementById('dasha-list');
-    data.dasha.mahadasha.forEach(d => {
-        dList.innerHTML += `<div class="p-3 border-l-4 border-blue-500 bg-gray-50 flex justify-between">
-            <span class="font-bold">${d.planet}</span><span>${d.start} से ${d.end}</span>
-        </div>`;
-    });
-
-    // Predictions
-    document.getElementById('predictions').innerText = data.predictions.summary;
-</script>
 </body>
 </html>
