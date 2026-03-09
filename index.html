@@ -17,6 +17,7 @@
     .row { display: flex; gap: 20px; flex-wrap: wrap; align-items:flex-start; }
     .card { background:var(--card); border: 1px solid #e6e3f5; border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
     pre { background: #f7f7f7; padding: 10px; border-radius: 6px; overflow: auto; }
+    .error { color:#b00020; background:#fff1f2; border:1px solid #f0c; padding:8px 10px; border-radius:8px; display:none; }
   </style>
   <script src="https://unpkg.com/astronomy-engine/astronomy.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -139,42 +140,61 @@
       return {manglikFromMoon:manglik, sadeSati:sade}
     }
     async function run(){
-      const y=+year.value, m=+month.value, d=+day.value, hh=+hour.value, mm=+minute.value, tz=+tzm.value
-      const lat=+latit.value, lon=+longit.value, place=placeEl.value
-      const name=person.value
-      const utc=toUTC(y,m,d,hh,mm,0,tz)
-      const time=new Astronomy.AstroTime(utc)
-      const pn=nakAt(time), py=yogaAt(time), pk=karAt(time)
-      const panch={weekday:weekdayHi(new Date(utc.getTime()+tz*60000).getUTCDay()), monthName:monthHi(new Date(utc.getTime()+tz*60000).getUTCMonth()), dateISO:fmtLocalISO(utc,tz), fortnight:fortnightAt(time), nakshatra:pn, yoga:py, karana:pk}
-      const pos=positions(time)
-      const dash=dasha(time)
-      const dsh=dosha(pos)
-      // Abhijit Muhurta
-      const midnightLocalUTC=toUTC(y,m,d,0,0,0,tz)
-      let abhijit=undefined
+      const errBox=document.getElementById('errorBox'); errBox.style.display='none'; errBox.textContent=''
+      const outEl=document.getElementById('output'); outEl.textContent=''
       try{
-        const obs={latitude:lat, longitude:lon, height:0}
-        const t0=new Astronomy.AstroTime(midnightLocalUTC)
-        const sunrise=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, +1, t0, 1)
-        const sunset=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, -1, t0, 1)
-        if(sunrise && sunset){
-          const noonEvt=Astronomy.SearchHourAngle(Astronomy.Body.Sun, obs, 0, sunrise, 0.5)
-          if(noonEvt){
-            const dayMinutes=(sunset.date.getTime()-sunrise.date.getTime())/60000
-            const halfWidth=dayMinutes/30
-            const startUTC=new Date(noonEvt.time.date.getTime()-halfWidth*60000)
-            const endUTC=new Date(noonEvt.time.date.getTime()+halfWidth*60000)
-            abhijit={ start: fmtLocalISO(startUTC,tz), end: fmtLocalISO(endUTC,tz) }
-          }
+        if(typeof Astronomy==='undefined'){ throw new Error('Astronomy Engine लोड नहीं हुआ। पेज रीलोड करें।') }
+        const y = +document.getElementById('year').value
+        const m = +document.getElementById('month').value
+        const d = +document.getElementById('day').value
+        const hh = +document.getElementById('hour').value
+        const mm = +document.getElementById('minute').value
+        const tz = +document.getElementById('tzm').value
+        const lat = +document.getElementById('latit').value
+        const lon = +document.getElementById('longit').value
+        const place = document.getElementById('placeEl').value
+        const name = document.getElementById('person').value
+        if(!isFinite(y)||!isFinite(m)||!isFinite(d)||!isFinite(hh)||!isFinite(mm)||!isFinite(tz)){
+          throw new Error('तिथि/समय/टाइमज़ोन इनपुट सही भरें।')
         }
-      }catch(e){}
-      const out={header:{name, place, dateISO:fmtLocalISO(utc,tz)}, panchanga:{moment:panch, day:{ muhurta: { abhijit } }}, charts:{d1:pos, d9:pos}, dasha:dash, dosha:dsh}
-      output.textContent=JSON.stringify(out,null,2)
+        const utc=toUTC(y,m,d,hh,mm,0,tz)
+        const time=new Astronomy.AstroTime(utc)
+        const pn=nakAt(time), py=yogaAt(time), pk=karAt(time)
+        const panch={weekday:weekdayHi(new Date(utc.getTime()+tz*60000).getUTCDay()), monthName:monthHi(new Date(utc.getTime()+tz*60000).getUTCMonth()), dateISO:fmtLocalISO(utc,tz), fortnight:fortnightAt(time), nakshatra:pn, yoga:py, karana:pk}
+        const pos=positions(time)
+        const dash=dasha(time)
+        const dsh=dosha(pos)
+        // Abhijit Muhurta
+        const midnightLocalUTC=toUTC(y,m,d,0,0,0,tz)
+        let abhijit=undefined
+        try{
+          const obs={latitude:lat, longitude:lon, height:0}
+          const t0=new Astronomy.AstroTime(midnightLocalUTC)
+          const sunrise=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, +1, t0, 1)
+          const sunset=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, -1, t0, 1)
+          if(sunrise && sunset){
+            const noonEvt=Astronomy.SearchHourAngle(Astronomy.Body.Sun, obs, 0, sunrise, 0.5)
+            if(noonEvt){
+              const dayMinutes=(sunset.date.getTime()-sunrise.date.getTime())/60000
+              const halfWidth=dayMinutes/30
+              const startUTC=new Date(noonEvt.time.date.getTime()-halfWidth*60000)
+              const endUTC=new Date(noonEvt.time.date.getTime()+halfWidth*60000)
+              abhijit={ start: fmtLocalISO(startUTC,tz), end: fmtLocalISO(endUTC,tz) }
+            }
+          }
+        }catch(e){ /* ignore muhurta errors */ }
+        const out={header:{name, place, dateISO:fmtLocalISO(utc,tz)}, panchanga:{moment:panch, day:{ muhurta: { abhijit } }}, charts:{d1:pos, d9:pos}, dasha:dash, dosha:dsh}
+        outEl.textContent=JSON.stringify(out,null,2)
+      }catch(err){
+        errBox.textContent=String(err?.message||err)
+        errBox.style.display='block'
+        console.error(err)
+      }
     }
     async function makePdf(){
       const { jsPDF } = window.jspdf
       const doc=new jsPDF()
-      const data=JSON.parse(output.textContent||'{}')
+      const data=JSON.parse((document.getElementById('output').textContent)||'{}')
       if(!data.header){alert('पहले JSON तैयार करें');return}
       doc.setFontSize(16); doc.text('जन्म कुंडली रिपोर्ट', 105, 14, {align:'center'})
       doc.setFontSize(11)
@@ -281,6 +301,7 @@
     </div>
     <div class="card" style="flex:1;">
       <h3>आउटपुट</h3>
+      <div id="errorBox" class="error"></div>
       <pre id="output" style="min-height: 300px;"></pre>
     </div>
   </div>
