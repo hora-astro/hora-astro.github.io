@@ -19,8 +19,8 @@
     pre { background: #f7f7f7; padding: 10px; border-radius: 6px; overflow: auto; }
     .error { color:#b00020; background:#fff1f2; border:1px solid #f0c; padding:8px 10px; border-radius:8px; display:none; }
   </style>
-  <script src="https://unpkg.com/astronomy-engine/astronomy.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.0/astronomy.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script>
     function norm(x){let a=x%360; if(a<0)a+=360; return a}
     function jdFromDate(date){return date.getTime()/86400000+2440587.5}
@@ -253,15 +253,18 @@
           })
         }catch(err){}
       })
-      placeSearch.addEventListener('change', ()=>{
+      placeSearch.addEventListener('change', async ()=>{
         const val=placeSearch.value
         if(!val) return
-        const hit=placeMap.get(val)
-        if(hit){
-          document.getElementById('placeEl').value=val
-          document.getElementById('latit').value=hit.lat.toFixed(6)
-          document.getElementById('longit').value=hit.lon.toFixed(6)
+        let hit=placeMap.get(val)
+        if(!hit){
+          try{
+            const resp=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&limit=1`,{headers:{'Accept':'application/json'}})
+            const arr=await resp.json()
+            if(arr && arr[0]) hit={lat:parseFloat(arr[0].lat), lon:parseFloat(arr[0].lon)}
+          }catch(e){}
         }
+        if(hit){ document.getElementById('placeEl').value=val; document.getElementById('latit').value=hit.lat.toFixed(6); document.getElementById('longit').value=hit.lon.toFixed(6) }
       })
     })
   </script>
