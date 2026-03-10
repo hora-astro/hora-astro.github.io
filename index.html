@@ -3,24 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HoraAstro • GitHub Pages</title>
+  <title>HoraAstro • Swiss Ephemeris Pro</title>
   <style>
     :root { --pri:#6941c6; --pri2:#8358e8; --bg:#faf9ff; --card:#ffffff; --text:#1a1a1a; }
     body { font-family: system-ui, Arial, sans-serif; margin: 0; line-height: 1.5; background: var(--bg); color: var(--text); }
-    header { background: linear-gradient(90deg, var(--pri), var(--pri2)); color:#fff; padding:16px 20px; }
+    header { background: linear-gradient(90deg, var(--pri), var(--pri2)); color:#fff; padding:16px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     main { padding: 20px; }
-    h1 { margin:0; font-size: 22px; }
-    label { display: block; margin: 6px 0 0; }
-    input, select { padding: 6px; width: 260px; border:1px solid #d9d9e3; border-radius:8px; }
-    button { padding: 10px 14px; margin-top: 10px; background: var(--pri); color:#fff; border:none; border-radius:8px; cursor:pointer; }
+    h1, h2, h3, h4 { margin:0; }
+    h1 { font-size: 22px; }
+    h3 { margin-bottom: 15px; color: var(--pri); border-bottom: 2px solid var(--pri2); padding-bottom: 5px;}
+    label { display: block; margin: 8px 0 2px; font-size: 0.9em; color: #555; }
+    input, select { padding: 8px; width: 100%; box-sizing: border-box; border:1px solid #d9d9e3; border-radius:8px; }
+    button { padding: 10px 14px; margin-top: 15px; background: var(--pri); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size: 1em; transition: background 0.3s; }
+    button:hover { background: var(--pri2); }
     button.secondary { background:#eef; color:#333 }
     .row { display: flex; gap: 20px; flex-wrap: wrap; align-items:flex-start; }
     .card { background:var(--card); border: 1px solid #e6e3f5; border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-    .chart-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .info-item { background: #f9f9ff; padding: 10px; border-radius: 8px; border-left: 3px solid var(--pri2); }
+    .info-item strong { color: var(--pri); display: block; font-size: 0.9em; margin-bottom: 2px; }
+    .chart-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
     .chart-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; }
     .chart-svg { width: 300px; height: 300px; }
-    .prediction-section { margin-top: 20px; }
-    .prediction-card { background: #fff; border-left: 4px solid var(--pri); margin-bottom: 10px; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .prediction-section { margin-top: 20px; column-count: 2; column-gap: 20px; }
+    .prediction-card { background: #fff; border-left: 4px solid var(--pri); margin-bottom: 10px; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); break-inside: avoid-column; }
     .prediction-card h4 { margin: 0 0 5px 0; color: var(--pri); }
     pre { background: #f7f7f7; padding: 10px; border-radius: 6px; overflow: auto; max-height: 400px; }
     .error { color:#b00020; background:#fff1f2; border:1px solid #f0c; padding:8px 10px; border-radius:8px; display:none; }
@@ -29,342 +35,284 @@
     .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
     .tab-btn { background: none; border: none; color: #666; cursor: pointer; padding: 5px 10px; font-weight: bold; }
     .tab-btn.active { color: var(--pri); border-bottom: 2px solid var(--pri); }
-    .dasha-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+    .dasha-list-container { max-height: 400px; overflow-y: auto; }
+    .dasha-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #eee; }
     .dasha-lord { font-weight: bold; width: 100px; }
     .dasha-dates { color: #666; font-size: 0.9em; }
     .chart-box h3 { margin-top: 10px; font-size: 16px; color: var(--pri); }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.0/astronomy.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script>
-    function norm(x){let a=x%360; if(a<0)a+=360; return a}
-    function jdFromDate(date){return date.getTime()/86400000+2440587.5}
-    function lahiriAy(time){
-      const dt=time.date;const y=dt.getUTCFullYear();const m=dt.getUTCMonth()+1;const d=dt.getUTCDate();
-      const frac=y+(m-0.5)/12+(d-1)/365.2425;const years=frac-2000;return 23.856111111+years*0.013968878
-    }
-    function chosenAyanamsaDeg(time){
-      const mode=document.getElementById('ayan').value
-      if(mode==='custom'){
-        const deg=parseFloat(document.getElementById('ayanDeg').value||'0')
-        return isFinite(deg)?deg:0
-      }
-      return lahiriAy(time)
-    }
-    function trop(body,time){
-      if(body===Astronomy.Body.Sun){
-        if (typeof Astronomy.SunPosition === 'function') {
-          const sp = Astronomy.SunPosition(time)
-          // Astronomy.SunPosition returns ecliptic longitude in degrees as 'elon'
-          if (sp && typeof sp.elon === 'number') return sp.elon
-        }
-        // Fallback: use Earth's heliocentric longitude + 180° if available
-        if (typeof Astronomy.HeliocentricLongitude === 'function' && Astronomy.Body && Astronomy.Body.Earth !== undefined) {
-          const earthLon = Astronomy.HeliocentricLongitude(Astronomy.Body.Earth, time)
-          return norm(earthLon + 180)
-        }
-      }
-      return Astronomy.EclipticLongitude(body,time)
-    }
-    function meanNode(time){
-      const jd=jdFromDate(time.date);const T=(jd-2451545)/36525;
-      return norm(125.04452-1934.136261*T+0.0020708*T*T+T*T*T/450000)
-    }
-    function siderealLon(body,time){
-      const ay=chosenAyanamsaDeg(time)
-      if(body==='Rahu') return norm(meanNode(time)-ay)
-      if(body==='Ketu') return norm(meanNode(time)+180-ay)
-      return norm(trop(Astronomy.Body[body],time)-ay)
-    }
-    function retro(body,time){
-      const dt=0.5, t1=new Astronomy.AstroTime(new Date(time.date.getTime()-dt*86400000))
-      const t2=new Astronomy.AstroTime(new Date(time.date.getTime()+dt*86400000))
-      const l1=trop(Astronomy.Body[body],t1), l2=trop(Astronomy.Body[body],t2)
-      let d=l2-l1; if(d>180)d-=360; if(d<-180)d+=360; return d<0
-    }
-    const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
-    const signsHi={Aries:'मेष',Taurus:'वृषभ',Gemini:'मिथुन',Cancer:'कर्क',Leo:'सिंह',Virgo:'कन्या',Libra:'तुला',Scorpio:'वृश्चिक',Sagittarius:'धनु',Capricorn:'मकर',Aquarius:'कुंभ',Pisces:'मीन'}
-    const nak=['Ashwini','Bharani','Krittika','Rohini','Mrigashirsha','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati']
-    const nakHi={'Ashwini':'अश्विनी','Bharani':'भरणी','Krittika':'कृत्तिका','Rohini':'रोहिणी','Mrigashirsha':'मृगशिरा','Ardra':'आर्द्रा','Punarvasu':'पुनर्वसु','Pushya':'पुष्य','Ashlesha':'आश्रेषा','Magha':'मघा','Purva Phalguni':'पूर्व फाल्गुनी','Uttara Phalguni':'उत्तर फाल्गुनी','Hasta':'हस्त','Chitra':'चित्रा','Swati':'स्वाती','Vishakha':'विशाखा','Anuradha':'अनुराधा','Jyeshtha':'ज्येष्ठा','Mula':'मूल','Purva Ashadha':'पूर्वाषाढ़ा','Uttara Ashadha':'उत्तराषाढ़ा','Shravana':'श्रवण','Dhanishta':'धनिष्ठा','Shatabhisha':'शतभिषा','Purva Bhadrapada':'पूर्व भाद्रपदा','Uttara Bhadrapada':'उत्तर भाद्रपदा','Revati':'रेवती'}
-    const yoga=['Vishkambha','Preeti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shoola','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyana','Parigha','Shiva','Siddha','Sadhya','Subha','Shukla','Brahma','Indra','Vaidhriti']
-    const yogaHi={'Vishkambha':'विष्कंभ','Preeti':'प्रीति','Ayushman':'आयुष्मान','Saubhagya':'सौभाग्य','Shobhana':'शोभन','Atiganda':'अतिगंड','Sukarma':'सुकर्मा','Dhriti':'धृति','Shoola':'शूल','Ganda':'गंड','Vriddhi':'वृद्धि','Dhruva':'ध्रुव','Vyaghata':'व्याघात','Harshana':'हर्षण','Vajra':'वज्र','Siddhi':'सिद्धि','Vyatipata':'व्यतीपात','Variyana':'वरीयान','Parigha':'परिघ','Shiva':'शिव','Siddha':'सिद्ध','Sadhya':'साध्य','Subha':'शुभ','Shukla':'शुक्ल','Brahma':'ब्रह्म','Indra':'इंद्र','Vaidhriti':'वैधृति'}
-    const karAll=['Kimstughna','Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti','Shakuni','Chatushpada','Naga']
-    const karHi={Kimstughna:'किम्स्तुघ्न',Bava:'बव',Balava:'बालव',Kaulava:'कौलव',Taitila:'तैतिल',Garaja:'गरज',Vanija:'वणिज',Vishti:'विष्टि',Shakuni:'शकुनि',Chatushpada:'चतुष्पद',Naga:'नाग'}
-    const exalt={Sun:'Aries',Moon:'Taurus',Mars:'Capricorn',Mercury:'Virgo',Jupiter:'Cancer',Venus:'Pisces',Saturn:'Libra',Rahu:'Taurus',Ketu:'Scorpio'}
-    const debil={Sun:'Libra',Moon:'Scorpio',Mars:'Cancer',Mercury:'Pisces',Jupiter:'Capricorn',Venus:'Virgo',Saturn:'Aries',Rahu:'Scorpio',Ketu:'Taurus'}
-    function weekdayHi(d){return ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'][d]}
-    function monthHi(m){return ['जनवरी','फ़रवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'][m]}
-    function toUTC(y,m,d,hh,mm,ss,tz){return new Date(Date.UTC(y,m-1,d,hh,mm,ss)-(tz*60000))}
-    function fmtLocalISO(utc,tz){
-      const ms=utc.getTime()+tz*60000;const l=new Date(ms)
-      const pad=n=>String(n).padStart(2,'0')
-      const sign=tz>=0?'+':'-';const a=Math.abs(tz);const oh=pad(Math.floor(a/60));const om=pad(a%60)
-      return `${l.getUTCFullYear()}-${pad(l.getUTCMonth()+1)}-${pad(l.getUTCDate())}T${pad(l.getUTCHours())}:${pad(l.getUTCMinutes())}:${pad(l.getUTCSeconds())}${sign}${oh}:${om}`
-    }
-    function sidAngles(time){
-      const ay=chosenAyanamsaDeg(time)
-      const sun=norm(trop(Astronomy.Body.Sun,time)-ay)
-      const moon=norm(trop(Astronomy.Body.Moon,time)-ay)
-      return {sun,moon,sum:norm(sun+moon),diff:norm(moon-sun),sidMoon:moon}
-    }
-    function nakAt(time){
-      const L=sidAngles(time).sidMoon;const size=360/27;const idx=Math.floor(L/size)
-      const within=L-idx*size;const pada=Math.floor(within/(size/4))+1
-      return {name:nak[idx],pada}
-    }
-    function yogaAt(time){const size=360/27;const idx=Math.floor(sidAngles(time).sum/size);return yoga[idx]}
-    function karNameByHalfIndex(hi){
-      if(hi===0) return 'Kimstughna'
-      if(hi>=1&&hi<=56){const seq=['Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti'];return seq[(hi-1)%7]}
-      if(hi===57) return 'Shakuni'; if(hi===58) return 'Chatushpada'; return 'Naga'
-    }
-    function karAt(time){
-      const diff=sidAngles(time).diff; const tIdx=Math.floor(diff/12); const frac=diff/12-tIdx
-      const hi=Math.floor(frac*2)+tIdx*2; return karNameByHalfIndex(hi)
-    }
-    function fortnightAt(time){const t=Math.floor(sidAngles(time).diff/12)+1;return t<=15?'शुक्ल पक्ष':'कृष्ण पक्ष'}
-    function signOf(L){return signs[Math.floor(norm(L)/30)]}
-    function navamsaOf(L,sign){
-      const idx=signs.indexOf(sign);const within=norm(L)-idx*30;const pada=Math.floor((within/30)*9)
-      const movable=['Aries','Cancer','Libra','Capricorn'].includes(sign)
-      const fixed=['Taurus','Leo','Scorpio','Aquarius'].includes(sign)
-      let start=0; if(movable) start=idx; else if(fixed) start=(idx+8)%12; else start=(idx+4)%12
-      return signs[(start+pada)%12]
-    }
-    function positions(time){
-      const bodies=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
-      const out=[]
-      for(const b of bodies){
-        const L=siderealLon(b,time); const s=signOf(L); const n=navamsaOf(L,s)
-        const r=(b==='Rahu'||b==='Ketu')?false:retro(b,time)
-        out.push({body:b, longitude:L, sign:s, navamsa:n, retrograde:r, exalted:s===exalt[b], debilitated:s===debil[b]})
-      }
-      return out
-    }
-    function dasha(time){
-      const size=360/27; const L=sidAngles(time).sidMoon; const nidx=Math.floor(L/size); const frac=(L-nidx*size)/size
-      const order=['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury']
-      const yrs={Ketu:7,Venus:20,Sun:6,Moon:10,Mars:7,Rahu:18,Jupiter:16,Saturn:19,Mercury:17}
-      const lord=order[nidx%9]; const rem=yrs[lord]*(1-frac)
-      const start=time.date; const periods=[]
-      let cur=lord; let s=new Date(start); let first=true
-      for(let i=0;i<18;i++){
-        const years=first?rem:yrs[cur]; const e=new Date(s.getTime()+years*365.2425*86400000)
-        periods.push({lord:cur,start:s.toISOString(),end:e.toISOString()})
-        s=e; cur=order[(order.indexOf(cur)+1)%9]; first=false
-      }
-      const mahaStart=new Date(start.getTime()- (yrs[lord]-rem)*365.2425*86400000)
-      const antaraSeq=order.map(l=>({lord:l, years: yrs[lord]*yrs[l]/120}))
-      let cs=new Date(mahaStart); let current={lord:lord,start:cs,end:cs}
-      for(const a of antaraSeq){const e=new Date(cs.getTime()+a.years*365.2425*86400000); if(start>=cs&&start<e){current={lord:a.lord,start:cs,end:e}; break} cs=e}
-      return {mahadasha:periods, current:{maha:lord, antara:current.lord, start:current.start.toISOString(), end:current.end.toISOString()}}
-    }
-    function dosha(pos){
-      const signsArr=signs
-      const moon=pos.find(p=>p.body==='Moon'), mars=pos.find(p=>p.body==='Mars'), saturn=pos.find(p=>p.body==='Saturn')
-      const idx=(s)=>signsArr.indexOf(s)
-      const sade=[moon.sign, signsArr[(idx(moon.sign)+11)%12], signsArr[(idx(moon.sign)+1)%12]].includes(saturn.sign)
-      const dist=((idx(mars.sign)-idx(moon.sign)+12)%12)+1
-      const manglik=[1,2,4,7,8,12].includes(dist)
-      return {manglikFromMoon:manglik, sadeSati:sade}
-    }
+  <script src="https://cdn.jsdelivr.net/npm/swe.js@2.0.0/swe.js?v=8.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js?v=8.0"></script>
+</head>
+<body>
+  <header><h1>HoraAstro • Swiss Ephemeris Pro</h1></header>
+  <main>
+    <div class="row">
+      <div class="card" style="flex: 1; min-width: 300px;">
+        <h3>जातक विवरण</h3>
+        <label for="person">नाम</label>
+        <input id="person" value="राम कुमार">
+        
+        <label for="placeSearch">जन्म स्थान (Auto-Search)</label>
+        <input id="placeSearch" list="placeList" placeholder="शहर/स्थान खोजें">
+        <datalist id="placeList"></datalist>
 
-    // --- New Chart and Prediction Engine ---
-    function getAscendant(time, lat, lon) {
-      const jd = jdFromDate(time.date);
-      const T = (jd - 2451545.0) / 36525.0;
-      const eps = (23.4392911 - (46.8150 * T) / 3600) * Math.PI / 180;
-      const gmst = norm(280.46061837 + 360.98564736629 * (jd - 2451545) + 0.000387933 * T * T) * Math.PI / 180;
-      const lst = norm(gmst * 180 / Math.PI + lon) * Math.PI / 180;
-      const phi = lat * Math.PI / 180;
-      const y = Math.sin(lst) * Math.cos(eps) - Math.tan(phi) * Math.sin(eps);
-      const x = Math.cos(lst);
-      const lambda = norm(Math.atan2(y, x) * 180 / Math.PI);
-      const ay = chosenAyanamsaDeg(time);
-      const sid = norm(lambda - ay);
-      return { longitude: sid, sign: signs[Math.floor(sid / 30)] };
-    }
+        <div class="row">
+            <div style="flex:1;">
+                <label for="year">वर्ष</label>
+                <input id="year" type="number" value="1990">
+            </div>
+            <div style="flex:1;">
+                <label for="month">माह</label>
+                <input id="month" type="number" value="5">
+            </div>
+            <div style="flex:1;">
+                <label for="day">तारीख</label>
+                <input id="day" type="number" value="12">
+            </div>
+        </div>
+        <div class="row">
+            <div style="flex:1;">
+                <label for="hour">घंटा</label>
+                <input id="hour" type="number" value="10">
+            </div>
+            <div style="flex:1;">
+                <label for="minute">मिनट</label>
+                <input id="minute" type="number" value="30">
+            </div>
+            <div style="flex:1;">
+                <label for="tzm">टाइमज़ोन (मिनट)</label>
+                <input id="tzm" type="number" value="330">
+            </div>
+        </div>
+        <div class="row">
+            <div style="flex:1;">
+                <label for="latit">अक्षांश</label>
+                <input id="latit" type="number" value="28.6139" step="0.0001">
+            </div>
+            <div style="flex:1;">
+                <label for="longit">देशांतर</label>
+                <input id="longit" type="number" value="77.2090" step="0.0001">
+            </div>
+        </div>
+        
+        <label for="ayan">अयनांश (Ayanamsa)</label>
+        <select id="ayan">
+          <option value="1">NC Lahiri (डिफ़ॉल्ट)</option>
+          <option value="5">KP (Krishnamurti)</option>
+          <option value="0">Tropical (No Ayanamsa)</option>
+        </select>
+        
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button id="gen">ज्योतिष निकालें</button>
+          <button id="pdf" class="secondary">रिपोर्ट (PDF)</button>
+        </div>
+      </div>
 
-    function drawNorthChart(containerId, asc, pos, title) {
-      const svg = `<svg viewBox="0 0 300 300" class="chart-svg">
-        <rect x="0" y="0" width="300" height="300" fill="none" stroke="#6941c6" stroke-width="2"/>
-        <line x1="0" y1="0" x2="300" y2="300" stroke="#6941c6" stroke-width="1"/>
-        <line x1="0" y1="300" x2="300" y2="0" stroke="#6941c6" stroke-width="1"/>
-        <polygon points="150,0 0,150 150,300 300,150" fill="none" stroke="#6941c6" stroke-width="1"/>
-        <text x="150" y="145" font-size="12" text-anchor="middle" fill="#6941c6">${signs.indexOf(asc.sign)+1}</text>
-        ${renderHouseNumbers(asc.sign)}
-        ${renderPlanets(asc, pos)}
-      </svg><h3>${title}</h3>`;
-      document.getElementById(containerId).innerHTML = svg;
-    }
+      <div class="card" style="flex: 2; min-width: 600px;">
+        <div id="info-panel" style="display:none;">
+            <h3>जातक और पंचांग विवरण</h3>
+            <div id="info-details" class="info-grid"></div>
+        </div>
+        <hr id="info-hr" style="display:none; margin: 20px 0;">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="showTab('tab-charts')">चार्ट (D1/D9)</button>
+          <button class="tab-btn" onclick="showTab('tab-preds')">फलादेश</button>
+          <button class="tab-btn" onclick="showTab('tab-dasha')">महादशा</button>
+          <button class="tab-btn" onclick="showTab('tab-json')">JSON</button>
+        </div>
 
-    function renderHouseNumbers(ascSign) {
-      const idx = signs.indexOf(ascSign);
-      const pos = [
-        [150,145],[100,75],[50,45],[35,145],[50,250],[100,225],[150,175],[200,225],[250,250],[265,145],[250,45],[200,75]
-      ];
-      return pos.map((p, i) => {
-        const num = (idx + i) % 12 + 1;
-        if(i===0) return ""; // already drawn
-        return `<text x="${p[0]}" y="${p[1]}" font-size="10" text-anchor="middle" fill="#999">${num}</text>`;
-      }).join('');
-    }
+        <div id="tab-charts" class="tab-content active">
+          <div class="chart-container">
+            <div id="chart-d1" class="chart-box">कुंडली देखने के लिए 'ज्योतिष निकालें' दबाएँ</div>
+            <div id="chart-d9" class="chart-box"></div>
+          </div>
+        </div>
 
-    function renderPlanets(asc, pos) {
-      const ascLon = asc.longitude;
-      const houseMap = {};
-      pos.forEach(p => {
-        const h = Math.floor(norm(p.longitude - Math.floor(ascLon/30)*30) / 30) + 1;
-        if(!houseMap[h]) houseMap[h] = [];
-        houseMap[h].push(p.body.substring(0,2));
-      });
-      const coords = [
-        [150,110],[75,60],[40,40],[40,150],[40,260],[75,240],[150,210],[225,240],[260,260],[260,150],[260,40],[225,60]
-      ];
-      return Object.keys(houseMap).map(h => {
-        const c = coords[h-1];
-        return `<text x="${c[0]}" y="${c[1]}" font-size="10" text-anchor="middle" fill="#333">${houseMap[h].join(' ')}</text>`;
-      }).join('');
-    }
+        <div id="tab-preds" class="tab-content">
+          <div id="predictions" class="prediction-section">फलादेश यहाँ दिखाई देगा</div>
+        </div>
 
+        <div id="tab-dasha" class="tab-content">
+          <div id="dasha-list">दशा विवरण यहाँ दिखाई देगा</div>
+        </div>
+
+        <div id="tab-json" class="tab-content">
+          <div id="errorBox" class="error"></div>
+          <pre id="output" style="min-height: 300px;"></pre>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script>
+    const signs = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+    const signsHi = {Aries:'मेष',Taurus:'वृषभ',Gemini:'मिथुन',Cancer:'कर्क',Leo:'सिंह',Virgo:'कन्या',Libra:'तुला',Scorpio:'वृश्चिक',Sagittarius:'धनु',Capricorn:'मकर',Aquarius:'कुंभ',Pisces:'मीन'};
+    const planets = {
+        SE_SUN: 'Sun', SE_MOON: 'Moon', SE_MARS: 'Mars', SE_MERCURY: 'Mercury', 
+        SE_JUPITER: 'Jupiter', SE_VENUS: 'Venus', SE_SATURN: 'Saturn', 
+        SE_TRUE_NODE: 'Rahu'
+    };
     const housePredictions = {
-      Sun: [
-        "प्रथम भाव में सूर्य: जातक तेजस्वी, स्वाभिमानी और नेतृत्व क्षमता वाला होता है।",
-        "द्वितीय भाव में सूर्य: धन संचय में कठिनाई हो सकती है, वाणी प्रखर होती है।",
-        "तृतीय भाव में सूर्य: जातक पराक्रमी और साहसी होता है, भाई-बहनों से सहयोग मिलता है।",
-        "चतुर्थ भाव में सूर्य: घरेलू सुख में कुछ कमी रह सकती है, माता के प्रति लगाव रहता है।",
-        "पंचम भाव में सूर्य: संतान और शिक्षा के क्षेत्र में उतार-चढ़ाव संभव हैं।",
-        "षष्ठ भाव में सूर्य: शत्रुओं पर विजय प्राप्त होती है, जातक निरोगी रहता है।",
-        "सप्तम भाव में सूर्य: वैवाहिक जीवन में वैचारिक मतभेद संभव हैं।",
-        "अष्टम भाव में सूर्य: स्वास्थ्य के प्रति सचेत रहना चाहिए, आकस्मिक लाभ संभव है।",
-        "नवम भाव में सूर्य: जातक धार्मिक और भाग्यशाली होता है।",
-        "दशम भाव में सूर्य: करियर में उच्च पद और मान-सम्मान प्राप्त होता है।",
-        "एकादश भाव में सूर्य: आय के अच्छे स्रोत बनते हैं, मित्रों से लाभ होता है।",
-        "द्वादश भाव में सूर्य: अनावश्यक खर्च और नेत्र दोष संभव हैं।"
-      ],
-      Moon: [
-        "प्रथम भाव में चंद्रमा: जातक भावुक, कल्पनाशील और सुंदर होता है।",
-        "द्वितीय भाव में चंद्रमा: मधुर वाणी और आर्थिक स्थिरता बनी रहती है।",
-        "तृतीय भाव में चंद्रमा: यात्राओं से लाभ और भाई-बहनों से प्रेम रहता है।",
-        "चतुर्थ भाव में चंद्रमा: पारिवारिक सुख और मानसिक शांति प्राप्त होती है।",
-        "पंचम भाव में चंद्रमा: कलात्मक रुचि और उत्तम संतान सुख मिलता है।",
-        "षष्ठ भाव में चंद्रमा: शत्रुओं से सावधान रहना चाहिए, स्वास्थ्य मध्यम रहता है।",
-        "सप्तम भाव में चंद्रमा: जीवनसाथी सुंदर और सहयोगी मिलता है।",
-        "अष्टम भाव में चंद्रमा: मानसिक चिंता और जल संबंधी रोग संभव हैं।",
-        "नवम भाव में चंद्रमा: जातक भाग्यवान और तीर्थ यात्रा करने वाला होता है।",
-        "दशम भाव में चंद्रमा: कार्यक्षेत्र में सफलता और लोकप्रियता मिलती है।",
-        "एकादश भाव में चंद्रमा: इच्छाओं की पूर्ति और धन लाभ होता है।",
-        "द्वादश भाव में चंद्रमा: खर्च अधिक और नींद में बाधा संभव है।"
-      ],
-      Mars: [
-        "प्रथम भाव में मंगल: जातक क्रोधी, ऊर्जावान और साहसी होता है। (मांगलिक)",
-        "द्वितीय भाव में मंगल: कटु वाणी और पारिवारिक विवाद संभव हैं।",
-        "तृतीय भाव में मंगल: पराक्रमी, साहसी और स्वतंत्र विचार वाला होता है।",
-        "चतुर्थ भाव में मंगल: संपत्ति विवाद और घरेलू अशांति संभव है। (मांगलिक)",
-        "पंचम भाव में मंगल: संतान और शिक्षा में बाधाएं आ सकती हैं।",
-        "षष्ठ भाव में मंगल: शत्रुओं को परास्त करने वाला और साहसी होता है।",
-        "सप्तम भाव में मंगल: दांपत्य जीवन में तनाव रह सकता है। (मांगलिक)",
-        "अष्टम भाव में मंगल: दुर्घटनाओं से सावधान रहें। (मांगलिक)",
-        "नवम भाव में मंगल: भाग्य में उतार-चढ़ाव और धार्मिक कार्यों में रुचि।",
-        "दशम भाव में मंगल: प्रशासनिक कार्यों में बड़ी सफलता मिलती है।",
-        "एकादश भाव में मंगल: मित्रों से सहयोग और धन लाभ होता है।",
-        "द्वादश भाव में मंगल: व्यर्थ के खर्च और कानूनी विवाद संभव हैं। (मांगलिक)"
-      ],
-      Mercury: [
-        "प्रथम भाव में बुध: जातक बुद्धिमान, चतुर और वक्ता होता है।",
-        "द्वितीय भाव में बुध: व्यापार और वित्त में अच्छी समझ रहती है।",
-        "तृतीय भाव में बुध: लेखन और संचार में निपुणता मिलती है।",
-        "चतुर्थ भाव में बुध: माता से लाभ और अच्छी शिक्षा प्राप्त होती है।",
-        "पंचम भाव में बुध: संतान सुख और विद्वत्ता बनी रहती है।",
-        "षष्ठ भाव में बुध: तार्किक क्षमता और विवादों में विजय मिलती है।",
-        "सप्तम भाव में बुध: जीवनसाथी समझदार और बुद्धिमान होता है।",
-        "अष्टम भाव में बुध: गुप्त विद्याओं में रुचि और दीर्घायु।",
-        "नवम भाव में बुध: धार्मिक और उच्च शिक्षित होने की संभावना।",
-        "दशम भाव में बुध: व्यापारिक सफलता और मान-सम्मान।",
-        "एकादश भाव में बुध: आय के कई स्रोत और मित्रों से लाभ।",
-        "द्वादश भाव में बुध: विदेश यात्रा और आध्यात्मिक उन्नति।"
-      ],
-      Jupiter: [
-        "प्रथम भाव में गुरु: जातक विद्वान, ज्ञानी और दीर्घायु होता है।",
-        "द्वितीय भाव में गुरु: धन, संपत्ति और मधुर वाणी का सुख।",
-        "तृतीय भाव में गुरु: भाई-बहनों से सुख और साहसी विचार।",
-        "चतुर्थ भाव में गुरु: सुखी गृहस्थ जीवन और वाहन सुख।",
-        "पंचम भाव में गुरु: उत्तम संतान और ज्ञानार्जन।",
-        "षष्ठ भाव में गुरु: शत्रुओं का नाश और उत्तम स्वास्थ्य।",
-        "सप्तम भाव में गुरु: श्रेष्ठ जीवनसाथी और सुखद विवाह।",
-        "अष्टम भाव में गुरु: अचानक धन लाभ और आध्यात्मिक ज्ञान।",
-        "नवम भाव में गुरु: अत्यंत भाग्यशाली और धार्मिक व्यक्तित्व।",
-        "दशम भाव में गुरु: करियर में सफलता और उच्च पद।",
-        "एकादश भाव में गुरु: लाभ ही लाभ और इच्छा पूर्ति।",
-        "द्वादश भाव में गुरु: दान-पुण्य में खर्च और मोक्ष की ओर झुकाव।"
-      ],
-      Venus: [
-        "प्रथम भाव में शुक्र: जातक सुंदर, कलाप्रेमी और आकर्षक होता है।",
-        "द्वितीय भाव में शुक्र: ऐश्वर्य, धन और मधुर वाणी का सुख।",
-        "तृतीय भाव में शुक्र: कलात्मक रुचि और भाई-बहनों से प्रेम।",
-        "चतुर्थ भाव में शुक्र: वाहन और भूमि का सुख, माता से लाभ।",
-        "पंचम भाव में शुक्र: प्रेम संबंधों में सफलता और कलात्मक संतान।",
-        "षष्ठ भाव में शुक्र: स्वास्थ्य का ध्यान रखें, विरोधियों पर विजय।",
-        "सप्तम भाव में शुक्र: सुखी दांपत्य और सुंदर जीवनसाथी।",
-        "अष्टम भाव में शुक्र: अचानक लाभ और विलासिता पूर्ण जीवन।",
-        "नवम भाव में शुक्र: भाग्यशाली और धार्मिक यात्राएं।",
-        "दशम भाव में शुक्र: कला या फैशन क्षेत्र में बड़ी सफलता।",
-        "एकादश भाव में शुक्र: स्त्री पक्ष से लाभ और आर्थिक समृद्धि।",
-        "द्वादश भाव में शुक्र: भोग-विलास और विदेश यात्रा पर खर्च।"
-      ],
-      Saturn: [
-        "प्रथम भाव में शनि: जातक गंभीर, परिश्रमी और कभी-कभी सुस्त।",
-        "द्वितीय भाव में शनि: धन संचय में विलंब और पारिवारिक जिम्मेदारी।",
-        "तृतीय भाव में शनि: साहसी और संघर्ष के बाद सफलता।",
-        "चतुर्थ भाव में शनि: माता के स्वास्थ्य की चिंता, घर से दूर रहना।",
-        "पंचम भाव में शनि: संतान सुख में विलंब, गूढ़ विषयों में रुचि।",
-        "षष्ठ भाव में शनि: शत्रुओं पर विजय और पुरानी बीमारियों से मुक्ति।",
-        "सप्तम भाव में शनि: विवाह में विलंब या गंभीर जीवनसाथी।",
-        "अष्टम भाव में शनि: लंबी आयु और पैतृक संपत्ति से लाभ।",
-        "नवm भाव में शनि: भाग्य उदय में संघर्ष, धार्मिक अनुशासन।",
-        "दशम भाव में शनि: करियर में स्थिरता और कड़ी मेहनत से सफलता।",
-        "एकादश भाव में शनि: आय के स्थिर स्रोत और वृद्ध मित्रों से लाभ।",
-        "द्वादश भाव में शनि: अकेलापन, अस्पताल या कोर्ट-कचहरी पर खर्च।"
-      ],
-      Rahu: [
-        "प्रथम भाव में राहु: जातक साहसी, अपरंपरागत और महत्वाकांक्षी।",
-        "द्वितीय भाव में राहु: आकस्मिक धन लाभ और वाणी में भ्रम।",
-        "तृतीय भाव में राहु: पराक्रम में वृद्धि और यात्राओं से लाभ।",
-        "चतुर्थ भाव में राहु: पारिवारिक असंतोष और माता के स्वास्थ्य की चिंता।",
-        "पंचम भाव में राहु: संतान प्राप्ति में विलंब और सट्टेबाजी से हानि।",
-        "षष्ठ भाव में राहु: शत्रुओं का नाश और रोगों से मुक्ति।",
-        "सप्तम भाव में राहु: विवाह में बाधा या अपरंपरागत जीवनसाथी।",
-        "अष्टम भाव में राहु: गुप्त विद्याओं में रुचि और अचानक संकट।",
-        "नवम भाव में राहु: धर्म के प्रति नया दृष्टिकोण और विदेश यात्रा।",
-        "दशम भाव में राहु: राजनीति या मीडिया में बड़ी सफलता।",
-        "एकादश भाव में राहु: आय में वृद्धि और उच्च पद के मित्रों से लाभ।",
-        "द्वादश भाव में राहु: विदेश यात्रा और नींद में परेशानी।"
-      ],
-      Ketu: [
-        "प्रथम भाव में केतु: आध्यात्मिक झुकाव और भ्रमित व्यक्तित्व।",
-        "द्वितीय भाव में केतु: धन संचय में अरुचि और परिवार से अलगाव।",
-        "तृतीय भाव में केतु: साहसी किंतु भाई-बहनों से मतभेद।",
-        "चतुर्थ भाव में केतु: मानसिक अशांति और गृह त्याग की इच्छा।",
-        "पंचम भाव में केतु: मंत्र सिद्धि और संतान की चिंता।",
-        "षष्ठ भाव में केतु: गुप्त शत्रुओं से विजय और स्वास्थ्य चिंता।",
-        "सप्तम भाव में केतु: दांपत्य में विरक्ति या अलगाव।",
-        "अष्टम भाव में केतु: अचानक दुर्घटना या मोक्ष की प्राप्ति।",
-        "नवम भाव में केतु: धार्मिक यात्राएं और संन्यासी स्वभाव।",
-        "दशम भाव में केतु: कार्यक्षेत्र में अस्थिरता और गुप्त ज्ञान।",
-        "एकादश भाव में केतु: सीमित आय और आध्यात्मिक मित्रों से लाभ।",
-        "द्वादश भाव में केतु: मोक्ष की प्राप्ति और आध्यात्मिक खर्च।"
-      ]
+      Sun: ["प्रथम भाव में सूर्य: जातक तेजस्वी, स्वाभिमानी और नेतृत्व क्षमता वाला होता है।","द्वितीय भाव में सूर्य: धन संचय में कठिनाई हो सकती है, वाणी प्रखर होती है।","तृतीय भाव में सूर्य: जातक पराक्रमी और साहसी होता है, भाई-बहनों से सहयोग मिलता है।","चतुर्थ भाव में सूर्य: घरेलू सुख में कुछ कमी रह सकती है, माता के प्रति लगाव रहता है।","पंचम भाव में सूर्य: संतान और शिक्षा के क्षेत्र में उतार-चढ़ाव संभव हैं।","षष्ठ भाव में सूर्य: शत्रुओं पर विजय प्राप्त होती है, जातक निरोगी रहता है।","सप्तम भाव में सूर्य: वैवाहिक जीवन में वैचारिक मतभेद संभव हैं।","अष्टम भाव में सूर्य: स्वास्थ्य के प्रति सचेत रहना चाहिए, आकस्मिक लाभ संभव है।","नवम भाव में सूर्य: जातक धार्मिक और भाग्यशाली होता है।","दशम भाव में सूर्य: करियर में उच्च पद और मान-सम्मान प्राप्त होता है।","एकादश भाव में सूर्य: आय के अच्छे स्रोत बनते हैं, मित्रों से लाभ होता है।","द्वादश भाव में सूर्य: अनावश्यक खर्च और नेत्र दोष संभव हैं।" ],
+      Moon: ["प्रथम भाव में चंद्रमा: जातक भावुक, कल्पनाशील और सुंदर होता है।","द्वितीय भाव में चंद्रमा: मधुर वाणी और आर्थिक स्थिरता बनी रहती है।","तृतीय भाव में चंद्रमा: यात्राओं से लाभ और भाई-बहनों से प्रेम रहता है।","चतुर्थ भाव में चंद्रमा: पारिवारिक सुख और मानसिक शांति प्राप्त होती है।","पंचम भाव में चंद्रमा: कलात्मक रुचि और उत्तम संतान सुख मिलता है।","षष्ठ भाव में चंद्रमा: शत्रुओं से सावधान रहना चाहिए, स्वास्थ्य मध्यम रहता है।","सप्तम भाव में चंद्रमा: जीवनसाथी सुंदर और सहयोगी मिलता है।","अष्टम भाव में चंद्रमा: मानसिक चिंता और जल संबंधी रोग संभव हैं।","नवम भाव में चंद्रमा: जातक भाग्यवान और तीर्थ यात्रा करने वाला होता है।","दशम भाव में चंद्रमा: कार्यक्षेत्र में सफलता और लोकप्रियता मिलती है।","एकादश भाव में चंद्रमा: इच्छाओं की पूर्ति और धन लाभ होता है।","द्वादश भाव में चंद्रमा: खर्च अधिक और नींद में बाधा संभव है।" ],
+      Mars: ["प्रथम भाव में मंगल: जातक क्रोधी, ऊर्जावान और साहसी होता है। (मांगलिक)","द्वितीय भाव में मंगल: कटु वाणी और पारिवारिक विवाद संभव हैं।","तृतीय भाव में मंगल: पराक्रमी, साहसी और स्वतंत्र विचार वाला होता है।","चतुर्थ भाव में मंगल: संपत्ति विवाद और घरेलू अशांति संभव है। (मांगलिक)","पंचम भाव में मंगल: संतान और शिक्षा में बाधाएं आ सकती हैं।","षष्ठ भाव में मंगल: शत्रुओं को परास्त करने वाला और साहसी होता है।","सप्तम भाव में मंगल: दांपत्य जीवन में तनाव रह सकता है। (मांगलिक)","अष्टम भाव में मंगल: दुर्घटनाओं से सावधान रहें। (मांगलिक)","नवम भाव में मंगल: भाग्य में उतार-चढ़ाव और धार्मिक कार्यों में रुचि।","दशम भाव में मंगल: प्रशासनिक कार्यों में बड़ी सफलता मिलती है।","एकादश भाव में मंगल: मित्रों से सहयोग और धन लाभ होता है।","द्वादश भाव में मंगल: व्यर्थ के खर्च और कानूनी विवाद संभव हैं। (मांगलिक)" ],
+      Mercury: ["प्रथम भाव में बुध: जातक बुद्धिमान, चतुर और वक्ता होता है।","द्वितीय भाव में बुध: व्यापार और वित्त में अच्छी समझ रहती है।","तृतीय भाव में बुध: लेखन और संचार में निपुणता मिलती है।","चतुर्थ भाव में बुध: माता से लाभ और अच्छी शिक्षा प्राप्त होती है।","पंचम भाव में बुध: संतान सुख और विद्वत्ता बनी रहती है।","षष्ठ भाव में बुध: तार्किक क्षमता और विवादों में विजय मिलती है।","सप्तम भाव में बुध: जीवनसाथी समझदार और बुद्धिमान होता है।","अष्टम भाव में बुध: गुप्त विद्याओं में रुचि और दीर्घायु।","नवम भाव में बुध: धार्मिक और उच्च शिक्षित होने की संभावना।","दशम भाव में बुध: व्यापारिक सफलता और मान-सम्मान।","एकादश भाव में बुध: आय के कई स्रोत और मित्रों से लाभ।","द्वादश भाव में बुध: विदेश यात्रा और आध्यात्मिक उन्नति।" ],
+      Jupiter: ["प्रथम भाव में गुरु: जातक विद्वान, ज्ञानी और दीर्घायु होता है।","द्वितीय भाव में गुरु: धन, संपत्ति और मधुर वाणी का सुख।","तृतीय भाव में गुरु: भाई-बहनों से सुख और साहसी विचार।","चतुर्थ भाव में गुरु: सुखी गृहस्थ जीवन और वाहन सुख।","पंचम भाव में गुरु: उत्तम संतान और ज्ञानार्जन।","षष्ठ भाव में गुरु: शत्रुओं का नाश और उत्तम स्वास्थ्य।","सप्तम भाव में गुरु: श्रेष्ठ जीवनसाथी और सुखद विवाह।","अष्टम भाव में गुरु: अचानक धन लाभ और आध्यात्मिक ज्ञान।","नवम भाव में गुरु: अत्यंत भाग्यशाली और धार्मिक व्यक्तित्व।","दशम भाव में गुरु: करियर में सफलता और उच्च पद।","एकादश भाव में गुरु: लाभ ही लाभ और इच्छा पूर्ति।","द्वादश भाव में गुरु: दान-पुण्य में खर्च और मोक्ष की ओर झुकाव।" ],
+      Venus: ["प्रथम भाव में शुक्र: जातक सुंदर, कलाप्रेमी और आकर्षक होता है।","द्वितीय भाव में शुक्र: ऐश्वर्य, धन और मधुर वाणी का सुख।","तृतीय भाव में शुक्र: कलात्मक रुचि और भाई-बहनों से प्रेम।","चतुर्थ भाव में शुक्र: वाहन और भूमि का सुख, माता से लाभ।","पंचम भाव में शुक्र: प्रेम संबंधों में सफलता और कलात्मक संतान।","षष्ठ भाव में शुक्र: स्वास्थ्य का ध्यान रखें, विरोधियों पर विजय।","सप्तम भाव में शुक्र: सुखी दांपत्य और सुंदर जीवनसाथी।","अष्टम भाव में शुक्र: अचानक लाभ और विलासिता पूर्ण जीवन।","नवम भाव में शुक्र: भाग्यशाली और धार्मिक यात्राएं।","दशम भाव में शुक्र: कला या फैशन क्षेत्र में बड़ी सफलता।","एकादश भाव में शुक्र: स्त्री पक्ष से लाभ और आर्थिक समृद्धि।","द्वादश भाव में शुक्र: भोग-विलास और विदेश यात्रा पर खर्च।" ],
+      Saturn: ["प्रथम भाव में शनि: जातक गंभीर, परिश्रमी और कभी-कभी सुस्त।","द्वितीय भाव में शनि: धन संचय में विलंब और पारिवारिक जिम्मेदारी।","तृतीय भाव में शनि: साहसी और संघर्ष के बाद सफलता।","चतुर्थ भाव में शनि: माता के स्वास्थ्य की चिंता, घर से दूर रहना।","पंचम भाव में शनि: संतान सुख में विलंब, गूढ़ विषयों में रुचि।","षष्ठ भाव में शनि: शत्रुओं पर विजय और पुरानी बीमारियों से मुक्ति।","सप्तम भाव में शनि: विवाह में विलंब या गंभीर जीवनसाथी।","अष्टम भाव में शनि: लंबी आयु और पैतृक संपत्ति से लाभ।","नवम भाव में शनि: भाग्य उदय में संघर्ष, धार्मिक अनुशासन।","दशम भाव में शनि: करियर में स्थिरता और कड़ी मेहनत से सफलता।","एकादश भाव में शनि: आय के स्थिर स्रोत और वृद्ध मित्रों से लाभ।","द्वादश भाव में शनि: अकेलापन, अस्पताल या कोर्ट-कचहरी पर खर्च।" ],
+      Rahu: ["प्रथम भाव में राहु: जातक साहसी, अपरंपरागत और महत्वाकांक्षी।","द्वितीय भाव में राहु: आकस्मिक धन लाभ और वाणी में भ्रम।","तृतीय भाव में राहु: पराक्रम में वृद्धि और यात्राओं से लाभ।","चतुर्थ भाव में राहु: पारिवारिक असंतोष और माता के स्वास्थ्य की चिंता।","पंचम भाव में राहु: संतान प्राप्ति में विलंब और सट्टेबाजी से हानि।","षष्ठ भाव में राहु: शत्रुओं का नाश और रोगों से मुक्ति।","सप्तम भाव में राहु: विवाह में बाधा या अपरंपरागत जीवनसाथी।","अष्टम भाव में राहु: गुप्त विद्याओं में रुचि और अचानक संकट।","नवम भाव में राहु: धर्म के प्रति नया दृष्टिकोण और विदेश यात्रा।","दशम भाव में राहु: राजनीति या मीडिया में बड़ी सफलता।","एकादश भाव में राहु: आय में वृद्धि और उच्च पद के मित्रों से लाभ।","द्वादश भाव में राहु: विदेश यात्रा और नींद में परेशानी।" ],
+      Ketu: ["प्रथम भाव में केतु: आध्यात्मिक झुकाव और भ्रमित व्यक्तित्व।","द्वितीय भाव में केतु: धन संचय में अरुचि और परिवार से अलगाव।","तृतीय भाव में केतु: साहसी किंतु भाई-बहनों से मतभेद।","चतुर्थ भाव में केतु: मानसिक अशांति और गृह त्याग की इच्छा।","पंचम भाव में केतु: मंत्र सिद्धि और संतान की चिंता।","षष्ठ भाव में केतु: गुप्त शत्रुओं से विजय और स्वास्थ्य चिंता।","सप्तम भाव में केतु: दांपत्य में विरक्ति या अलगाव।","अष्टम भाव में केतु: अचानक दुर्घटना या मोक्ष की प्राप्ति।","नवम भाव में केतु: धार्मिक यात्राएं और संन्यासी स्वभाव।","दशम भाव में केतु: कार्यक्षेत्र में अस्थिरता और गुप्त ज्ञान।","एकादश भाव में केतु: सीमित आय और आध्यात्मिक मित्रों से लाभ।","द्वादश भाव में केतु: मोक्ष की प्राप्ति और आध्यात्मिक खर्च।" ]
     };
 
-    function generatePredictions(asc, pos) {
-      const ascLon = asc.longitude;
-      const html = [];
-      pos.forEach(p => {
-        const h = Math.floor(norm(p.longitude - Math.floor(ascLon/30)*30) / 30) + 1;
-        const pred = housePredictions[p.body][h-1];
-        html.push(`<div class="prediction-card"><h4>${p.body} - ${h} भाव में</h4><p>${pred}</p></div>`);
-      });
-      return html.join('');
+    function toGhatiPala(decimalHours) {
+        const ghati = decimalHours * 2.5;
+        const g = Math.floor(ghati);
+        const p = Math.floor((ghati - g) * 60);
+        return `${g} घटी ${p} पल`;
+    }
+
+    function degToDms(deg) {
+        const d = Math.floor(deg);
+        const m = Math.floor((deg - d) * 60);
+        const s = Math.round(((deg - d) * 60 - m) * 60);
+        return `${d}° ${m}' ${s}"`;
+    }
+
+    function drawNorthChart(containerId, ascendant, positions, title) {
+        const ascSignIndex = Math.floor(ascendant / 30);
+        
+        let planetPositions = {};
+        for (let i = 0; i < 12; i++) {
+            planetPositions[i] = [];
+        }
+
+        const ascHouseIndex = 0;
+        planetPositions[ascHouseIndex].push('Lg');
+
+        for (const p of positions) {
+            const houseIndex = Math.floor(p.longitude / 30);
+            let planetName = p.name.substring(0, 2);
+            if (p.retrograde) {
+                planetName += '(R)';
+            }
+            planetPositions[houseIndex].push(planetName);
+        }
+
+        const houseLayout = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const houseCoords = [
+            { x: 150, y: 40, numX: 150, numY: 20 },   // House 1
+            { x: 70, y: 70, numX: 40, numY: 40 },    // House 2
+            { x: 40, y: 150, numX: 20, numY: 150 },  // House 3
+            { x: 70, y: 230, numX: 40, numY: 260 },  // House 4
+            { x: 150, y: 260, numX: 150, numY: 280 }, // House 5
+            { x: 230, y: 230, numX: 260, numY: 260 }, // House 6
+            { x: 260, y: 150, numX: 280, numY: 150 }, // House 7
+            { x: 230, y: 70, numX: 260, numY: 40 },  // House 8
+            { x: 150, y: 150, numX: 150, numY: 170 }, // House 10
+            { x: 150, y: 150, numX: 220, numY: 120 }, // House 11
+            { x: 150, y: 150, numX: 80, numY: 120 },  // House 12
+        ];
+        
+        let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
+            <rect x="0" y="0" width="300" height="300" fill="none" stroke="#6941c6" stroke-width="2"/>
+            <line x1="0" y1="0" x2="300" y2="300" stroke="#6941c6" stroke-width="1"/>
+            <line x1="0" y1="300" x2="300" y2="0" stroke="#6941c6" stroke-width="1"/>
+            <polygon points="150,0 0,150 150,300 300,150" fill="none" stroke="#6941c6" stroke-width="1"/>`;
+
+        for (let i = 0; i < 12; i++) {
+            const currentSignIndex = (ascSignIndex + i) % 12;
+            const layoutIndex = houseLayout[i] - 1;
+            const pos = houseCoords[layoutIndex];
+            
+            svg += `<text x="${pos.numX}" y="${pos.numY}" font-size="10" text-anchor="middle" fill="#999">${currentSignIndex + 1}</text>`;
+            
+            if (planetPositions[currentSignIndex] && planetPositions[currentSignIndex].length > 0) {
+                svg += `<text x="${pos.x}" y="${pos.y}" font-size="10" text-anchor="middle" fill="#333">${planetPositions[currentSignIndex].join(' ')}</text>`;
+            }
+        }
+
+        svg += `</svg><h3>${title}</h3>`;
+        document.getElementById(containerId).innerHTML = svg;
+    }
+
+    async function calculate() {
+        const errBox = document.getElementById('errorBox');
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+
+        try {
+            if (typeof swe === 'undefined') {
+                throw new Error('Swiss Ephemeris library (swe.js) लोड नहीं हुआ। पेज रीलोड करें।');
+            }
+
+            const y = +document.getElementById('year').value;
+            const m = +document.getElementById('month').value;
+            const d = +document.getElementById('day').value;
+            const hh = +document.getElementById('hour').value;
+            const mm = +document.getElementById('minute').value;
+            const tzOffset = +document.getElementById('tzm').value;
+            const lat = +document.getElementById('latit').value;
+            const lon = +document.getElementById('longit').value;
+            const ayanamsa = +document.getElementById('ayan').value;
+
+            const date = new Date(Date.UTC(y, m - 1, d, hh, mm) - tzOffset * 60000);
+            const julianDay = swe.swe_julday(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours() + date.getUTCMinutes() / 60, swe.SE_GREG_CAL);
+
+            swe.swe_set_ephe_path('ephe');
+            swe.swe_set_sid_mode(ayanamsa);
+
+            let positions = [];
+            for (const [key, name] of Object.entries(planets)) {
+                const res = swe.swe_calc_ut(julianDay, swe[key], swe.SEFLG_SPEED);
+                positions.push({ name, longitude: res.longitude, retrograde: res.longitude_speed < 0 });
+            }
+            const rahu = positions.find(p => p.name === 'Rahu');
+            if (rahu) {
+                positions.push({ name: 'Ketu', longitude: (rahu.longitude + 180) % 360, retrograde: false });
+            }
+
+            const houses = swe.swe_houses(julianDay, lat, lon, 'P');
+            const ascendant = houses.ascendant;
+
+            const sunriseRes = swe.swe_rise_trans(julianDay, swe.SE_SUN, '', swe.SE_CALC_RISE, 0, lat, lon, 0, 0);
+            const birthTimeInHours = hh + mm / 60;
+            const sunriseTime = new Date(swe.swe_jdet_to_datetime(sunriseRes.time));
+            const sunriseInHours = sunriseTime.getUTCHours() + sunriseTime.getUTCMinutes() / 60;
+            const ishtakal = toGhatiPala(birthTimeInHours - sunriseInHours);
+
+            const sunLon = positions.find(p => p.name === 'Sun').longitude;
+            const moonLon = positions.find(p => p.name === 'Moon').longitude;
+            const tithi = Math.floor(((moonLon - sunLon + 360) % 360) / 12) + 1;
+            const paksha = tithi <= 15 ? 'शुक्ल पक्ष' : 'कृष्ण पक्ष';
+            
+            const infoPanel = document.getElementById('info-panel');
+            const infoDetails = document.getElementById('info-details');
+            infoDetails.innerHTML = `
+                <div class="info-item"><strong>नाम:</strong> ${document.getElementById('person').value}</div>
+                <div class="info-item"><strong>जन्म स्थान:</strong> ${document.getElementById('placeSearch').value}</div>
+                <div class="info-item"><strong>तिथि:</strong> ${tithi % 15 === 0 ? 15 : tithi % 15} ${paksha}</div>
+                <div class="info-item"><strong>इष्टकाल:</strong> ${ishtakal}</div>
+            `;
+            infoPanel.style.display = 'block';
+            document.getElementById('info-hr').style.display = 'block';
+
+            drawNorthChart('chart-d1', ascendant, positions, 'D1 - राशि चक्र');
+            
+            const d9Positions = positions.map(p => {
+                const navamsaLon = (p.longitude * 9) % 360;
+                return { ...p, longitude: navamsaLon };
+            });
+            const d9Ascendant = (ascendant * 9) % 360;
+            drawNorthChart('chart-d9', d9Ascendant, d9Positions, 'D9 - नवांश चक्र');
+
+            document.getElementById('output').textContent = JSON.stringify({ ascendant, positions, ishtakal }, null, 2);
+
+        } catch (err) {
+            errBox.textContent = String(err?.message || err);
+            errBox.style.display = 'block';
+            console.error(err);
+        }
     }
 
     function showTab(id) {
@@ -375,241 +323,35 @@
       if(btn) btn.classList.add('active');
     }
 
-    async function run(){
-      const errBox=document.getElementById('errorBox'); errBox.style.display='none'; errBox.textContent=''
-      const outEl=document.getElementById('output'); outEl.textContent=''
-      try{
-        if(typeof Astronomy==='undefined'){ throw new Error('Astronomy Engine लोड नहीं हुआ। पेज रीलोड करें।') }
-        const y = +document.getElementById('year').value
-        const m = +document.getElementById('month').value
-        const d = +document.getElementById('day').value
-        const hh = +document.getElementById('hour').value
-        const mm = +document.getElementById('minute').value
-        const tz = +document.getElementById('tzm').value
-        const lat = +document.getElementById('latit').value
-        const lon = +document.getElementById('longit').value
-        const place = document.getElementById('placeEl').value
-        const name = document.getElementById('person').value
-        if(!isFinite(y)||!isFinite(m)||!isFinite(d)||!isFinite(hh)||!isFinite(mm)||!isFinite(tz)){
-          throw new Error('तिथि/समय/टाइमज़ोन इनपुट सही भरें।')
-        }
-        const utc=toUTC(y,m,d,hh,mm,0,tz)
-        const time=new Astronomy.AstroTime(utc)
-        const pn=nakAt(time), py=yogaAt(time), pk=karAt(time)
-        const panch={weekday:weekdayHi(new Date(utc.getTime()+tz*60000).getUTCDay()), monthName:monthHi(new Date(utc.getTime()+tz*60000).getUTCMonth()), dateISO:fmtLocalISO(utc,tz), fortnight:fortnightAt(time), nakshatra:pn, yoga:py, karana:pk}
-        const pos=positions(time)
-        const dash=dasha(time)
-        const dsh=dosha(pos)
-        
-        // --- New Logic ---
-        const asc = getAscendant(time, lat, lon);
-        drawNorthChart('chart-d1', asc, pos, 'D1 - राशि चक्र');
-        
-        // D9 Chart: Planets are placed in their navamsa signs
-        const d9Pos = pos.map(p => {
-          const navIdx = signs.indexOf(p.navamsa);
-          return { ...p, longitude: navIdx * 30 + 15 }; // Place in middle of navamsa sign
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('gen').addEventListener('click', calculate);
+        const placeSearch = document.getElementById('placeSearch');
+        const placeList = document.getElementById('placeList');
+        const placeMap = new Map();
+        placeSearch.addEventListener('input', async (e) => {
+            const q = placeSearch.value.trim();
+            if (q.length < 3) return;
+            placeMap.clear();
+            placeList.innerHTML = '';
+            try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`);
+                const arr = await resp.json();
+                arr.forEach(item => {
+                    placeMap.set(item.display_name, { lat: item.lat, lon: item.lon });
+                    const opt = document.createElement('option');
+                    opt.value = item.display_name;
+                    placeList.appendChild(opt);
+                });
+            } catch (err) {}
         });
-        const d9Asc = { ...asc, longitude: signs.indexOf(navamsaOf(asc.longitude, asc.sign)) * 30 + 15 };
-        d9Asc.sign = signs[Math.floor(d9Asc.longitude/30)];
-        drawNorthChart('chart-d9', d9Asc, d9Pos, 'D9 - नवांश चक्र');
-        
-        const preds = generatePredictions(asc, pos);
-        document.getElementById('predictions').innerHTML = preds;
-        
-        let dashaHtml = `<h4>वर्तमान महादशा: ${dash.current.maha} (अंतरा: ${dash.current.antara})</h4><div class="dasha-list-container">`;
-        dash.mahadasha.forEach(p => {
-          dashaHtml += `<div class="dasha-item">
-            <span class="dasha-lord">${p.lord}</span>
-            <span class="dasha-dates">${new Date(p.start).toLocaleDateString('hi-IN')} से ${new Date(p.end).toLocaleDateString('hi-IN')}</span>
-          </div>`;
-        });
-        dashaHtml += '</div>';
-        document.getElementById('dasha-list').innerHTML = dashaHtml;
-
-        // Abhijit Muhurta
-        const midnightLocalUTC=toUTC(y,m,d,0,0,0,tz)
-        let abhijit=undefined
-        try{
-          const obs={latitude:lat, longitude:lon, height:0}
-          const t0=new Astronomy.AstroTime(midnightLocalUTC)
-          const sunrise=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, +1, t0, 1)
-          const sunset=Astronomy.SearchRiseSet(Astronomy.Body.Sun, obs, -1, t0, 1)
-          if(sunrise && sunset){
-            const noonEvt=Astronomy.SearchHourAngle(Astronomy.Body.Sun, obs, 0, sunrise, 0.5)
-            if(noonEvt){
-              const dayMinutes=(sunset.date.getTime()-sunrise.date.getTime())/60000
-              const halfWidth=dayMinutes/30
-              const startUTC=new Date(noonEvt.time.date.getTime()-halfWidth*60000)
-              const endUTC=new Date(noonEvt.time.date.getTime()+halfWidth*60000)
-              abhijit={ start: fmtLocalISO(startUTC,tz), end: fmtLocalISO(endUTC,tz) }
+        placeSearch.addEventListener('change', () => {
+            const hit = placeMap.get(placeSearch.value);
+            if (hit) {
+                document.getElementById('latit').value = hit.lat;
+                document.getElementById('longit').value = hit.lon;
             }
-          }
-        }catch(e){ /* ignore muhurta errors */ }
-        const out={header:{name, place, dateISO:fmtLocalISO(utc,tz)}, panchanga:{moment:panch, day:{ muhurta: { abhijit } }}, charts:{d1:pos, d9:pos, ascendant: asc}, dasha:dash, dosha:dsh}
-        outEl.textContent=JSON.stringify(out,null,2)
-      }catch(err){
-        errBox.textContent=String(err?.message||err)
-        errBox.style.display='block'
-        console.error(err)
-      }
-    }
-    async function makePdf(){
-      const { jsPDF } = window.jspdf
-      const doc=new jsPDF()
-      const data=JSON.parse((document.getElementById('output').textContent)||'{}')
-      if(!data.header){alert('पहले JSON तैयार करें');return}
-      doc.setFontSize(16); doc.text('जन्म कुंडली रिपोर्ट', 105, 14, {align:'center'})
-      doc.setFontSize(11)
-      doc.text(`नाम: ${data.header.name}`, 14, 26)
-      doc.text(`स्थान: ${data.header.place}`, 14, 32)
-      const p=data.panchanga.moment
-      doc.text(`दिन/तिथि: ${p.weekday}, ${p.monthName} - ${data.header.dateISO}`, 14, 38)
-      doc.text(`पक्ष: ${p.fortnight}`, 14, 44)
-      doc.text(`नक्षत्र/पाद: ${nakHi[p.nakshatra.name]||p.nakshatra.name} / ${p.nakshatra.pada}`, 14, 50)
-      doc.text(`योग: ${yogaHi[p.yoga]||p.yoga}`, 14, 56)
-      doc.text(`करण: ${karHi[p.karana]||p.karana}`, 14, 62)
-      const muh = (data.panchanga.day && data.panchanga.day.muhurta && data.panchanga.day.muhurta.abhijit) ? data.panchanga.day.muhurta.abhijit : null
-      if(muh && muh.start && muh.end){
-        doc.text(`अभिजीत मुहूर्त: ${muh.start} → ${muh.end}`, 14, 68)
-      }
-      let y= (muh && muh.start)? 76 : 72; doc.setFontSize(12); doc.text('ग्रह स्थिति (D1/D9):',14,y); y+=6; doc.setFontSize(10)
-      for(const g of data.charts.d1){
-        const s=signsHi[g.sign]||g.sign, n=signsHi[g.navamsa]||g.navamsa
-        const attrs=[g.retrograde?'वक्री':'',g.exalted?'उच्च':'',g.debilitated?'नीच':''].filter(Boolean).join(', ')
-        doc.text(`${g.body}: राशि ${s}  नवांश ${n} ${attrs? '('+attrs+')':''}`,14,y); y+=6; if(y>280){doc.addPage(); y=20}
-      }
-      y+=4; doc.setFontSize(12); doc.text('वर्तमान दशा:',14,y); y+=6; doc.setFontSize(10)
-      doc.text(`महादशा: ${data.dasha.current.maha}  अंतरदशा: ${data.dasha.current.antara}`,14,y); y+=6
-      doc.text(`अंतरदशा अवधि: ${data.dasha.current.start} → ${data.dasha.current.end}`,14,y); y+=6
-      y+=4; doc.setFontSize(12); doc.text('दोष संकेत:',14,y); y+=6; doc.setFontSize(10)
-      doc.text(`मांगलिक (चंद्र से): ${data.dosha.manglikFromMoon?'हाँ':'नहीं'}`,14,y); y+=6
-      doc.text(`शनि साढ़ेसाती: ${data.dosha.sadeSati?'चल रही है':'नहीं'}`,14,y); y+=10
-
-      doc.addPage(); y=20;
-      doc.setFontSize(14); doc.text('फलादेश (Predictions)', 105, y, {align:'center'}); y+=10;
-      doc.setFontSize(10);
-      data.charts.d1.forEach(p => {
-        const h = Math.floor(norm(p.longitude - Math.floor(data.charts.ascendant.longitude/30)*30) / 30) + 1;
-        const pred = housePredictions[p.body][h-1];
-        doc.setFontSize(11); doc.setTextColor(105, 65, 198);
-        doc.text(`${p.body} - ${h} भाव में:`, 14, y); y+=6;
-        doc.setFontSize(10); doc.setTextColor(0, 0, 0);
-        const lines = doc.splitTextToSize(pred, 180);
-        doc.text(lines, 14, y);
-        y += lines.length * 5 + 5;
-        if(y > 270) { doc.addPage(); y = 20; }
-      });
-
-      doc.save('horoscope.pdf')
-    }
-    window.addEventListener('DOMContentLoaded',()=>{
-      document.getElementById('gen').addEventListener('click', run)
-      document.getElementById('pdf').addEventListener('click', makePdf)
-      const placeSearch=document.getElementById('placeSearch')
-      const list=document.getElementById('placeList')
-      const placeMap=new Map()
-      let lastQuery=''
-      const aySel=document.getElementById('ayan')
-      const ayDeg=document.getElementById('ayanDeg')
-      aySel.addEventListener('change', ()=>{
-        if(aySel.value==='custom'){ ayDeg.disabled=false } else { ayDeg.disabled=true }
-      })
-      placeSearch.addEventListener('input', async (e)=>{
-        const q=placeSearch.value.trim()
-        if(q.length<3 || q===lastQuery) return
-        lastQuery=q
-        placeMap.clear(); list.innerHTML=''
-        try{
-          const resp=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`,{headers:{'Accept':'application/json'}})
-          const arr=await resp.json()
-          arr.forEach(item=>{
-            const name=item.display_name
-            placeMap.set(name,{lat:parseFloat(item.lat), lon:parseFloat(item.lon)})
-            const opt=document.createElement('option')
-            opt.value=name
-            list.appendChild(opt)
-          })
-        }catch(err){}
-      })
-      placeSearch.addEventListener('change', async ()=>{
-        const val=placeSearch.value
-        if(!val) return
-        let hit=placeMap.get(val)
-        if(!hit){
-          try{
-            const resp=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&limit=1`,{headers:{'Accept':'application/json'}})
-            const arr=await resp.json()
-            if(arr && arr[0]) hit={lat:parseFloat(arr[0].lat), lon:parseFloat(arr[0].lon)}
-          }catch(e){}
-        }
-        if(hit){ document.getElementById('placeEl').value=val; document.getElementById('latit').value=hit.lat.toFixed(6); document.getElementById('longit').value=hit.lon.toFixed(6) }
-      })
-    })
-  </script>
-</head>
-  <body>
-  <header><h1>HoraAstro • GitHub Pages</h1></header>
-  <main>
-  <div class="row">
-    <div class="card">
-      <label>नाम <input id="person" value="राम कुमार"></label>
-      <label>स्थान <input id="placeEl" value="नई दिल्ली"></label>
-      <label>जन्म स्थान (Auto-Search)
-        <input id="placeSearch" list="placeList" placeholder="शहर/स्थान खोजें">
-        <datalist id="placeList"></datalist>
-      </label>
-      <label>अयनांश (Ayanamsa)
-        <select id="ayan">
-          <option value="lahiri">लहीड़ी (डिफ़ॉल्ट)</option>
-          <option value="custom">कस्टम (डिग्री)</option>
-        </select>
-      </label>
-      <label id="ayanDegWrap" style="display:block">कस्टम अयनांश (°)
-        <input id="ayanDeg" type="number" step="0.0001" value="0" disabled>
-      </label>
-      <label>वर्ष <input id="year" type="number" value="1990"></label>
-      <label>माह <input id="month" type="number" value="5"></label>
-      <label>तारीख <input id="day" type="number" value="12"></label>
-      <label>घंटा <input id="hour" type="number" value="10"></label>
-      <label>मिनट <input id="minute" type="number" value="30"></label>
-      <label>टाइमज़ोन ऑफ़सेट (मिनट) <input id="tzm" type="number" value="330"></label>
-      <label>अक्षांश <input id="latit" type="number" value="28.6139" step="0.0001"></label>
-      <label>देशांतर <input id="longit" type="number" value="77.2090" step="0.0001"></label>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button id="gen">ज्योतिष निकालें</button>
-        <button id="pdf" class="secondary">रिपोर्ट (PDF)</button>
-      </div>
-    </div>
-    <div class="card" style="flex:1;">
-      <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('tab-charts')">चार्ट (D1/D9)</button>
-        <button class="tab-btn" onclick="showTab('tab-preds')">फलादेश</button>
-        <button class="tab-btn" onclick="showTab('tab-dasha')">महादशा</button>
-        <button class="tab-btn" onclick="showTab('tab-json')">JSON</button>
-      </div>
-
-      <div id="tab-charts" class="tab-content active">
-        <div class="chart-container">
-          <div id="chart-d1" class="chart-box">कुंडली देखने के लिए 'ज्योतिष निकालें' दबाएँ</div>
-          <div id="chart-d9" class="chart-box"></div>
-        </div>
-      </div>
-
-      <div id="tab-preds" class="tab-content">
-        <div id="predictions" class="prediction-section">फलादेश यहाँ दिखाई देगा</div>
-      </div>
-
-      <div id="tab-dasha" class="tab-content">
-        <div id="dasha-list">दशा विवरण यहाँ दिखाई देगा</div>
-      </div>
-
-      <div id="tab-json" class="tab-content">
-        <div id="errorBox" class="error"></div>
-        <pre id="output" style="min-height: 300px;"></pre>
-      </div>
-    </div>
-  </div>
-  </main>
+        });
+    });
+</script>
 </body>
 </html>
