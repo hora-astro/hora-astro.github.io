@@ -2,103 +2,141 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>कुण्डली रिपोर्ट - {{ name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>प्रोफेशनल कुंडली रिपोर्ट - {{ user_data.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #f4f4f4; font-family: 'Segoe UI', Arial; padding: 20px; }
-        .paper { background: white; max-width: 900px; margin: auto; padding: 30px; border: 8px double #b8860b; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background: #5d4037; color: white; }
-        .chart-row { display: flex; justify-content: space-between; margin: 20px 0; }
-        .chart-box { width: 48%; border: 2px solid #5d4037; padding: 10px; text-align: center; background: #fff; }
-        svg { width: 100%; height: auto; max-width: 380px; }
-        .footer-btn { text-align: center; margin-top: 20px; }
-        .btn { background: #b8860b; color: white; padding: 10px 25px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        @media print { .no-print { display: none; } .paper { border: none; box-shadow: none; } }
+        :root {
+            --primary: #4338ca;
+            --secondary: #6366f1;
+            --accent: #f59e0b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+        }
+        body { font-family: 'Hind', sans-serif; margin: 0; background: #fff; color: #1e293b; line-height: 1.6; }
+        .report-container { max-width: 900px; margin: 20px auto; padding: 40px; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        
+        /* Header */
+        .header { text-align: center; border-bottom: 3px double var(--primary); padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--primary); font-size: 28px; text-transform: uppercase; }
+        .header p { margin: 5px 0; color: #64748b; font-weight: 600; }
+
+        /* Info Grid */
+        .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .info-card { background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
+        .info-card table { width: 100%; border-collapse: collapse; }
+        .info-card td { padding: 5px; font-size: 14px; }
+        .info-card b { color: var(--primary); }
+
+        /* Chart Section */
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 40px 0; }
+        .chart-box { text-align: center; background: #fff; }
+        .chart-title { background: var(--primary); color: white; padding: 8px; border-radius: 5px 5px 0 0; font-weight: 600; }
+        .chart-svg-wrap { border: 2px solid var(--primary); padding: 10px; min-height: 300px; display: flex; align-items: center; justify-content: center; }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th { background: var(--primary); color: white; padding: 12px; text-align: left; font-size: 14px; }
+        .data-table td { border: 1px solid var(--border); padding: 10px; font-size: 14px; }
+        .data-table tr:nth-child(even) { background: var(--bg-light); }
+
+        /* Prediction Card */
+        .prediction-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 20px; border-radius: 12px; margin-top: 30px; }
+        .prediction-box h3 { color: #92400e; margin-top: 0; border-bottom: 1px solid #fde68a; padding-bottom: 10px; }
+        .ai-tag { background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; vertical-align: middle; }
+
+        /* Print Style */
+        @media print {
+            body { background: white; }
+            .report-container { box-shadow: none; border: none; padding: 0; width: 100%; }
+            .no-print { display: none; }
+            .chart-svg-wrap { border-width: 1px; }
+        }
+
+        .btn-print { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="paper">
-    <h1 align="center" style="color:#5d4037; margin-bottom: 5px;">॥ श्री कुण्डली विवरण ॥</h1>
-    <p align="center" style="margin-top: 0;"><b>जातक का नाम:</b> {{ name }} | <b>इष्टकाल:</b> {{ isht }}</p>
 
-    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ जन्मकालीन पंचांग विवरण ॥</h2>
-    <table border="1">
-        <tr>
-            <td><b>वार:</b> {{ p.day }}</td>
-            <td><b>तिथि:</b> {{ p.tithi }} ({{ p.paksha }})</td>
-            <td><b>नक्षत्र:</b> {{ p.nakshatra }}</td>
-        </tr>
-        <tr>
-            <td><b>योग:</b> {{ p.yoga }}</td>
-            <td><b>करण:</b> {{ p.karana }}</td>
-            <td><b>सूर्योदय:</b> {{ p.sunrise }}</td>
-        </tr>
-        <tr>
-            <td><b>सूर्यास्त:</b> {{ p.sunset }}</td>
-            <td><b>दिनमान:</b> {{ p.dinman }}</td>
-            <td><b>अयन:</b> {{ p.ayan }}</td>
-        </tr>
-    </table>
+    <button class="btn-print no-print" onclick="window.print()">📥 PDF डाउनलोड करें</button>
 
-    <div class="chart-row">
-        <div class="chart-box">
-            <h3 style="margin-top:0;">लग्न कुंडली (D1)</h3>
-            <svg viewBox="0 0 400 400">
-                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
-                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
-                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
-                {% set sc = {1:[200,165], 2:[110,75], 3:[75,110], 4:[165,200], 5:[75,290], 6:[110,325], 7:[200,235], 8:[290,325], 9:[325,290], 10:[235,200], 11:[325,110], 12:[290,75]} %}
-                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#999" text-anchor="middle">{{ ((lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
-                {% set pc = {1:[200,130], 2:[80,60], 3:[60,90], 4:[120,210], 5:[60,310], 6:[80,350], 7:[200,280], 8:[320,350], 9:[340,310], 10:[280,210], 11:[340,90], 12:[320,60]} %}
-                {% for hs in d1 %}{% set idx = loop.index %}<text x="{{ pc[idx][0] }}" y="{{ pc[idx][1] }}" text-anchor="middle">{% for pr in hs %}<tspan x="{{ pc[idx][0] }}" dy="14" font-weight="bold" font-size="11">{{ pr }}</tspan>{% endfor %}</text>{% endfor %}
-            </svg>
+    <div class="report-container">
+        <div class="header">
+            <h1>HoraAstro Professional Report</h1>
+            <p>सटीक गणना और वैदिक विश्लेषण</p>
         </div>
 
-        <div class="chart-box">
-            <h3 style="margin-top:0;">नवांश कुंडली (D9)</h3>
-            <svg viewBox="0 0 400 400">
-                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
-                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
-                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
-                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#999" text-anchor="middle">{{ ((d9_lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
-                {% for hs in d9 %}{% set idx = loop.index %}<text x="{{ pc[idx][0] }}" y="{{ pc[idx][1] }}" text-anchor="middle">{% for pr in hs %}<tspan x="{{ pc[idx][0] }}" dy="14" font-weight="bold" font-size="11">{{ pr }}</tspan>{% endfor %}</text>{% endfor %}
-            </svg>
+        <div class="info-section">
+            <div class="info-card">
+                <table>
+                    <tr><td><b>नाम:</b></td><td>{{ user_data.name }}</td></tr>
+                    <tr><td><b>जन्म तिथि:</b></td><td>{{ user_data.dob }}</td></tr>
+                    <tr><td><b>समय:</b></td><td>{{ user_data.tob }}</td></tr>
+                    <tr><td><b>स्थान:</b></td><td>{{ user_data.place }}</td></tr>
+                </table>
+            </div>
+            <div class="info-card" style="border-color: var(--accent);">
+                <table>
+                    <tr><td><b>तिथि:</b></td><td>{{ panchang.tithi }}</td></tr>
+                    <tr><td><b>नक्षत्र:</b></td><td>{{ panchang.nakshatra }}</td></tr>
+                    <tr><td><b>योग:</b></td><td>{{ panchang.yoga }}</td></tr>
+                    <tr><td><b>अयनांश:</b></td><td>{{ user_data.ayanamsa }}</td></tr>
+                </table>
+            </div>
         </div>
+
+        <div class="charts-row">
+            <div class="chart-box">
+                <div class="chart-title">लग्न कुंडली (D1)</div>
+                <div class="chart-svg-wrap">
+                    {{ d1_svg | safe }}
+                </div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-title">नवांश कुंडली (D9)</div>
+                <div class="chart-svg-wrap">
+                    {{ d9_svg | safe }}
+                </div>
+            </div>
+        </div>
+
+        <h3>🪐 ग्रहों की स्पष्ट स्थिति</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ग्रह</th>
+                    <th>राशि</th>
+                    <th>अंश (Degree)</th>
+                    <th>नक्षत्र</th>
+                    <th>पद</th>
+                    <th>अवस्था</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in planets %}
+                <tr>
+                    <td><b>{{ p.name }}</b> {% if p.is_retro %}(R){% endif %}</td>
+                    <td>{{ p.sign }}</td>
+                    <td>{{ p.degree }}°</td>
+                    <td>{{ p.nakshatra }}</td>
+                    <td>{{ p.pada }}</td>
+                    <td>{{ p.avastha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="prediction-box">
+            <h3>🌟 करियर और व्यावसायिक भविष्य <span class="ai-tag">AI ENGINE</span></h3>
+            <p>{{ career_analysis }}</p>
+            <hr style="border: 0; border-top: 1px solid #fde68a; margin: 15px 0;">
+            <p><b>दशम भाव विश्लेषण:</b> {{ d10_prediction }}</p>
+        </div>
+
+        <footer style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px;">
+            यह रिपोर्ट <b>HoraAstro Swiss Engine</b> द्वारा स्वचालित रूप से तैयार की गई है।
+        </footer>
     </div>
 
-    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ स्पष्ट ग्रह स्थिति ॥</h2>
-    <table>
-        <tr>
-            <th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र</th>
-        </tr>
-        {% for planet in p_table %}
-        <tr>
-            <td><b>{{ planet.n }}</b></td>
-            <td>{{ planet.s }}</td>
-            <td>{{ planet.d }}</td>
-            <td>{{ planet.nk }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-
-    <h2 align="center" style="color:#b8860b; font-size: 18px;">॥ विंशोत्तरी भोग्य महादशा ॥</h2>
-    <table>
-        <tr style="background:#5d4037; color:white;">
-            <th>ग्रह</th><th>प्रारंभ तिथि</th><th>समाप्ति तिथि</th>
-        </tr>
-        {% for d in dasha %}
-        <tr>
-            <td><b>{{ d.planet }}</b></td>
-            <td>{{ d.start }}</td>
-            <td>{{ d.end }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-
-    <div class="no-print footer-btn">
-        <button class="btn" onclick="window.print()">प्रिंट / PDF सेव करें</button>
-    </div>
-</div>
 </body>
 </html>
