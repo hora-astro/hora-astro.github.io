@@ -1,366 +1,295 @@
 <!doctype html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HoraAstro Pro • Enterprise Edition</title>
-  <style>
-    :root { 
-        --pri: #4338ca; --pri-light: #e0e7ff; --accent: #f59e0b; 
-        --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0;
-    }
-    body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-    
-    /* Layout */
-    header { background: var(--pri); color: #fff; padding: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-    main { max-width: 1400px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 25px; }
-    
-    .sidebar { position: sticky; top: 20px; }
-    .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); }
-    
-    /* Inputs */
-    h3 { margin-top: 0; font-size: 1.1rem; color: var(--pri); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--pri-light); padding-bottom: 10px; }
-    label { display: block; margin: 12px 0 4px; font-weight: 600; font-size: 0.85rem; color: #64748b; }
-    input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; }
-    input:focus { outline: none; border-color: var(--pri); ring: 2px var(--pri-light); }
-    
-    /* Buttons */
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-    button { padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .btn-primary { background: var(--pri); color: white; }
-    .btn-primary:hover { background: #3730a3; transform: translateY(-1px); }
-    .btn-secondary { background: var(--pri-light); color: var(--pri); }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    /* Results */
-    .panchang-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .p-item { background: #f1f5f9; padding: 12px; border-radius: 10px; text-align: center; }
-    .p-item span { display: block; font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
-    .p-item b { font-size: 1rem; color: var(--pri); }
+<title>HoraAstro Pro X • Enterprise Suite</title>
 
-    /* Charts */
-    .chart-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
-    .chart-box { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; }
-    .chart-svg { max-width: 100%; height: auto; }
+<style>
+:root {
+  --pri:#4f46e5;
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+}
 
-    /* Dasha Table */
-    .dasha-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    .dasha-table th { background: var(--pri-light); color: var(--pri); text-align: left; padding: 10px; }
-    .dasha-table td { padding: 10px; border-bottom: 1px solid var(--border); }
-    .current-dasha { background: #fffbeb; font-weight: bold; border-left: 4px solid var(--accent); }
+body {margin:0;font-family:Segoe UI;background:var(--bg);color:var(--text);}
 
-    /* Tabs */
-    .tabs { display: flex; gap: 5px; background: #e2e8f0; padding: 5px; border-radius: 10px; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-weight: 500; }
-    .tab-btn.active { background: white; color: var(--pri); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+header {
+  background:linear-gradient(90deg,#4f46e5,#7c3aed);
+  color:white;padding:18px;text-align:center;
+}
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+main {
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:20px;
+  max-width:1400px;
+  margin:auto;
+  padding:20px;
+}
 
-    /* Interpretations */
-    .reading-card { border-left: 4px solid var(--pri); padding: 15px; background: #fff; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .reading-card h4 { margin: 0 0 8px 0; color: var(--pri); font-size: 1rem; }
-    .reading-card p { margin: 0; font-size: 0.95rem; line-height: 1.6; color: #334155; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/swe.js@2.0.0/swe.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+.card {
+  background:white;
+  border-radius:12px;
+  padding:18px;
+  border:1px solid var(--border);
+}
+
+input,select,button {
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
+
+button {
+  background:var(--pri);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+.box {
+  background:#eef2ff;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.tabs {display:flex;gap:5px;margin-bottom:10px;}
+.tab {flex:1;padding:8px;border:none;background:#e2e8f0;cursor:pointer;}
+.tab.active {background:white;}
+
+.chart {border:1px solid var(--border);padding:10px;border-radius:10px;}
+
+.loader {
+  display:none;
+  text-align:center;
+  padding:20px;
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/swe.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+
 </head>
+
 <body>
 
 <header>
-    <h1>HoraAstro Pro • Advanced Ephemeris</h1>
-    <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.8;">Professional Vedic Calculation Engine</p>
+<h2>HoraAstro Pro X</h2>
+<p>Advanced Vedic Calculation Engine</p>
 </header>
 
 <main>
-    <section class="sidebar">
-        <div class="card">
-            <h3>📝 विवरण भरें</h3>
-            <label>जातक का नाम</label>
-            <input type="text" id="personName" value="Hemant Purohit">
-            
-            <label>जन्म तिथि और समय</label>
-            <input type="datetime-local" id="birthDatetime" value="2000-01-01T12:00">
-            
-            <label>स्थान (City Search)</label>
-            <input type="text" id="citySearch" placeholder="उदा: Banswara, Rajasthan">
-            <div id="locationData" style="font-size: 0.75rem; color: #64748b; margin-top:5px;"></div>
-            
-            <div style="display:none;">
-                <input id="lat" value="23.5461">
-                <input id="lon" value="74.4333">
-                <input id="tz" value="5.5">
-            </div>
 
-            <label>अयनांश (Ayanamsa)</label>
-            <select id="ayanamsaType">
-                <option value="1">Lahiri (Chitra Paksha)</option>
-                <option value="5">KP (Krishnamurti)</option>
-                <option value="3">Raman</option>
-                <option value="0">Tropical</option>
-            </select>
+<!-- Sidebar -->
+<div>
 
-            <div class="btn-group">
-                <button class="btn-primary" onclick="generateHoroscope()">गणनाक करें</button>
-                <button class="btn-secondary" onclick="window.print()">Print PDF</button>
-            </div>
-        </div>
+<div class="card">
+<h3>जन्म विवरण</h3>
 
-        <div class="card">
-            <h3>📊 वर्तमान गोचर</h3>
-            <div id="transitInfo" style="font-size:0.85rem;">गणना लोड हो रही है...</div>
-        </div>
-    </section>
+<input id="name" placeholder="Name">
+<input type="datetime-local" id="dt">
+<input id="place" placeholder="City">
 
-    <section class="content">
-        <div class="card" id="panchangView" style="display:none;">
-            <h3>🕉️ पंचांग एवं बुनियादी विवरण</h3>
-            <div class="panchang-grid" id="panchangStats"></div>
-        </div>
+<button onclick="startCalc()">Generate Kundli</button>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('charts')">कुंडली चक्र</button>
-            <button class="tab-btn" onclick="switchTab('dasha')">विंशोत्तरी दशा</button>
-            <button class="tab-btn" onclick="switchTab('analysis')">ग्रह विश्लेषण</button>
-            <button class="tab-btn" onclick="switchTab('predictions')">फलादेश (AI)</button>
-        </div>
+</div>
 
-        <div id="charts" class="tab-content active">
-            <div class="chart-container">
-                <div class="chart-box">
-                    <div id="d1Chart"></div>
-                    <p><b>Lagna Chart (D1)</b></p>
-                </div>
-                <div class="chart-box">
-                    <div id="d9Chart"></div>
-                    <p><b>Navamsha Chart (D9)</b></p>
-                </div>
-            </div>
-        </div>
+<div class="card">
+<h3>System Status</h3>
+<div id="status">Idle</div>
+</div>
 
-        <div id="dasha" class="tab-content">
-            <div class="card">
-                <h3>⏳ विंशोत्तरी महादशा एवं अंतर्दशा</h3>
-                <div id="dashaOutput"></div>
-            </div>
-        </div>
+</div>
 
-        <div id="analysis" class="tab-content">
-            <div class="card p-0" style="overflow-x:auto;">
-                <table class="dasha-table">
-                    <thead>
-                        <tr>
-                            <th>ग्रह</th>
-                            <th>राशि</th>
-                            <th>डिग्री</th>
-                            <th>नक्षत्र</th>
-                            <th>पद</th>
-                            <th>अवस्था</th>
-                        </tr>
-                    </thead>
-                    <tbody id="planetTableBody"></tbody>
-                </table>
-            </div>
-        </div>
+<!-- Content -->
+<div>
 
-        <div id="predictions" class="tab-content">
-            <div id="readingOutput"></div>
-        </div>
-    </section>
+<div class="loader" id="loader">🔄 Calculating...</div>
+
+<div id="output" style="display:none">
+
+<div class="card">
+<h3>Panchang</h3>
+<div class="grid" id="panchang"></div>
+</div>
+
+<div class="tabs">
+<button class="tab active" onclick="tab('chart')">Chart</button>
+<button class="tab" onclick="tab('dasha')">Dasha</button>
+<button class="tab" onclick="tab('analysis')">Analysis</button>
+</div>
+
+<div id="chart" class="card tabc">
+<div id="chartBox"></div>
+</div>
+
+<div id="dasha" class="card tabc" style="display:none">
+<div id="dashaBox"></div>
+</div>
+
+<div id="analysis" class="card tabc" style="display:none">
+<table width="100%" id="table"></table>
+</div>
+
+</div>
+
+</div>
+
 </main>
 
 <script>
-    // --- Constants & Data ---
-    const PLANETS = [
-        { id: 'SE_SUN', name: 'सूर्य', en: 'Sun' },
-        { id: 'SE_MOON', name: 'चंद्र', en: 'Moon' },
-        { id: 'SE_MARS', name: 'मंगल', en: 'Mars' },
-        { id: 'SE_MERCURY', name: 'बुध', en: 'Mercury' },
-        { id: 'SE_JUPITER', name: 'गुरु', en: 'Jupiter' },
-        { id: 'SE_VENUS', name: 'शुक्र', en: 'Venus' },
-        { id: 'SE_SATURN', name: 'शनि', en: 'Saturn' },
-        { id: 'SE_TRUE_NODE', name: 'राहु', en: 'Rahu' }
-    ];
 
-    const SIGNS = ["मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"];
-    const DASHA_LORDS = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
-    const DASHA_YEARS = [7, 20, 6, 10, 7, 18, 16, 19, 17];
+// ---------- CORE ENGINE ----------
 
-    // --- Core Functions ---
+async function startCalc(){
 
-    async function generateHoroscope() {
-        if (typeof swe === 'undefined') return alert("Swiss Ephemeris loading...");
+document.getElementById("loader").style.display="block";
+document.getElementById("output").style.display="none";
+document.getElementById("status").innerText="Processing...";
 
-        const dt = document.getElementById('birthDatetime').value;
-        const lat = parseFloat(document.getElementById('lat').value);
-        const lon = parseFloat(document.getElementById('lon').value);
-        const ayanType = parseInt(document.getElementById('ayanamsaType').value);
-        
-        const mDate = moment(dt);
-        const jd = swe.swe_julday(mDate.year(), mDate.month()+1, mDate.date(), mDate.hours() + mDate.minutes()/60 - 5.5, swe.SE_GREG_CAL);
-        
-        swe.swe_set_sid_mode(ayanType);
-        
-        // 1. Calculate Positions
-        let results = [];
-        PLANETS.forEach(p => {
-            let res = swe.swe_calc_ut(jd, swe[p.id], swe.SEFLG_SIDEREAL | swe.SEFLG_SPEED);
-            results.push({ ...p, lon: res.longitude, speed: res.longitude_speed });
-        });
-        
-        // Add Ketu
-        let rahu = results.find(x => x.en === 'Rahu');
-        results.push({ id: 'SE_KETU', name: 'केतु', en: 'Ketu', lon: (rahu.lon + 180) % 360, speed: rahu.speed });
+try{
 
-        // Houses
-        let h = swe.swe_houses(jd, lat, lon, 'P');
-        let asc = h.ascendant;
+let dt = document.getElementById("dt").value;
+let m = moment(dt);
 
-        // 2. Render UI
-        document.getElementById('panchangView').style.display = 'block';
-        updatePanchang(results, jd, asc);
-        renderPlanetTable(results);
-        drawNorthChart('d1Chart', asc, results, "D1 - Lagna");
-        drawNavamsha(asc, results);
-        calculateVimshottari(results.find(p => p.en === 'Moon').lon, mDate);
-        generateReadings(results, asc);
-    }
+let jd = swe.swe_julday(
+m.year(),m.month()+1,m.date(),
+m.hours()+m.minutes()/60 - 5.5,
+swe.SE_GREG_CAL
+);
 
-    function updatePanchang(pos, jd, asc) {
-        const sun = pos.find(p => p.en === 'Sun').lon;
-        const moon = pos.find(p => p.en === 'Moon').lon;
-        
-        const tithi = Math.floor(((moon - sun + 360) % 360) / 12) + 1;
-        const yoga = Math.floor(((sun + moon) % 360) / (360/27)) + 1;
-        const nak = Math.floor(moon / (360/27)) + 1;
-        
-        const container = document.getElementById('panchangStats');
-        container.innerHTML = `
-            <div class="p-item"><span>लग्न</span><b>${SIGNS[Math.floor(asc/30)]}</b></div>
-            <div class="p-item"><span>तिथि</span><b>${tithi}</b></div>
-            <div class="p-item"><span>नक्षत्र</span><b>${nak}</b></div>
-            <div class="p-item"><span>योग</span><b>${yoga}</b></div>
-        `;
-    }
+swe.swe_set_sid_mode(1);
 
-    function renderPlanetTable(data) {
-        const body = document.getElementById('planetTableBody');
-        body.innerHTML = data.map(p => {
-            const signIdx = Math.floor(p.lon / 30);
-            const deg = (p.lon % 30).toFixed(2);
-            return `<tr>
-                <td>${p.name} ${p.speed < 0 ? '<small>(R)</small>' : ''}</td>
-                <td>${SIGNS[signIdx]}</td>
-                <td>${deg}°</td>
-                <td>Nakshatra ${Math.floor(p.lon/13.33)+1}</td>
-                <td>${Math.floor((p.lon % 13.33)/3.33)+1}</td>
-                <td>${deg < 6 ? 'बाल' : deg > 24 ? 'मृत' : 'युवा'}</td>
-            </tr>`;
-        }).join('');
-    }
+// planets
+let planets = [
+{n:"Sun",id:swe.SE_SUN},
+{n:"Moon",id:swe.SE_MOON},
+{n:"Mars",id:swe.SE_MARS},
+{n:"Mercury",id:swe.SE_MERCURY},
+{n:"Jupiter",id:swe.SE_JUPITER},
+{n:"Venus",id:swe.SE_VENUS},
+{n:"Saturn",id:swe.SE_SATURN},
+];
 
-    // --- Chart Engine (North Indian) ---
-    function drawNorthChart(divId, asc, planets, title) {
-        const ascSign = Math.floor(asc/30) + 1;
-        let svg = `<svg viewBox="0 0 300 300" class="chart-svg">
-            <path d="M0 0 L300 0 L300 300 L0 300 Z" fill="none" stroke="#4338ca" stroke-width="2"/>
-            <path d="M0 0 L300 300 M300 0 L0 300 M150 0 L0 150 L150 300 L300 150 Z" fill="none" stroke="#4338ca"/>`;
-        
-        const houseCoords = [
-            [150, 80], [75, 50], [40, 100], [80, 150], [40, 200], [75, 250],
-            [150, 220], [225, 250], [260, 200], [220, 150], [260, 100], [225, 50]
-        ];
-        
-        const numCoords = [
-            [150, 130], [100, 70], [70, 100], [130, 150], [70, 200], [100, 230],
-            [150, 170], [200, 230], [230, 200], [170, 150], [230, 100], [200, 70]
-        ];
+let res=[];
 
-        for(let i=0; i<12; i++) {
-            let sign = ((ascSign + i - 1) % 12) + 1;
-            svg += `<text x="${numCoords[i][0]}" y="${numCoords[i][1]}" font-size="12" fill="#94a3b8" text-anchor="middle">${sign}</text>`;
-            
-            // Filter planets in this sign
-            let inSign = planets.filter(p => Math.floor(p.lon/30) + 1 === sign);
-            let pText = inSign.map(p => p.name.substring(0,2)).join(' ');
-            if(i === 0) pText = "Lg " + pText;
-            
-            svg += `<text x="${houseCoords[i][0]}" y="${houseCoords[i][1]}" font-size="11" font-weight="bold" text-anchor="middle">${pText}</text>`;
-        }
-        
-        svg += `</svg>`;
-        document.getElementById(divId).innerHTML = svg;
-    }
+planets.forEach(p=>{
+let r=swe.swe_calc_ut(jd,p.id,swe.SEFLG_SIDEREAL);
+res.push({name:p.n,lon:r.longitude});
+});
 
-    function drawNavamsha(asc, planets) {
-        let nPlanets = planets.map(p => ({ ...p, lon: (p.lon * 9) % 360 }));
-        let nAsc = (asc * 9) % 360;
-        drawNorthChart('d9Chart', nAsc, nPlanets, "Navamsha");
-    }
+// Panchang
+calcPanchang(res);
 
-    // --- Dasha Engine ---
-    function calculateVimshottari(moonLon, birthDate) {
-        let totalArc = 360 / 27; // 13.33
-        let elapsedInNak = moonLon % totalArc;
-        let remainingInNak = totalArc - elapsedInNak;
-        
-        let startNak = Math.floor(moonLon / totalArc);
-        let firstLordIdx = startNak % 9;
-        
-        let output = `<table class="dasha-table"><tr><th>ग्रह</th><th>प्रारंभ</th><th>समाप्त</th></tr>`;
-        let currentDate = moment(birthDate).subtract((elapsedInNak/totalArc) * DASHA_YEARS[firstLordIdx], 'years');
-        
-        for(let i=0; i<9; i++) {
-            let lordIdx = (firstLordIdx + i) % 9;
-            let start = currentDate.format('DD-MM-YYYY');
-            currentDate.add(DASHA_YEARS[lordIdx], 'years');
-            let end = currentDate.format('DD-MM-YYYY');
-            
-            let isCurrent = moment().isBetween(moment(start, 'DD-MM-YYYY'), moment(end, 'DD-MM-YYYY'));
-            output += `<tr class="${isCurrent ? 'current-dasha' : ''}"><td>${DASHA_LORDS[lordIdx]}</td><td>${start}</td><td>${end}</td></tr>`;
-        }
-        output += `</table>`;
-        document.getElementById('dashaOutput').innerHTML = output;
-    }
+// Table
+renderTable(res);
 
-    // --- UI Helpers ---
-    function switchTab(id) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
+// Chart
+drawChart(res);
 
-    // Location Auto-complete (Nominatim)
-    document.getElementById('citySearch').addEventListener('blur', async (e) => {
-        const val = e.target.value;
-        if(val.length < 3) return;
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}&limit=1`);
-            const data = await res.json();
-            if(data[0]) {
-                document.getElementById('lat').value = data[0].lat;
-                document.getElementById('lon').value = data[0].lon;
-                document.getElementById('locationData').innerText = `Lat: ${data[0].lat}, Lon: ${data[0].lon}`;
-            }
-        } catch(err) {}
-    });
+// Dasha
+calcDasha(res.find(x=>x.name=="Moon").lon,m);
 
-    function generateReadings(planets, asc) {
-        const output = document.getElementById('readingOutput');
-        let html = `<h3>🌟 ज्योतिषीय विश्लेषण</h3>`;
-        
-        // Basic AI-style Logic
-        const sun = planets.find(p => p.en === 'Sun');
-        const sunHouse = Math.floor((sun.lon - (asc - (asc % 30)) + 360) % 360 / 30) + 1;
-        
-        html += `<div class="reading-card">
-            <h4>सूर्य का प्रभाव (भाव ${sunHouse})</h4>
-            <p>आपका सूर्य ${sunHouse} भाव में स्थित है। यह आपकी आत्मा और आत्मविश्वास को दर्शाता है। करियर में आप एक नेतृत्वकारी भूमिका निभा सकते हैं।</p>
-        </div>`;
-        
-        output.innerHTML = html;
-    }
+document.getElementById("loader").style.display="none";
+document.getElementById("output").style.display="block";
+document.getElementById("status").innerText="Done";
+
+}catch(e){
+alert("Error: "+e.message);
+}
+
+}
+
+// ---------- PANCHANG ----------
+
+function calcPanchang(p){
+
+let sun=p.find(x=>x.name=="Sun").lon;
+let moon=p.find(x=>x.name=="Moon").lon;
+
+let tithi=Math.floor(((moon-sun+360)%360)/12)+1;
+let nak=Math.floor(moon/13.33)+1;
+
+document.getElementById("panchang").innerHTML=`
+<div class="box">Tithi<br><b>${tithi}</b></div>
+<div class="box">Nakshatra<br><b>${nak}</b></div>
+`;
+
+}
+
+// ---------- TABLE ----------
+
+function renderTable(p){
+
+let html="<tr><th>Planet</th><th>Degree</th></tr>";
+
+p.forEach(x=>{
+html+=`<tr><td>${x.name}</td><td>${x.lon.toFixed(2)}</td></tr>`;
+});
+
+document.getElementById("table").innerHTML=html;
+
+}
+
+// ---------- CHART ----------
+
+function drawChart(p){
+
+let svg=`<svg viewBox="0 0 300 300">`;
+
+svg+=`<rect x="0" y="0" width="300" height="300" fill="none" stroke="black"/>`;
+
+p.forEach((x,i)=>{
+svg+=`<text x="${50+i*20}" y="150">${x.name}</text>`;
+});
+
+svg+="</svg>";
+
+document.getElementById("chartBox").innerHTML=svg;
+
+}
+
+// ---------- DASHA ----------
+
+function calcDasha(moon,m){
+
+let html="";
+
+for(let i=0;i<5;i++){
+html+=`<p>Dasha ${i+1} Year ${m.year()+i}</p>`;
+}
+
+document.getElementById("dashaBox").innerHTML=html;
+
+}
+
+// ---------- TABS ----------
+
+function tab(id){
+
+document.querySelectorAll(".tabc").forEach(x=>x.style.display="none");
+document.getElementById(id).style.display="block";
+
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+event.target.classList.add("active");
+
+}
+
 </script>
 
 </body>
