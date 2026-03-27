@@ -108,7 +108,7 @@ async function generate() {
     };
 
     try {
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/mysite/calculate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
