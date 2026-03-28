@@ -38,7 +38,7 @@
     <script>
         window.onload = async () => {
             const k = JSON.parse(localStorage.getItem('astroData'));
-            const res = await fetch('https://hemantpurohit27.pythonanywhere.com/mysite/calculate', {
+            const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
             });
             const data = await res.json();
