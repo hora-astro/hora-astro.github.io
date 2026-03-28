@@ -3,158 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vedic Astrology Software | कुंडली सॉफ्टवेयर</title>
+    <title>Fortune Pro - ज्योतिष इनपुट</title>
     <style>
-        :root {
-            --primary: #b8860b;
-            --secondary: #5d4037;
-            --bg: #fdfaf5;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; border: 2px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--secondary); border-bottom: 2px double var(--primary); padding-bottom: 10px; margin-bottom: 25px; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--secondary); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; transition: border 0.3s; }
-        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(184, 134, 11, 0.3); }
-        
-        /* Location Search Styles */
-        #locSearch { background: #fff; position: relative; }
-        #results { 
-            border: 1px solid #ddd; 
-            background: white; 
-            max-height: 200px; 
-            overflow-y: auto; 
-            position: absolute; 
-            width: calc(100% - 60px); 
-            z-index: 100; 
-            border-radius: 0 0 6px 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        #results div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-        #results div:hover { background: #fdf2d9; }
-        
-        .coord-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 15px; }
-        
-        button { 
-            width: 100%; 
-            background: var(--primary); 
-            color: white; 
-            padding: 15px; 
-            border: none; 
-            border-radius: 6px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: background 0.3s, transform 0.2s;
-            margin-top: 10px;
-        }
-        button:hover { background: #966d09; transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
-        
-        .footer-note { text-align: center; font-size: 12px; color: #777; margin-top: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fff8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 8px solid #800000; }
+        h2 { color: #800000; text-align: center; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #800000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #5a0000; }
+        #city-list { position: absolute; background: white; border: 1px solid #ddd; width: 100%; z-index: 10; display: none; }
+        .city-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>॥ श्री ज्योतिष सॉफ्टवेयर ॥</h2>
-    
-    <form action="/generate_report" method="post">
-        <div class="form-group">
-            <label>जातक का नाम</label>
-            <input type="text" name="name" placeholder="नाम लिखें..." required>
+    <div class="card">
+        <h2>☸ Fortune Pro</h2>
+        <input type="text" id="name" placeholder="जातक का नाम">
+        <input type="date" id="date">
+        <input type="time" id="time">
+        <div style="position:relative;">
+            <input type="text" id="city" placeholder="शहर खोजें..." oninput="searchCity(this.value)">
+            <div id="city-list"></div>
         </div>
-        
-        <div class="form-group" style="display: flex; gap: 15px;">
-            <div style="flex: 1;">
-                <label>जन्म तिथि</label>
-                <input type="date" name="dob" required>
-            </div>
-            <div style="flex: 1;">
-                <label>जन्म समय</label>
-                <input type="time" name="tob" step="1" required>
-            </div>
-        </div>
+        <input type="hidden" id="lat"><input type="hidden" id="lon">
+        <button onclick="submitData()">कुंडली विश्लेषण</button>
+    </div>
 
-        <div class="form-group" style="position: relative;">
-            <label>जन्म स्थान (शहर खोजें)</label>
-            <input type="text" id="locSearch" placeholder="शहर का नाम लिखें (e.g. Jaipur, Delhi)..." onkeyup="searchLoc(this.value)" autocomplete="off">
-            <div id="results"></div>
-        </div>
-
-        <div class="coord-grid">
-            <div>
-                <label>अक्षांश (Lat)</label>
-                <input type="text" name="lat" id="lat" placeholder="26.9124" step="any" required>
-            </div>
-            <div>
-                <label>देशांतर (Lon)</label>
-                <input type="text" name="lon" id="lon" placeholder="75.7873" step="any" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>अयनांश पद्धति</label>
-            <select name="ayanamsha">
-                <option value="LAHIRI">N.C. Lahiri (Chitra Paksha)</option>
-                <option value="KP">K.P. (Khullar/True)</option>
-                <option value="BV_RAMAN">B.V. Raman</option>
-            </select>
-        </div>
-
-        <button type="submit">कुंडली जनरेट करें</button>
-    </form>
-    
-    <p class="footer-note">नोट: अक्षांश और देशांतर शहर चुनने पर स्वतः भर जाएंगे, आप इन्हें मैन्युअली भी बदल सकते हैं।</p>
-</div>
-
-<script>
-    let searchTimeout;
-
-    function searchLoc(val) {
-        clearTimeout(searchTimeout);
-        if (val.length < 3) {
-            document.getElementById('results').innerHTML = "";
-            return;
+    <script>
+        async function searchCity(q) {
+            if(q.length < 3) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await res.json();
+            let html = "";
+            data.slice(0,5).forEach(c => {
+                html += `<div class="city-item" onclick="setCity('${c.display_name}',${c.lat},${c.lon})">${c.display_name}</div>`;
+            });
+            document.getElementById('city-list').innerHTML = html;
+            document.getElementById('city-list').style.display = 'block';
         }
-
-        // API पर लोड कम करने के लिए Debounce
-        searchTimeout = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}&addressdetails=1&limit=5`)
-                .then(response => response.json())
-                .then(data => {
-                    let resDiv = document.getElementById('results');
-                    resDiv.innerHTML = "";
-                    
-                    data.forEach(item => {
-                        let div = document.createElement('div');
-                        // शहर और राज्य का नाम दिखाएं
-                        let displayName = item.display_name.split(',').slice(0, 3).join(',');
-                        div.innerHTML = `📍 ${displayName}`;
-                        
-                        div.onclick = () => {
-                            // अक्षांश और देशांतर भरें
-                            document.getElementById('lat').value = parseFloat(item.lat).toFixed(4);
-                            document.getElementById('lon').value = parseFloat(item.lon).toFixed(4);
-                            document.getElementById('locSearch').value = displayName;
-                            resDiv.innerHTML = "";
-                        };
-                        resDiv.appendChild(div);
-                    });
-                })
-                .catch(error => console.log("Location Error:", error));
-        }, 500);
-    }
-
-    // बाहर क्लिक करने पर सर्च रिजल्ट्स छुपाएं
-    document.addEventListener('click', function(e) {
-        if (e.target.id !== 'locSearch') {
-            document.getElementById('results').innerHTML = "";
+        function setCity(n, lt, ln) {
+            document.getElementById('city').value = n;
+            document.getElementById('lat').value = lt;
+            document.getElementById('lon').value = ln;
+            document.getElementById('city-list').style.display = 'none';
         }
-    });
-</script>
-
+        function submitData() {
+            const d = { custName: document.getElementById('name').value, date: document.getElementById('date').value, time: document.getElementById('time').value, lat: document.getElementById('lat').value, lon: document.getElementById('lon').value, city: document.getElementById('city').value };
+            localStorage.setItem('astroData', JSON.stringify(d));
+            window.location.href = "report.html";
+        }
+    </script>
 </body>
 </html>
