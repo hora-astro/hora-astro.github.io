@@ -43,7 +43,7 @@
     <script>
         window.onload = async () => {
             const k = JSON.parse(localStorage.getItem('kData'));
-            const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+            const res = await fetch('https://hemantpurohit27.pythonanywhere.com/mysite/calculate', {
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
             });
             const data = await res.json();
