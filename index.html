@@ -71,7 +71,7 @@ async function generate() {
         lon: document.getElementById('lon').value
     };
     try {
-        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/calculate', {
+        const res = await fetch('https://hemantpurohit27.pythonanywhere.com/mysite/calculate', {
             method: 'POST',
             mode: 'cors',
             headers: {'Content-Type': 'application/json'},
