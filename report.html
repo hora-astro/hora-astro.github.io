@@ -2,99 +2,75 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>{{ name }} - Kundli Report</title>
+    <title>ज्योतिषीय रिपोर्ट</title>
     <style>
-        body { font-family: 'Segoe UI', Arial; background: #f8f9fa; padding: 15px; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border: 2px solid #b8860b; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .header { text-align: center; border-bottom: 3px double #b8860b; margin-bottom: 20px; }
-        .panchang { display: flex; justify-content: space-around; background: #fffcf0; padding: 10px; border: 1px solid #d4af37; font-weight: bold; margin-bottom: 20px; }
-        .chart-row { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .chart-container { border: 2px solid #5d4037; padding: 10px; width: 48%; text-align: center; }
-        svg { width: 100%; max-width: 450px; height: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background: #5d4037; color: white; }
-        .dasha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .dasha-card { border: 1px solid #d4af37; border-radius: 4px; overflow: hidden; background: #fffdf5; }
-        .dasha-head { background: #b8860b; color: white; padding: 4px; font-weight: bold; font-size: 13px; }
-        .sub-table { font-size: 10px; width: 100%; }
-        .no-print { text-align: center; margin-top: 20px; }
-        .btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; }
-        @media print { .no-print { display: none; } .container { border: none; box-shadow: none; } }
+        body { font-family: 'Segoe UI', sans-serif; background: #fafafa; padding: 20px; }
+        .container { background: white; max-width: 900px; margin: auto; padding: 40px; border: 1px solid #ddd; border-top: 10px solid #800000; }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+        .chart-box { border: 2px solid #800000; padding: 15px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background: #800000; color: white; }
+        .print-btn { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
+        @media print { .print-btn { display: none; } }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>॥ निर्यण जन्म कुण्डली ॥</h1>
-        <p><b>नाम:</b> {{ name }} | <b>जन्म तिथि:</b> {{ dob }} | <b>समय:</b> {{ tob }}</p>
-    </div>
+    <div class="container">
+        <button class="print-btn" onclick="window.print()">🖨 प्रिंट रिपोर्ट</button>
+        <h1 style="text-align:center; color:#800000;">॥ वृहद कुंडली रिपोर्ट ॥</h1>
+        <div id="p-info" style="text-align:center; font-weight:bold; margin-bottom:20px;"></div>
 
-    <div class="panchang">
-        <span>इष्टकाल: {{ isht }}</span>
-        <span>लग्न: {{ lagna }}</span>
-    </div>
-
-    <div class="chart-row">
-        <div class="chart-container">
-            <h3>लग्न कुंडली (D-1)</h3>
-            <svg viewBox="0 0 400 400">
-                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
-                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
-                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
-                {% set sc = {1:[200,165], 2:[110,75], 3:[75,110], 4:[165,200], 5:[75,290], 6:[110,325], 7:[200,235], 8:[290,325], 9:[325,290], 10:[235,200], 11:[325,110], 12:[290,75]} %}
-                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#888" text-anchor="middle">{{ ((lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
-                {% set pc = {1:[200,130], 2:[80,60], 3:[60,90], 4:[120,210], 5:[60,310], 6:[80,350], 7:[200,280], 8:[320,350], 9:[340,310], 10:[280,210], 11:[340,90], 12:[320,60]} %}
-                {% for house_planets in d1 %}
-                    {% set outer = loop.index %}<text x="{{ pc[outer][0] }}" y="{{ pc[outer][1] }}" text-anchor="middle">
-                        {% for p in house_planets %}<tspan x="{{ pc[outer][0] }}" dy="16" font-weight="bold" font-size="14">{{ p.n }}</tspan>{% endfor %}</text>
-                {% endfor %}
-            </svg>
+        <div class="charts">
+            <div class="chart-box"><b>लग्न कुंडली (D1)</b><div id="d1"></div></div>
+            <div class="chart-box"><b>नवांश कुंडली (D9)</b><div id="d9"></div></div>
         </div>
-        <div class="chart-container">
-            <h3>नवांश कुंडली (D-9)</h3>
-            <svg viewBox="0 0 400 400">
-                <rect width="400" height="400" fill="none" stroke="black" stroke-width="2"/>
-                <line x1="0" y1="0" x2="400" y2="400" stroke="black"/><line x1="400" y1="0" x2="0" y2="400" stroke="black"/>
-                <path d="M200 0 L0 200 L200 400 L400 200 Z" fill="none" stroke="black"/>
-                {% for i in range(1, 13) %}<text x="{{ sc[i][0] }}" y="{{ sc[i][1] }}" font-size="20" fill="#888" text-anchor="middle">{{ ((d9_lagna + i - 2) % 12) + 1 }}</text>{% endfor %}
-                {% for house_planets in d9 %}
-                    {% set outer9 = loop.index %}<text x="{{ pc[outer9][0] }}" y="{{ pc[outer9][1] }}" text-anchor="middle">
-                        {% for p in house_planets %}<tspan x="{{ pc[outer9][0] }}" dy="16" font-weight="bold" font-size="14">{{ p.n }}</tspan>{% endfor %}</text>
-                {% endfor %}
-            </svg>
-        </div>
+
+        <table>
+            <thead><tr><th>ग्रह</th><th>डिग्री</th><th>नक्षत्र</th><th>भाव (D1)</th></tr></thead>
+            <tbody id="tbody"></tbody>
+        </table>
+
+        <h3>📅 विंशोत्तरी महादशा (आगामी)</h3>
+        <table id="dasha-table"><tr><th>स्वामी</th><th>समाप्ति तिथि</th></tr></table>
     </div>
 
-    <h3>ग्रह स्पष्ट एवं अवस्था</h3>
-    <table>
-        <tr><th>ग्रह</th><th>राशि</th><th>अंश</th><th>नक्षत्र (चरण)</th><th>अवस्था</th></tr>
-        {% for p in planets %}
-        <tr><td>{{ p.name }}</td><td>{{ p.sign }}</td><td>{{ p.deg }}</td><td>{{ p.nak.name }} ({{ p.nak.pada }})</td><td>{{ p.avstha }}</td></tr>
-        {% endfor %}
-    </table>
+    <script>
+        window.onload = async () => {
+            const k = JSON.parse(localStorage.getItem('astroData'));
+            const res = await fetch('https://hemantpurohit27.pythonanywhere.com/mysite/calculate', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(k)
+            });
+            const data = await res.json();
+            
+            document.getElementById('p-info').innerText = `नाम: ${data.name} | दिनांक: ${k.date} | स्थान: ${k.city.split(',')[0]}`;
+            
+            let h = "", ds = "";
+            data.planets.forEach(p => {
+                h += `<tr><td>${p.name}</td><td>${p.deg}</td><td>${p.naks}</td><td>${p.h}</td></tr>`;
+            });
+            data.dasha.forEach(d => {
+                ds += `<tr><td>${d.l}</td><td>${d.ed}</td></tr>`;
+            });
+            
+            document.getElementById('tbody').innerHTML = h;
+            document.getElementById('dasha-table').innerHTML += ds;
 
-    <h3>भाव स्पष्ट विवरण</h3>
-    <table>
-        <tr>{% for i in range(1, 7) %}<th>भाव {{ i }}</th>{% endfor %}</tr>
-        <tr>{% for h in houses[:6] %}<td>{{ h }}</td>{% endfor %}</tr>
-        <tr>{% for i in range(7, 13) %}<th>भाव {{ i }}</th>{% endfor %}</tr>
-        <tr>{% for h in houses[6:] %}<td>{{ h }}</td>{% endfor %}</tr>
-    </table>
+            drawChart('d1', data.l1, data.planets, 'h');
+            drawChart('d9', data.l9, data.planets, 'd9_h');
+        };
 
-    <h3>विंशोत्तरी महादशा / अंतर्दशा</h3>
-    <div class="dasha-grid">
-        {% for m in dasha %}
-        <div class="dasha-card">
-            <div class="dasha-head">{{ m.main }} ({{ m.start }}-{{ m.end }})</div>
-            <table class="sub-table">
-                {% for s in m.subs %}<tr><td>{{ s.p }}</td><td style="text-align:right;">{{ s.date }}</td></tr>{% endfor %}
-            </table>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="no-print"><button class="btn" onclick="window.print()">रिपोर्ट प्रिंट करें</button></div>
-</div>
+        function drawChart(id, asc, planets, key) {
+            const pos = {1:[100,65], 2:[50,35], 3:[20,65], 4:[60,105], 5:[20,145], 6:[50,180], 7:[100,145], 8:[150,180], 9:[185,145], 10:[145,105], 11:[185,65], 12:[150,35]};
+            let svg = `<svg viewBox="0 0 200 200" width="100%"><path d="M0 0 L200 0 L200 200 L0 200 Z M0 0 L200 200 M200 0 L0 200 M100 0 L0 100 L100 200 L200 100 Z" fill="none" stroke="maroon" stroke-width="1.5"/>`;
+            for(let i=1; i<=12; i++) {
+                let r = (asc + i - 2) % 12 + 1;
+                svg += `<text x="${pos[i][0]}" y="${pos[i][1]}" font-size="12" fill="maroon" text-anchor="middle" font-weight="bold">${r}</text>`;
+                let pNames = planets.filter(p => p[key]==i).map(p => p.name.substring(0,2)).join(' ');
+                svg += `<text x="${pos[i][0]}" y="${pos[i][1]+12}" font-size="8" text-anchor="middle" fill="#333">${pNames}</text>`;
+            }
+            document.getElementById(id).innerHTML = svg + `</svg>`;
+        }
+    </script>
 </body>
 </html>
